@@ -13,21 +13,23 @@ interface RecordingData {
 export const useRecorder = () => {
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [recordedData, setRecordedData] = useState<RecordingData | null>(null);
+  const [displayWebcamStream, setDisplayWebcamStream] = useState<MediaStream | null>(null); // State for display webcam
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
   const screenStreamRef = useRef<MediaStream | null>(null);
   const recordingWebcamStreamRef = useRef<MediaStream | null>(null); // Webcam stream specifically for recording
-  const displayWebcamStreamRef = useRef<MediaStream | null>(null); // Webcam stream specifically for display
   const startTimeRef = useRef<number>(0);
 
   const stopAllStreams = useCallback(() => {
+    // Stop MediaRecorder if active
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop(); // This will trigger onstop, which handles screenStreamRef and recordingWebcamStreamRef
     }
 
-    // Explicitly stop display webcam stream if it's active
-    displayWebcamStreamRef.current?.getTracks().forEach(track => track.stop());
-    displayWebcamStreamRef.current = null;
+    // Explicitly stop display webcam stream
+    displayWebcamStream?.getTracks().forEach(track => track.stop());
+    setDisplayWebcamStream(null); // Clear state
 
     // Ensure recording streams are also stopped if not already by onstop
     screenStreamRef.current?.getTracks().forEach(track => track.stop());
@@ -36,32 +38,30 @@ export const useRecorder = () => {
     recordingWebcamStreamRef.current = null;
 
     setIsRecording(false);
-  }, [isRecording]);
+  }, [isRecording, displayWebcamStream]); // Add displayWebcamStream to dependencies
 
-  const startRecording = useCallback(async () => {
+  const startRecording = useCallback(async (): Promise<boolean> => {
     try {
-      // Request screen and system audio
+      // 1. Request display webcam stream (video only) for UI preview
+      const newDisplayWebcamStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: false, // Only video for display
+      });
+      setDisplayWebcamStream(newDisplayWebcamStream);
+
+      // 2. Request screen and system audio
       const screenStream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
         audio: true,
       });
       screenStreamRef.current = screenStream;
 
-      // Request webcam and microphone audio for recording
+      // 3. Request webcam and microphone audio for recording
       const recordingWebcamStream = await navigator.mediaDevices.getUserMedia({
         video: true,
         audio: true,
       });
       recordingWebcamStreamRef.current = recordingWebcamStream;
-
-      // If display webcam is not yet active, start it (video only)
-      if (!displayWebcamStreamRef.current) {
-        const displayWebcamStream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: false, // Only video for display
-        });
-        displayWebcamStreamRef.current = displayWebcamStream;
-      }
 
       // Combine audio tracks: system audio + microphone audio from recording webcam
       const audioContext = new AudioContext();
@@ -128,14 +128,15 @@ export const useRecorder = () => {
       startTimeRef.current = Date.now();
       setIsRecording(true);
       showSuccess("Recording started!");
+      return true; // Successfully started recording
     } catch (err) {
       console.error("Error starting recording:", err);
       showError("Failed to start recording. Please check camera/microphone/screen permissions.");
       setIsRecording(false);
-      // Ensure all streams are stopped if an error occurs during setup
-      stopAllStreams(); // Use the comprehensive stop function
+      stopAllStreams(); // Ensure all streams are stopped if an error occurs during setup
+      return false; // Failed to start recording
     }
-  }, [stopAllStreams]); // Dependency on stopAllStreams
+  }, [stopAllStreams]); // Added stopAllStreams to dependencies
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && isRecording) {
@@ -158,10 +159,10 @@ export const useRecorder = () => {
   return {
     isRecording,
     startRecording,
-    stopRecording, // This will only stop the MediaRecorder, not the display webcam
-    stopAllStreams, // New function to stop everything
+    stopRecording,
+    stopAllStreams,
     recordedData,
-    webcamStream: displayWebcamStreamRef.current, // Return the display-only webcam stream
+    webcamStream: displayWebcamStream, // Return the state variable
     resetRecordedData,
   };
 };

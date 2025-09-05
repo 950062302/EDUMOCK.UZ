@@ -57,11 +57,9 @@ const MockTest: React.FC = () => {
       return;
     }
 
-    await startRecording();
-    // Check if recording actually started successfully (webcamStream should be available)
-    if (!webcamStream) {
-        showError("Failed to start webcam for recording. Please ensure camera permissions are granted.");
-        stopAllStreams(); // Clean up any partial streams
+    const recordingStartedSuccessfully = await startRecording(); // Await the boolean result
+    if (!recordingStartedSuccessfully) {
+        // Error message already shown by useRecorder, just return
         return;
     }
 
