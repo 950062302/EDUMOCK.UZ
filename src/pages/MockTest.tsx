@@ -160,8 +160,6 @@ const MockTest: React.FC = () => {
         break;
       }
       default:
-        // This default case should ideally not be reached if all SpeakingQuestion types are handled.
-        // Casting to 'any' to allow access to 'type' for logging purposes.
         console.warn("Unknown question type encountered:", (currentQ as any).type); 
         advanceTest(); // Try to move to next anyway
     }
@@ -332,7 +330,7 @@ const MockTest: React.FC = () => {
             <h3 className="text-xl font-semibold text-muted-foreground">
               {currentPartName} - Rasm {currentQuestionIndex + 1}
             </h3>
-            <img src={part1_1Q.imageUrl} alt="Question image" className="max-h-64 object-contain mx-auto mb-4 rounded-lg shadow-md" />
+            {part1_1Q.imageUrl && <img src={part1_1Q.imageUrl} alt="Question image" className="max-h-64 object-contain mx-auto mb-4 rounded-lg shadow-md" />}
             <p className="text-5xl font-bold text-primary mb-4">{countdown}</p>
             <div className="min-h-[100px] flex flex-col items-center justify-center p-4 border rounded-md bg-secondary text-foreground">
               <p className="text-xl font-medium mb-2">Savol {currentSubQuestionIndex + 1}:</p>
@@ -347,7 +345,7 @@ const MockTest: React.FC = () => {
             <h3 className="text-xl font-semibold text-muted-foreground">
               {currentPartName} - Savol {currentQuestionIndex + 1}
             </h3>
-            <img src={part2Q.imageUrl} alt="Question image" className="max-h-64 object-contain mx-auto mb-4 rounded-lg shadow-md" />
+            {part2Q.imageUrl && <img src={part2Q.imageUrl} alt="Question image" className="max-h-64 object-contain mx-auto mb-4 rounded-lg shadow-md" />}
             <p className="text-5xl font-bold text-primary mb-4">
               {currentPhase === "preparation" ? `Tayyorgarlik: ${countdown}` : `Javob: ${countdown}`}
             </p>
@@ -369,7 +367,7 @@ const MockTest: React.FC = () => {
             <p className="text-2xl font-medium text-foreground min-h-[100px] flex items-center justify-center p-4 border rounded-md bg-secondary mb-4">
               {part3Q.question}
             </p>
-            <img src={part3Q.imageUrl} alt="Question image" className="max-h-64 object-contain mx-auto rounded-lg shadow-md" />
+            {part3Q.imageUrl && <img src={part3Q.imageUrl} alt="Question image" className="max-h-64 object-contain mx-auto rounded-lg shadow-md" />}
           </div>
         );
       default:
