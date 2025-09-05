@@ -7,6 +7,7 @@
  */
 export const speakText = (text: string, lang: string = 'en-US') => {
   if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel(); // Har qanday avvalgi nutqni bekor qilish
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = lang;
     utterance.rate = 0.9; // Nutq tezligi

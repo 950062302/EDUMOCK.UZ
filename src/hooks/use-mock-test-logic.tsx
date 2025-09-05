@@ -398,7 +398,7 @@ export const useMockTestLogic = ({
         console.warn("Speaking useEffect: currentQ is undefined, cannot speak question.");
       }
     }
-  }, [isTestStarted, currentPhase, currentSubQuestionIndex, currentPartIndex, questions]);
+  }, [isTestStarted, currentPhase, currentSubQuestionIndex, currentPartIndex, currentQuestionIndex, questions]);
 
 
   const handleStartTestClick = () => {
