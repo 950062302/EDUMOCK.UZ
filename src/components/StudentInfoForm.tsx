@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -21,10 +21,17 @@ interface StudentInfoFormProps {
 }
 
 const StudentInfoForm: React.FC<StudentInfoFormProps> = ({ isOpen, onClose, onSave }) => {
-  console.log("StudentInfoForm: isOpen prop received:", isOpen); // NEW LOG
+  console.log("StudentInfoForm: Component rendered. isOpen:", isOpen);
   const [studentId, setStudentId] = useState<string>("");
   const [studentName, setStudentName] = useState<string>("");
   const [studentPhone, setStudentPhone] = useState<string>("");
+
+  useEffect(() => {
+    console.log("StudentInfoForm: isOpen prop changed to:", isOpen);
+    if (isOpen) {
+      console.log("StudentInfoForm: Dialog should be visible now.");
+    }
+  }, [isOpen]);
 
   const handleSubmit = () => {
     if (!studentId.trim() || !studentName.trim() || !studentPhone.trim()) {
