@@ -58,7 +58,11 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
           <h3 className="text-xl font-semibold text-muted-foreground">
             {currentPartName} - Rasm {currentQuestionIndex + 1}
           </h3>
-          {part1_1Q.imageUrl && <img src={part1_1Q.imageUrl} alt="Question image" className="max-h-64 object-contain mx-auto mb-4 rounded-lg shadow-md" />}
+          <div className="flex justify-center gap-4 mb-4"> {/* Display two images */}
+            {part1_1Q.imageUrls.map((url, idx) => (
+              <img key={idx} src={url} alt={`Question image ${idx + 1}`} className="max-h-64 object-contain rounded-lg shadow-md" />
+            ))}
+          </div>
           <p className="text-5xl font-bold text-primary mb-4">{countdown}</p>
           <div className="min-h-[100px] flex flex-col items-center justify-center p-4 border rounded-md bg-secondary text-foreground">
             <p className="text-xl font-medium mb-2">Savol {currentSubQuestionIndex + 1}:</p>
@@ -73,7 +77,11 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
           <h3 className="text-xl font-semibold text-muted-foreground">
             {currentPartName} - Savol {currentQuestionIndex + 1}
           </h3>
-          {part2Q.imageUrl && <img src={part2Q.imageUrl} alt="Question image" className="max-h-64 object-contain mx-auto mb-4 rounded-lg shadow-md" />}
+          <div className="flex justify-center gap-4 mb-4"> {/* Display two images */}
+            {part2Q.imageUrls.map((url, idx) => (
+              <img key={idx} src={url} alt={`Question image ${idx + 1}`} className="max-h-64 object-contain rounded-lg shadow-md" />
+            ))}
+          </div>
           <p className="text-5xl font-bold text-primary mb-4">
             {currentPhase === "preparation" ? `Tayyorgarlik: ${countdown}` : `Javob: ${countdown}`}
           </p>
@@ -95,7 +103,11 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
           <p className="text-2xl font-medium text-foreground min-h-[100px] flex items-center justify-center p-4 border rounded-md bg-secondary mb-4">
             {part3Q.question}
           </p>
-          {part3Q.imageUrl && <img src={part3Q.imageUrl} alt="Question image" className="max-h-64 object-contain mx-auto rounded-lg shadow-md" />}
+          <div className="flex justify-center gap-4"> {/* Display two images */}
+            {part3Q.imageUrls.map((url, idx) => (
+              <img key={idx} src={url} alt={`Question image ${idx + 1}`} className="max-h-64 object-contain rounded-lg shadow-md" />
+            ))}
+          </div>
         </div>
       );
     default:

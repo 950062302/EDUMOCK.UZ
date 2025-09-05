@@ -14,20 +14,20 @@ export interface Part1Question extends BaseSpeakingQuestion {
 
 export interface Part1_1Question extends BaseSpeakingQuestion {
   type: "part1.1";
-  imageUrl: string;
+  imageUrls: string[]; // Changed from imageUrl to imageUrls
   subQuestions: string[]; // 3 questions per image
 }
 
 export interface Part2Question extends BaseSpeakingQuestion {
   type: "part2";
-  imageUrl: string;
+  imageUrls: string[]; // Changed from imageUrl to imageUrls
   question: string;
 }
 
 export interface Part3Question extends BaseSpeakingQuestion {
   type: "part3";
   question: string;
-  imageUrl: string;
+  imageUrls: string[]; // Changed from imageUrl to imageUrls
 }
 
 export type SpeakingQuestion = Part1Question | Part1_1Question | Part2Question | Part3Question;

@@ -44,7 +44,11 @@ const Tests: React.FC = () => {
         const part1_1Q = q as Part1_1Question;
         return (
           <div className="flex flex-col sm:flex-row sm:items-center flex-grow mb-2 sm:mb-0 sm:mr-4">
-            {part1_1Q.imageUrl && <img src={part1_1Q.imageUrl} alt="Question image" className="max-h-16 object-contain mr-4 mb-2 sm:mb-0 rounded-md" />}
+            <div className="flex gap-2 mr-4 mb-2 sm:mb-0">
+              {part1_1Q.imageUrls.map((url, idx) => (
+                <img key={idx} src={url} alt={`Question image ${idx + 1}`} className="max-h-16 object-contain rounded-md" />
+              ))}
+            </div>
             <div className="flex flex-col">
               <p className="text-sm font-semibold">Savollar:</p>
               <ul className="list-disc list-inside text-xs">
@@ -59,7 +63,11 @@ const Tests: React.FC = () => {
         const part2Q = q as Part2Question;
         return (
           <div className="flex flex-col sm:flex-row sm:items-center flex-grow mb-2 sm:mb-0 sm:mr-4">
-            {part2Q.imageUrl && <img src={part2Q.imageUrl} alt="Question image" className="max-h-16 object-contain mr-4 mb-2 sm:mb-0 rounded-md" />}
+            <div className="flex gap-2 mr-4 mb-2 sm:mb-0">
+              {part2Q.imageUrls.map((url, idx) => (
+                <img key={idx} src={url} alt={`Question image ${idx + 1}`} className="max-h-16 object-contain rounded-md" />
+              ))}
+            </div>
             <p className="text-sm">{part2Q.question}</p>
           </div>
         );
@@ -68,7 +76,11 @@ const Tests: React.FC = () => {
         return (
           <div className="flex flex-col sm:flex-row sm:items-center flex-grow mb-2 sm:mb-0 sm:mr-4">
             <p className="text-sm mr-4">{part3Q.question}</p>
-            {part3Q.imageUrl && <img src={part3Q.imageUrl} alt="Question image" className="max-h-16 object-contain rounded-md" />}
+            <div className="flex gap-2">
+              {part3Q.imageUrls.map((url, idx) => (
+                <img key={idx} src={url} alt={`Question image ${idx + 1}`} className="max-h-16 object-contain rounded-md" />
+              ))}
+            </div>
           </div>
         );
       default:

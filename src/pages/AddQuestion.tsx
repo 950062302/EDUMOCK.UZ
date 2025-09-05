@@ -27,8 +27,8 @@ import { fileToBase64 } from "@/utils/imageUtils"; // Import the new utility fun
 const SpeakingQuestionManager: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<SpeakingPart>("Part 1");
   const [questionText, setQuestionText] = useState<string>("");
-  const [imageFile, setImageFile] = useState<File | null>(null); // State for the actual file object
-  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null); // State for Base64 URL for preview
+  const [imageFiles, setImageFiles] = useState<File[]>([]); // Changed to array
+  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]); // Changed to array
   const [subQuestionsText, setSubQuestionsText] = useState<string>("");
 
   const [questions, setQuestions] = useState<Record<SpeakingPart, SpeakingQuestion[]>>({
@@ -62,31 +62,50 @@ const SpeakingQuestionManager: React.FC = () => {
     });
   }, [questions]);
 
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setImageFile(file);
+      const newImageFiles = [...imageFiles];
+      newImageFiles[index] = file;
+      setImageFiles(newImageFiles);
+
       try {
         const base64 = await fileToBase64(file);
-        setImagePreviewUrl(base64);
+        const newImagePreviewUrls = [...imagePreviewUrls];
+        newImagePreviewUrls[index] = base64;
+        setImagePreviewUrls(newImagePreviewUrls);
       } catch (error) {
         console.error("Error converting file to Base64:", error);
         showError("Rasmni yuklashda xatolik yuz berdi.");
-        setImagePreviewUrl(null);
+        const newImagePreviewUrls = [...imagePreviewUrls];
+        newImagePreviewUrls[index] = ""; // Clear preview on error
+        setImagePreviewUrls(newImagePreviewUrls);
       }
     } else {
-      setImageFile(null);
-      setImagePreviewUrl(null);
+      const newImageFiles = [...imageFiles];
+      newImageFiles[index] = undefined; // Clear file
+      setImageFiles(newImageFiles.filter(Boolean) as File[]); // Remove undefined
+      const newImagePreviewUrls = [...imagePreviewUrls];
+      newImagePreviewUrls[index] = ""; // Clear preview
+      setImagePreviewUrls(newImagePreviewUrls.filter(Boolean)); // Remove empty strings
     }
   };
 
+  // Reset image states when tab changes
+  useEffect(() => {
+    setImageFiles([]);
+    setImagePreviewUrls([]);
+  }, [currentTab]);
+
+
   const handleAddQuestion = async (part: SpeakingPart) => {
-    let base64Image: string | null = null;
-    if (imageFile) {
+    let base64Images: string[] = [];
+    const validImageFiles = imageFiles.filter(Boolean); // Filter out any null/undefined entries
+    if (validImageFiles.length > 0) {
       try {
-        base64Image = await fileToBase64(imageFile);
+        base64Images = await Promise.all(validImageFiles.map(file => fileToBase64(file)));
       } catch (error) {
-        showError("Rasmni qayta ishlashda xatolik yuz berdi.");
+        showError("Rasmlarni qayta ishlashda xatolik yuz berdi.");
         return;
       }
     }
@@ -109,8 +128,8 @@ const SpeakingQuestionManager: React.FC = () => {
       setQuestionText("");
       showSuccess(`Savol ${part} ga qo'shildi!`);
     } else if (part === "Part 1.1") {
-      if (!base64Image) {
-        showError("Rasm yuklanmagan.");
+      if (base64Images.length < 2) { // Now requires two images
+        showError("Kamida ikkita rasm yuklanmagan.");
         return;
       }
       const subQ = subQuestionsText.split('\n').map(q => q.trim()).filter(q => q.length > 0);
@@ -121,7 +140,7 @@ const SpeakingQuestionManager: React.FC = () => {
       const newQuestion: Part1_1Question = {
         id: uuidv4(),
         type: "part1.1",
-        imageUrl: base64Image, // Store Base64 string
+        imageUrls: base64Images, // Store array
         subQuestions: subQ,
         date: new Date().toISOString(),
       };
@@ -129,19 +148,19 @@ const SpeakingQuestionManager: React.FC = () => {
         ...prev,
         [part]: [newQuestion, ...prev[part]],
       }));
-      setImageFile(null);
-      setImagePreviewUrl(null);
+      setImageFiles([]);
+      setImagePreviewUrls([]);
       setSubQuestionsText("");
       showSuccess(`Savol ${part} ga qo'shildi!`);
     } else if (part === "Part 2") {
-      if (!base64Image || !questionText.trim()) {
-        showError("Rasm va savol matni bo'sh bo'lishi mumkin emas.");
+      if (base64Images.length < 2 || !questionText.trim()) { // Now requires two images
+        showError("Kamida ikkita rasm va savol matni bo'sh bo'lishi mumkin emas.");
         return;
       }
       const newQuestion: Part2Question = {
         id: uuidv4(),
         type: "part2",
-        imageUrl: base64Image, // Store Base64 string
+        imageUrls: base64Images, // Store array
         question: questionText.trim(),
         date: new Date().toISOString(),
       };
@@ -149,20 +168,20 @@ const SpeakingQuestionManager: React.FC = () => {
         ...prev,
         [part]: [newQuestion, ...prev[part]],
       }));
-      setImageFile(null);
-      setImagePreviewUrl(null);
+      setImageFiles([]);
+      setImagePreviewUrls([]);
       setQuestionText("");
       showSuccess(`Savol ${part} ga qo'shildi!`);
     } else if (part === "Part 3") {
-      if (!questionText.trim() || !base64Image) {
-        showError("Savol matni va rasm bo'sh bo'lishi mumkin emas.");
+      if (base64Images.length < 2 || !questionText.trim()) { // Now requires two images
+        showError("Savol matni va kamida ikkita rasm bo'sh bo'lishi mumkin emas.");
         return;
       }
       const newQuestion: Part3Question = {
         id: uuidv4(),
         type: "part3",
         question: questionText.trim(),
-        imageUrl: base64Image, // Store Base64 string
+        imageUrls: base64Images, // Store array
         date: new Date().toISOString(),
       };
       setQuestions(prev => ({
@@ -170,8 +189,8 @@ const SpeakingQuestionManager: React.FC = () => {
         [part]: [newQuestion, ...prev[part]],
       }));
       setQuestionText("");
-      setImageFile(null);
-      setImagePreviewUrl(null);
+      setImageFiles([]);
+      setImagePreviewUrls([]);
       showSuccess(`Savol ${part} ga qo'shildi!`);
     }
   };
@@ -189,21 +208,26 @@ const SpeakingQuestionManager: React.FC = () => {
     return (
       <>
         {isImagePart && (
-          <div className="space-y-2 mb-4">
-            <Label htmlFor={`image-upload-${part}`} className="text-base">Rasm yuklash</Label>
-            <Input
-              id={`image-upload-${part}`}
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="mt-1"
-            />
-            {imagePreviewUrl && (
-              <div className="mt-2">
-                <p className="text-sm text-muted-foreground mb-1">Oldindan ko'rish:</p>
-                <img src={imagePreviewUrl} alt="Image Preview" className="max-h-32 object-contain rounded-md border p-1" />
+          <div className="space-y-4 mb-4">
+            <Label className="text-base">Rasmlar yuklash (2 ta rasm talab qilinadi)</Label>
+            {[0, 1].map((idx) => (
+              <div key={idx} className="space-y-2 border p-2 rounded-md">
+                <Label htmlFor={`image-upload-${part}-${idx}`} className="text-sm">Rasm {idx + 1} yuklash</Label>
+                <Input
+                  id={`image-upload-${part}-${idx}`}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleImageChange(e, idx)}
+                  className="mt-1"
+                />
+                {imagePreviewUrls[idx] && (
+                  <div className="mt-2">
+                    <p className="text-sm text-muted-foreground mb-1">Oldindan ko'rish:</p>
+                    <img src={imagePreviewUrls[idx]} alt={`Image Preview ${idx + 1}`} className="max-h-32 object-contain rounded-md border p-1" />
+                  </div>
+                )}
               </div>
-            )}
+            ))}
             <p className="text-xs text-red-500 mt-1">
               Eslatma: Rasmlar brauzeringizning mahalliy xotirasida saqlanadi. Katta hajmli rasmlar ilova ish faoliyatini sekinlashtirishi mumkin.
             </p>
@@ -274,28 +298,43 @@ const SpeakingQuestionManager: React.FC = () => {
       case "part1":
         return <p className="text-sm flex-grow mr-4">{q.text}</p>;
       case "part1.1":
+        const part1_1Q = q as Part1_1Question;
         return (
           <div className="flex flex-col items-start flex-grow mr-4">
-            {q.imageUrl && <img src={q.imageUrl} alt="Question image" className="max-h-24 object-contain mb-2 rounded-md" />}
+            <div className="flex gap-2 mb-2">
+              {part1_1Q.imageUrls.map((url, idx) => (
+                <img key={idx} src={url} alt={`Question image ${idx + 1}`} className="max-h-24 object-contain rounded-md" />
+              ))}
+            </div>
             <ul className="list-disc list-inside text-sm">
-              {q.subQuestions.map((subQ, i) => (
+              {part1_1Q.subQuestions.map((subQ, i) => (
                 <li key={i}>{subQ}</li>
               ))}
             </ul>
           </div>
         );
       case "part2":
+        const part2Q = q as Part2Question;
         return (
           <div className="flex flex-col items-start flex-grow mr-4">
-            {q.imageUrl && <img src={q.imageUrl} alt="Question image" className="max-h-24 object-contain mb-2 rounded-md" />}
-            <p className="text-sm">{q.question}</p>
+            <div className="flex gap-2 mb-2">
+              {part2Q.imageUrls.map((url, idx) => (
+                <img key={idx} src={url} alt={`Question image ${idx + 1}`} className="max-h-24 object-contain rounded-md" />
+              ))}
+            </div>
+            <p className="text-sm">{part2Q.question}</p>
           </div>
         );
       case "part3":
+        const part3Q = q as Part3Question;
         return (
           <div className="flex flex-col items-start flex-grow mr-4">
-            <p className="text-sm mb-2">{q.question}</p>
-            {q.imageUrl && <img src={q.imageUrl} alt="Question image" className="max-h-24 object-contain rounded-md" />}
+            <p className="text-sm mb-2">{part3Q.question}</p>
+            <div className="flex gap-2">
+              {part3Q.imageUrls.map((url, idx) => (
+                <img key={idx} src={url} alt={`Question image ${idx + 1}`} className="max-h-24 object-contain rounded-md" />
+              ))}
+            </div>
           </div>
         );
       default:
@@ -315,8 +354,8 @@ const SpeakingQuestionManager: React.FC = () => {
             <Tabs value={currentTab} onValueChange={(value) => {
               setCurrentTab(value as SpeakingPart);
               setQuestionText("");
-              setImageFile(null);
-              setImagePreviewUrl(null);
+              setImageFiles([]);
+              setImagePreviewUrls([]);
               setSubQuestionsText("");
             }} className="w-full">
               <TabsList className="grid w-full grid-cols-4">
