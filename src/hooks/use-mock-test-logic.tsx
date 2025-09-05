@@ -97,40 +97,48 @@ export const useMockTestLogic = ({
 
   // This function now only determines the NEXT state, it doesn't start countdowns directly
   const advanceTest = useCallback(() => {
-    console.log("advanceTest called. Current Part:", allSpeakingParts[currentPartIndex], "Question Index:", currentQuestionIndex, "Sub-Q Index:", currentSubQuestionIndex, "Phase:", currentPhase);
+    console.log("--- advanceTest START ---");
+    console.log("Initial state in advanceTest:", { currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, currentPhase });
     const currentPartName = allSpeakingParts[currentPartIndex];
     const currentQ = getCurrentQuestion();
+    console.log("Current Question in advanceTest:", currentQ ? { id: currentQ.id, type: currentQ.type } : "None");
 
     if (!currentQ) {
       console.log("No more questions in current part. Attempting to move to next part.");
       if (currentPartIndex < allSpeakingParts.length - 1) {
+        console.log(`Advancing to next part from index ${currentPartIndex} to ${currentPartIndex + 1}`);
         setCurrentPartIndex(prev => prev + 1);
         setCurrentQuestionIndex(0);
         setCurrentSubQuestionIndex(0);
         setCurrentPhase("question_display");
       } else {
-        console.log("All parts finished.");
+        console.log("All parts finished. Stopping streams and ending test.");
         stopAllStreams();
         setIsTestStarted(false);
         setCurrentPhase("finished");
         showSuccess("Mock test yakunlandi!");
       }
+      console.log("--- advanceTest END (no currentQ) ---");
       return;
     }
 
     switch (currentQ.type) {
       case "part1.1": {
-        console.log("Part 1.1 sub-question finished. Checking for next sub-question or next part.");
+        console.log("Handling Part 1.1. Current sub-question index:", currentSubQuestionIndex);
         const part1_1Q = currentQ as Part1_1Question;
         if (currentSubQuestionIndex < part1_1Q.subQuestions.length - 1) {
+          console.log("Moving to next sub-question in Part 1.1");
           setCurrentSubQuestionIndex(prev => prev + 1);
           setCurrentPhase("question_display");
         } else {
+          console.log("All sub-questions in Part 1.1 finished. Moving to next question or part.");
           if (currentQuestionIndex < questions[currentPartName].length - 1) {
+            console.log("Moving to next question in Part 1.1");
             setCurrentQuestionIndex(prev => prev + 1);
             setCurrentSubQuestionIndex(0);
             setCurrentPhase("question_display");
           } else {
+            console.log("All questions in Part 1.1 finished. Moving to next part.");
             setCurrentPartIndex(prev => prev + 1);
             setCurrentQuestionIndex(0);
             setCurrentSubQuestionIndex(0);
@@ -140,17 +148,21 @@ export const useMockTestLogic = ({
         break;
       }
       case "part1.2": {
-        console.log("Part 1.2 sub-question finished. Checking for next sub-question or next image/part.");
+        console.log("Handling Part 1.2. Current sub-question index:", currentSubQuestionIndex);
         const part1_2Q = currentQ as Part1_2Question;
         if (currentSubQuestionIndex < part1_2Q.subQuestions.length - 1) {
+          console.log("Moving to next sub-question in Part 1.2");
           setCurrentSubQuestionIndex(prev => prev + 1);
           setCurrentPhase("question_display");
         } else {
+          console.log("All sub-questions in Part 1.2 finished. Moving to next question or part.");
           if (currentQuestionIndex < questions[currentPartName].length - 1) {
+            console.log("Moving to next question in Part 1.2");
             setCurrentQuestionIndex(prev => prev + 1);
             setCurrentSubQuestionIndex(0);
             setCurrentPhase("question_display");
           } else {
+            console.log("All questions in Part 1.2 finished. Moving to next part.");
             setCurrentPartIndex(prev => prev + 1);
             setCurrentQuestionIndex(0);
             setCurrentSubQuestionIndex(0);
@@ -160,13 +172,16 @@ export const useMockTestLogic = ({
         break;
       }
       case "part2": {
-        console.log("Part 2 phase transition. Current phase:", currentPhase);
+        console.log("Handling Part 2. Current phase:", currentPhase);
         if (currentPhase === "question_display") {
+          console.log("Part 2: Transitioning to preparation phase.");
           setCurrentPhase("preparation");
         } else if (currentPhase === "preparation") {
+          console.log("Part 2: Transitioning to speaking phase.");
           setCurrentPhase("speaking");
         } else if (currentPhase === "speaking") {
-          setCurrentPartIndex(prev => prev + 1);
+          console.log("Part 2: Speaking phase finished. Moving to next part.");
+          setCurrentPartIndex(prev => prev + 1); // This should move to Part 3
           setCurrentQuestionIndex(0);
           setCurrentSubQuestionIndex(0);
           setCurrentPhase("question_display");
@@ -174,13 +189,16 @@ export const useMockTestLogic = ({
         break;
       }
       case "part3": {
-        console.log("Part 3 phase transition. Current phase:", currentPhase);
+        console.log("Handling Part 3. Current phase:", currentPhase);
         if (currentPhase === "question_display") {
+          console.log("Part 3: Transitioning to preparation phase.");
           setCurrentPhase("preparation");
         } else if (currentPhase === "preparation") {
+          console.log("Part 3: Transitioning to speaking phase.");
           setCurrentPhase("speaking");
         } else if (currentPhase === "speaking") {
-          setCurrentPartIndex(prev => prev + 1);
+          console.log("Part 3: Speaking phase finished. Moving to next part (or ending test).");
+          setCurrentPartIndex(prev => prev + 1); // This should move past Part 3
           setCurrentQuestionIndex(0);
           setCurrentSubQuestionIndex(0);
           setCurrentPhase("question_display");
@@ -195,6 +213,7 @@ export const useMockTestLogic = ({
         setCurrentPhase("question_display");
         break;
     }
+    console.log("--- advanceTest END ---");
   }, [currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, questions, currentPhase, stopAllStreams, getCurrentQuestion]);
 
   // Load ALL questions from localStorage on component mount into the ref
@@ -218,20 +237,26 @@ export const useMockTestLogic = ({
 
   // Effect to manage countdowns based on current test state
   useEffect(() => {
+    console.log("--- Countdown useEffect START ---");
+    console.log("State in Countdown useEffect:", { isTestStarted, currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, currentPhase });
+
     if (!isTestStarted || currentPhase === "idle" || currentPhase === "finished") {
       if (countdownIntervalRef.current) {
         clearInterval(countdownIntervalRef.current);
         countdownIntervalRef.current = null;
       }
+      console.log("Countdown useEffect: Test not started, idle, or finished. Returning.");
       return;
     }
 
     const currentPartName = allSpeakingParts[currentPartIndex];
     const currentQ = questions[currentPartName]?.[currentQuestionIndex];
+    console.log("Countdown useEffect: Current Question:", currentQ ? { id: currentQ.id, type: currentQ.type } : "None");
 
     if (!currentQ) {
-      console.log("MockTest: No current question found in useEffect, attempting to advance.");
+      console.log("Countdown useEffect: No current question found, attempting to advance.");
       advanceTest();
+      console.log("Countdown useEffect: After advanceTest call (no currentQ).");
       return;
     }
 
@@ -247,15 +272,16 @@ export const useMockTestLogic = ({
         duration = currentPhase === "preparation" ? TIMINGS.PART2_PREP : TIMINGS.PART2_SPEAK;
         break;
       case "part3":
+        // FIX: Ensure Part 3 also correctly transitions from preparation to speaking
         duration = currentPhase === "preparation" ? TIMINGS.PART3_PREP : TIMINGS.PART3_SPEAK;
         break;
     }
 
     if (duration > 0) {
-      console.log(`MockTest: Starting countdown for ${currentPartName}, Q${currentQuestionIndex + 1}, Phase: ${currentPhase} with duration ${duration}s.`);
+      console.log(`Countdown useEffect: Starting countdown for ${currentPartName}, Q${currentQuestionIndex + 1}, Phase: ${currentPhase} with duration ${duration}s.`);
       startCountdown(duration, advanceTest);
     } else {
-      console.warn("MockTest: Duration is 0 for current phase, advancing immediately.");
+      console.warn("Countdown useEffect: Duration is 0 for current phase, advancing immediately.");
       advanceTest();
     }
 
@@ -263,6 +289,7 @@ export const useMockTestLogic = ({
       if (countdownIntervalRef.current) {
         clearInterval(countdownIntervalRef.current);
         countdownIntervalRef.current = null;
+        console.log("Countdown useEffect: Cleanup - interval cleared.");
       }
     };
   }, [isTestStarted, currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, currentPhase, questions, startCountdown, advanceTest]);
