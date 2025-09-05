@@ -69,7 +69,7 @@ const MockTest: React.FC = () => {
         if (prev <= 1) {
           clearInterval(countdownIntervalRef.current!);
           countdownIntervalRef.current = null;
-          nextAction();
+          nextAction(); // Call the next action when countdown finishes
           return 0;
         }
         return prev - 1;
@@ -77,14 +77,15 @@ const MockTest: React.FC = () => {
     }, 1000);
   }, []);
 
+  // This function now only determines the NEXT state, it doesn't start countdowns directly
   const advanceTest = useCallback(() => {
     console.log("advanceTest called. Current Part:", allSpeakingParts[currentPartIndex], "Question Index:", currentQuestionIndex, "Sub-Q Index:", currentSubQuestionIndex, "Phase:", currentPhase);
     const currentPartName = allSpeakingParts[currentPartIndex];
     const currentQ = getCurrentQuestion();
 
     if (!currentQ) {
-      console.log("No more questions in current part. Checking next part.");
-      // No more questions in current part, try next part
+      console.log("No more questions in current part. Attempting to move to next part.");
+      // Try to move to the next part
       if (currentPartIndex < allSpeakingParts.length - 1) {
         setCurrentPartIndex(prev => prev + 1);
         setCurrentQuestionIndex(0);
@@ -98,79 +99,86 @@ const MockTest: React.FC = () => {
         setCurrentPhase("finished");
         showSuccess("Mock test completed!");
       }
-      return;
+      return; // Important: return after setting state or finishing
     }
 
     // Logic for advancing within a part based on question type and phase
     switch (currentQ.type) {
       case "part1": {
-        console.log("Part 1 question finished. Moving to next Part 1 question or next part.");
-        // Part 1: 30s per question, then next question or next part
+        console.log("Part 1 question finished. Checking for next Part 1 question.");
         if (currentQuestionIndex < questions[currentPartName].length - 1) {
           setCurrentQuestionIndex(prev => prev + 1);
-          startCountdown(TIMINGS.PART1_QUESTION, advanceTest);
-          setCurrentPhase("question_display");
+          setCurrentPhase("question_display"); // Stay in question_display
         } else {
           // No more questions in Part 1, move to next part
-          advanceTest(); // Call itself to move to the next part
+          setCurrentPartIndex(prev => prev + 1);
+          setCurrentQuestionIndex(0);
+          setCurrentSubQuestionIndex(0);
+          setCurrentPhase("question_display"); // Start next part by displaying its first question
         }
         break;
       }
       case "part1.1": {
-        console.log("Part 1.1 sub-question finished. Moving to next sub-question or next image/part.");
-        // Part 1.1: 2 images, 3 sub-questions each, 30s per sub-question
+        console.log("Part 1.1 sub-question finished. Checking for next sub-question or next image/part.");
         const part1_1Q = currentQ as Part1_1Question;
         if (currentSubQuestionIndex < part1_1Q.subQuestions.length - 1) {
           setCurrentSubQuestionIndex(prev => prev + 1);
-          startCountdown(TIMINGS.PART1_1_QUESTION, advanceTest);
-          setCurrentPhase("question_display");
+          setCurrentPhase("question_display"); // Stay in question_display
         } else {
           // All sub-questions for current image finished, move to next image or next part
           if (currentQuestionIndex < questions[currentPartName].length - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
             setCurrentSubQuestionIndex(0); // Reset sub-question index for new image
-            startCountdown(TIMINGS.PART1_1_QUESTION, advanceTest);
-            setCurrentPhase("question_display");
+            setCurrentPhase("question_display"); // Start new image by displaying its first sub-question
           } else {
             // All images and sub-questions for Part 1.1 finished, move to next part
-            advanceTest(); // Call itself to move to the next part
+            setCurrentPartIndex(prev => prev + 1);
+            setCurrentQuestionIndex(0);
+            setCurrentSubQuestionIndex(0);
+            setCurrentPhase("question_display"); // Start next part by displaying its first question
           }
         }
         break;
       }
       case "part2": {
         console.log("Part 2 phase transition. Current phase:", currentPhase);
-        // Part 2: 60s prep, 120s speak
         if (currentPhase === "question_display") {
-          setCurrentPhase("preparation");
-          startCountdown(TIMINGS.PART2_PREP, advanceTest); // After prep, move to speaking
+          setCurrentPhase("preparation"); // Move to preparation
         } else if (currentPhase === "preparation") {
-          setCurrentPhase("speaking");
-          startCountdown(TIMINGS.PART2_SPEAK, advanceTest); // After speaking, move to next part
+          setCurrentPhase("speaking"); // Move to speaking
         } else if (currentPhase === "speaking") {
-          advanceTest(); // Move to next part
+          // After speaking, move to next part
+          setCurrentPartIndex(prev => prev + 1);
+          setCurrentQuestionIndex(0);
+          setCurrentSubQuestionIndex(0);
+          setCurrentPhase("question_display"); // Start next part by displaying its first question
         }
         break;
       }
       case "part3": {
         console.log("Part 3 phase transition. Current phase:", currentPhase);
-        // Part 3: 60s prep, 120s speak, then test finishes
         if (currentPhase === "question_display") {
-          setCurrentPhase("preparation");
-          startCountdown(TIMINGS.PART3_PREP, advanceTest); // After prep, move to speaking
+          setCurrentPhase("preparation"); // Move to preparation
         } else if (currentPhase === "preparation") {
-          setCurrentPhase("speaking");
-          startCountdown(TIMINGS.PART3_SPEAK, advanceTest); // After speaking, test finishes
+          setCurrentPhase("speaking"); // Move to speaking
         } else if (currentPhase === "speaking") {
-          advanceTest(); // Test finishes
+          // After speaking, test finishes
+          setCurrentPartIndex(prev => prev + 1); // This will trigger the "all parts finished" logic in the next `useEffect` cycle
+          setCurrentQuestionIndex(0);
+          setCurrentSubQuestionIndex(0);
+          setCurrentPhase("question_display"); // Attempt to move to next part, which will then detect end
         }
         break;
       }
       default:
         console.warn("Unknown question type encountered:", (currentQ as any).type); 
-        advanceTest(); // Try to move to next anyway
+        setCurrentPartIndex(prev => prev + 1); // Fallback: try to move to next part
+        setCurrentQuestionIndex(0);
+        setCurrentSubQuestionIndex(0);
+        setCurrentPhase("question_display");
+        break;
     }
-  }, [currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, questions, currentPhase, startCountdown, stopAllStreams, getCurrentQuestion]);
+  }, [currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, questions, currentPhase, stopAllStreams, getCurrentQuestion]);
 
 
   // Load questions on component mount (initial load)
@@ -203,11 +211,68 @@ const MockTest: React.FC = () => {
     }
   }, [webcamStream]);
 
-  // Effect to start the test flow when isTestStarted becomes true
+  // Effect to manage countdowns based on current test state
+  useEffect(() => {
+    if (!isTestStarted || currentPhase === "idle" || currentPhase === "finished") {
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+        countdownIntervalRef.current = null;
+      }
+      return;
+    }
+
+    const currentPartName = allSpeakingParts[currentPartIndex];
+    const currentQ = questions[currentPartName]?.[currentQuestionIndex];
+
+    if (!currentQ) {
+      // This case means we've advanced past all questions in the current part
+      // and advanceTest should have already set the state to move to the next part or finish.
+      // If we land here, it means there are no questions in the current part,
+      // so we should try to advance to the next part immediately.
+      console.log("MockTest: No current question found in useEffect, attempting to advance.");
+      advanceTest();
+      return;
+    }
+
+    let duration = 0;
+    switch (currentQ.type) {
+      case "part1":
+        duration = TIMINGS.PART1_QUESTION;
+        break;
+      case "part1.1":
+        duration = TIMINGS.PART1_1_QUESTION;
+        break;
+      case "part2":
+        duration = currentPhase === "preparation" ? TIMINGS.PART2_PREP : TIMINGS.PART2_SPEAK;
+        break;
+      case "part3":
+        duration = currentPhase === "preparation" ? TIMINGS.PART3_PREP : TIMINGS.PART3_SPEAK;
+        break;
+    }
+
+    if (duration > 0) {
+      console.log(`MockTest: Starting countdown for ${currentPartName}, Q${currentQuestionIndex + 1}, Phase: ${currentPhase} with duration ${duration}s.`);
+      startCountdown(duration, advanceTest);
+    } else {
+      // If for some reason duration is 0, immediately advance to prevent being stuck
+      console.warn("MockTest: Duration is 0 for current phase, advancing immediately.");
+      advanceTest();
+    }
+
+    // Cleanup function for the effect
+    return () => {
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+        countdownIntervalRef.current = null;
+      }
+    };
+  }, [isTestStarted, currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, currentPhase, questions, startCountdown, advanceTest]); // Dependencies
+
+  // Effect to start the test flow when isTestStarted becomes true and phase is idle
   useEffect(() => {
     if (isTestStarted && currentPhase === "idle") {
-      console.log("MockTest: Starting test flow. Current questions state:", questions);
-      // Initial check for questions
+      console.log("MockTest: Starting test flow from idle. Current questions state:", questions);
+      
       const totalQuestions = allSpeakingParts.reduce((sum, part) => sum + questions[part].length, 0);
       if (totalQuestions === 0) {
         showError("Mock testni boshlash uchun savollar mavjud emas. Iltimos, avval savollar qo'shing.");
@@ -235,40 +300,15 @@ const MockTest: React.FC = () => {
       setCurrentPartIndex(firstPartWithQuestionsIndex);
       setCurrentQuestionIndex(0);
       setCurrentSubQuestionIndex(0);
-      setCurrentPhase("question_display"); // Start by displaying the first question
+      // Set initial phase based on the first question type
       const firstQuestion = questions[allSpeakingParts[firstPartWithQuestionsIndex]]?.[0];
-      if (firstQuestion) {
-        let initialDuration = 0;
-        switch (firstQuestion.type) {
-          case "part1":
-            initialDuration = TIMINGS.PART1_QUESTION;
-            break;
-          case "part1.1":
-            initialDuration = TIMINGS.PART1_1_QUESTION;
-            break;
-          case "part2":
-            initialDuration = TIMINGS.PART2_PREP; // Part 2 starts with preparation
-            setCurrentPhase("preparation");
-            break;
-          case "part3":
-            initialDuration = TIMINGS.PART3_PREP; // Part 3 starts with preparation
-            setCurrentPhase("preparation");
-            break;
-        }
-        if (initialDuration > 0) {
-          startCountdown(initialDuration, advanceTest);
-        } else {
-          // If no specific duration, immediately advance to handle complex flows like Part 2/3 prep
-          advanceTest();
-        }
+      if (firstQuestion && (firstQuestion.type === "part2" || firstQuestion.type === "part3")) {
+        setCurrentPhase("preparation");
       } else {
-        // Should not happen if firstPartWithQuestionsIndex is valid, but as a fallback
-        showError("Savollar yuklanmadi. Iltimos, qayta urinib ko'ring.");
-        setIsTestStarted(false);
-        setStudentInfo(null);
+        setCurrentPhase("question_display");
       }
     }
-  }, [isTestStarted, currentPhase, questions, startCountdown, advanceTest]);
+  }, [isTestStarted, currentPhase, questions]); // Only react to these changes to initiate the test flow
 
 
   const handleStartTestClick = () => {
@@ -306,7 +346,7 @@ const MockTest: React.FC = () => {
     }
 
     setIsTestStarted(true);
-    setCurrentPhase("idle"); // Set to idle, useEffect will pick it up to start the test flow
+    setCurrentPhase("idle"); // Set to idle, the useEffect will pick it up to start the test flow
     showSuccess("Mock test boshlandi!");
   };
 
@@ -446,6 +486,7 @@ const MockTest: React.FC = () => {
 
             {isTestStarted && currentPhase !== "finished" && (
               <div className="flex gap-2 mt-4">
+                {/* The "Keyingi savol (Avtomatik)" button is now disabled as transitions are automatic */}
                 <Button onClick={advanceTest} className="flex-grow" disabled={true}>
                   Keyingi savol (Avtomatik)
                 </Button>
