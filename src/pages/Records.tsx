@@ -1,26 +1,29 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Navbar from "@/components/Navbar";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, PlayCircle } from "lucide-react";
+import { Download, PlayCircle, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { RecordedSession } from "@/lib/types"; // Import RecordedSession type
+import { showError, showSuccess } from "@/utils/toast";
+
+const RECORDINGS_STORAGE_KEY = "allMockTestRecordings"; // Must match the key in use-recorder.tsx
 
 const Records: React.FC = () => {
-  const [lastRecording, setLastRecording] = useState<RecordedSession | null>(null);
+  const [recordings, setRecordings] = useState<RecordedSession[]>([]);
 
+  // Load recordings from localStorage on component mount
   useEffect(() => {
-    const storedRecording = sessionStorage.getItem("lastRecording");
-    if (storedRecording) {
-      const parsedRecording: RecordedSession = JSON.parse(storedRecording);
-      setLastRecording(parsedRecording);
+    const storedRecordings = localStorage.getItem(RECORDINGS_STORAGE_KEY);
+    if (storedRecordings) {
+      setRecordings(JSON.parse(storedRecordings));
     }
   }, []);
 
-  const handleDownload = (url: string, timestamp: string, studentName?: string) => {
+  const handleDownload = useCallback((url: string, timestamp: string, studentName?: string) => {
     const filename = studentName 
       ? `mock_test_${studentName.replace(/\s/g, '_')}_${format(new Date(timestamp), "yyyyMMdd_HHmmss")}.webm`
       : `mock_test_recording_${format(new Date(timestamp), "yyyyMMdd_HHmmss")}.webm`;
@@ -31,64 +34,94 @@ const Records: React.FC = () => {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-  };
+  }, []);
+
+  const handleDelete = useCallback((timestampToDelete: string) => {
+    setRecordings(prevRecordings => {
+      const updatedRecordings = prevRecordings.filter(
+        (rec) => rec.timestamp !== timestampToDelete
+      );
+      localStorage.setItem(RECORDINGS_STORAGE_KEY, JSON.stringify(updatedRecordings));
+      showSuccess("Yozib olingan sessiya o'chirildi!");
+      return updatedRecordings;
+    });
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
       <Navbar />
       <main className="flex-grow container mx-auto p-4 flex items-center justify-center">
-        <Card className="w-full max-w-2xl text-center">
-          <CardHeader>
+        <Card className="w-full max-w-3xl">
+          <CardHeader className="text-center">
             <CardTitle className="text-3xl font-bold">Your Recordings</CardTitle>
-            <CardDescription>Review and download your past mock test sessions.</CardDescription>
+            <CardDescription>Review, download, or delete your past mock test sessions.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {lastRecording ? (
-              <div className="space-y-4">
-                <h3 className="text-xl font-semibold">Last Recorded Session</h3>
-                {lastRecording.studentInfo && (
-                  <div className="text-left p-3 border rounded-md bg-secondary text-secondary-foreground">
-                    <p><strong>O'quvchi ID:</strong> {lastRecording.studentInfo.id}</p>
-                    <p><strong>Ism:</strong> {lastRecording.studentInfo.name}</p>
-                    <p><strong>Telefon:</strong> {lastRecording.studentInfo.phone}</p>
-                  </div>
-                )}
-                <p className="text-muted-foreground">
-                  Recorded on: {format(new Date(lastRecording.timestamp), "PPP - p")}
-                </p>
-                <p className="text-muted-foreground">
-                  Duration: {Math.floor(lastRecording.duration / 60)}m {lastRecording.duration % 60}s
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center mt-4">
-                  <Button
-                    onClick={() => {
-                      const videoWindow = window.open(lastRecording.url, "_blank");
-                      if (videoWindow) {
-                        videoWindow.focus();
-                      } else {
-                        alert("Please allow pop-ups to view the video.");
-                      }
-                    }}
-                    className="flex items-center gap-2"
-                  >
-                    <PlayCircle className="h-5 w-5" /> Play Recording
-                  </Button>
-                  <Button
-                    onClick={() => handleDownload(lastRecording.url, lastRecording.timestamp, lastRecording.studentInfo?.name)}
-                    variant="outline"
-                    className="flex items-center gap-2"
-                  >
-                    <Download className="h-5 w-5" /> Download (.webm)
-                  </Button>
-                </div>
-                <p className="text-sm text-red-500 mt-4">
-                  Note: Recordings are saved as .webm format. MP4 conversion is not supported directly in the browser.
-                  This recording is temporary and will be lost when you close your browser.
-                </p>
-              </div>
+            {recordings.length === 0 ? (
+              <p className="text-muted-foreground text-center">No recordings found. Start a mock test to create one!</p>
             ) : (
-              <p className="text-muted-foreground">No recordings found. Start a mock test to create one!</p>
+              <div className="space-y-4">
+                {recordings.map((recording, index) => (
+                  <Card key={recording.timestamp + index} className="p-4">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3">
+                      <div className="text-left mb-2 sm:mb-0">
+                        <h3 className="text-lg font-semibold">
+                          {recording.studentInfo?.name ? `O'quvchi: ${recording.studentInfo.name}` : `Yozib olingan sessiya ${recordings.length - index}`}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {format(new Date(recording.timestamp), "PPP - p")}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Duration: {Math.floor(recording.duration / 60)}m {recording.duration % 60}s
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => {
+                            const videoWindow = window.open(recording.url, "_blank");
+                            if (videoWindow) {
+                              videoWindow.focus();
+                            } else {
+                              showError("Videoni ko'rish uchun pop-uplarga ruxsat bering.");
+                            }
+                          }}
+                          size="sm"
+                          className="flex items-center gap-1"
+                        >
+                          <PlayCircle className="h-4 w-4" /> Play
+                        </Button>
+                        <Button
+                          onClick={() => handleDownload(recording.url, recording.timestamp, recording.studentInfo?.name)}
+                          variant="outline"
+                          size="sm"
+                          className="flex items-center gap-1"
+                        >
+                          <Download className="h-4 w-4" /> Download
+                        </Button>
+                        <Button
+                          onClick={() => handleDelete(recording.timestamp)}
+                          variant="destructive"
+                          size="sm"
+                          className="flex items-center gap-1"
+                        >
+                          <Trash2 className="h-4 w-4" /> Delete
+                        </Button>
+                      </div>
+                    </div>
+                    {recording.studentInfo && (
+                      <div className="text-left text-sm text-muted-foreground mt-2 border-t pt-2">
+                        <p><strong>ID:</strong> {recording.studentInfo.id}</p>
+                        <p><strong>Telefon:</strong> {recording.studentInfo.phone}</p>
+                      </div>
+                    )}
+                  </Card>
+                ))}
+              </div>
             )}
+            <p className="text-sm text-red-500 mt-4 text-center">
+              Note: Recordings are saved as .webm format. MP4 conversion is not supported directly in the browser.
+              These recordings are stored in your browser's local storage and will persist unless cleared manually.
+            </p>
           </CardContent>
         </Card>
       </main>

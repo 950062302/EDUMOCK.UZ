@@ -10,6 +10,7 @@ interface RecordingData extends RecordedSession {
 
 const MAX_RECORDING_DURATION_MS = 20 * 60 * 1000; // 20 minutes in milliseconds
 const MIME_TYPE = "video/webm; codecs=vp8,opus"; // Using a common WebM codec
+const RECORDINGS_STORAGE_KEY = "allMockTestRecordings"; // New storage key for all recordings
 
 export const useRecorder = () => {
   const [isRecording, setIsRecording] = useState<boolean>(false);
@@ -39,7 +40,7 @@ export const useRecorder = () => {
       mediaRecorderRef.current.stop();
       clearRecordingTimeout(); // Clear auto-stop timeout
     }
-  }, [clearRecordingTimeout]); // isRecording is no longer a direct dependency for useCallback
+  }, [clearRecordingTimeout]);
 
   // Function to stop all active media streams
   const stopAllStreams = useCallback(() => {
@@ -81,7 +82,7 @@ export const useRecorder = () => {
       return prev;
     });
     console.log("Recorder: All streams stopped.");
-  }, [webcamStream, clearRecordingTimeout]); // isRecording is no longer a direct dependency for useCallback
+  }, [webcamStream, clearRecordingTimeout]);
 
 
   // Effect to get webcam stream for preview on component mount
@@ -223,20 +224,18 @@ export const useRecorder = () => {
         const endTime = Date.now();
         const duration = Math.round((endTime - startTimeRef.current) / 1000);
 
-        const newRecording: RecordingData = {
-          blob,
+        const newRecording: RecordedSession = { // Use RecordedSession type
           url,
           timestamp: new Date().toISOString(),
           duration,
           studentInfo,
         };
-        setRecordedData(newRecording);
-        sessionStorage.setItem("lastRecording", JSON.stringify({
-          url,
-          timestamp: newRecording.timestamp,
-          duration: newRecording.duration,
-          studentInfo: newRecording.studentInfo,
-        }));
+        
+        // Save all recordings to localStorage
+        const existingRecordings = JSON.parse(localStorage.getItem(RECORDINGS_STORAGE_KEY) || "[]") as RecordedSession[];
+        localStorage.setItem(RECORDINGS_STORAGE_KEY, JSON.stringify([newRecording, ...existingRecordings]));
+
+        setRecordedData({ ...newRecording, blob }); // Update state with the latest recording
         recordedChunksRef.current = [];
         setIsRecording(false);
 
@@ -282,8 +281,8 @@ export const useRecorder = () => {
 
   const resetRecordedData = useCallback(() => {
     setRecordedData(null);
-    sessionStorage.removeItem("lastRecording");
-    console.log("Recorder: Recorded data reset.");
+    // We no longer clear sessionStorage for "lastRecording" as we're using localStorage for all recordings
+    console.log("Recorder: Recorded data state reset.");
   }, []);
 
   // Cleanup on component unmount
@@ -314,9 +313,7 @@ export const useRecorder = () => {
       }
       console.log("Recorder: All streams and timeouts cleared on unmount.");
     };
-  }, [clearRecordingTimeout]); // webcamStream removed from dependencies to prevent premature cleanup
-  // The webcamStream cleanup is now handled directly within the return function,
-  // and its state is managed by setWebcamStream(null) in stopAllStreams.
+  }, [clearRecordingTimeout]);
 
   return {
     isRecording,
