@@ -6,12 +6,11 @@ import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
-import { SpeakingQuestion, SpeakingPart, Part1Question, Part1_1Question, Part1_2Question, Part2Question, Part3Question } from "@/lib/types"; // Import all new types
+import { SpeakingQuestion, SpeakingPart, Part1_1Question, Part1_2Question, Part2Question, Part3Question } from "@/lib/types"; // Import all new types
 import { allSpeakingParts, getSpeakingQuestionStorageKey } from "@/lib/constants";
 
 const Questions: React.FC = () => {
   const [questions, setQuestions] = useState<Record<SpeakingPart, SpeakingQuestion[]>>({
-    "Part 1": [],
     "Part 1.1": [],
     "Part 1.2": [], // Initialize for new part
     "Part 2": [],
@@ -21,7 +20,6 @@ const Questions: React.FC = () => {
   useEffect(() => {
     // Load questions from localStorage for each part
     const loadedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
-      "Part 1": [],
       "Part 1.1": [],
       "Part 1.2": [], // Load for new part
       "Part 2": [],
@@ -39,9 +37,6 @@ const Questions: React.FC = () => {
 
   const renderQuestionContent = (q: SpeakingQuestion) => {
     switch (q.type) {
-      case "part1":
-        const part1Q = q as Part1Question;
-        return <p className="text-sm flex-grow mb-2 sm:mb-0 sm:mr-4">{part1Q.text}</p>;
       case "part1.1":
         const part1_1Q = q as Part1_1Question;
         return (

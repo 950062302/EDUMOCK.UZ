@@ -6,7 +6,6 @@ import {
   SpeakingQuestion,
   SpeakingPart,
   StudentInfo,
-  Part1Question,
   Part1_1Question,
   Part1_2Question,
   Part2Question,
@@ -16,7 +15,6 @@ import { allSpeakingParts, getSpeakingQuestionStorageKey } from "@/lib/constants
 
 // Define timings for each phase/part
 const TIMINGS = {
-  PART1_QUESTION: 30, // seconds
   PART1_1_QUESTION: 30, // seconds
   PART1_2_QUESTION: 30, // seconds for Part 1.2
   PART2_PREP: 60, // seconds
@@ -49,7 +47,6 @@ export const useMockTestLogic = ({
 }: UseMockTestLogicProps) => {
   const [isTestStarted, setIsTestStarted] = useState<boolean>(false);
   const [questions, setQuestions] = useState<Record<SpeakingPart, SpeakingQuestion[]>>({
-    "Part 1": [],
     "Part 1.1": [],
     "Part 1.2": [],
     "Part 2": [],
@@ -57,7 +54,6 @@ export const useMockTestLogic = ({
   });
   // Ref to store all available questions from localStorage
   const allAvailableQuestionsRef = useRef<Record<SpeakingPart, SpeakingQuestion[]>>({
-    "Part 1": [],
     "Part 1.1": [],
     "Part 1.2": [],
     "Part 2": [],
@@ -123,19 +119,6 @@ export const useMockTestLogic = ({
     }
 
     switch (currentQ.type) {
-      case "part1": {
-        console.log("Part 1 question finished. Checking for next Part 1 question.");
-        if (currentQuestionIndex < questions[currentPartName].length - 1) {
-          setCurrentQuestionIndex(prev => prev + 1);
-          setCurrentPhase("question_display");
-        } else {
-          setCurrentPartIndex(prev => prev + 1);
-          setCurrentQuestionIndex(0);
-          setCurrentSubQuestionIndex(0);
-          setCurrentPhase("question_display");
-        }
-        break;
-      }
       case "part1.1": {
         console.log("Part 1.1 sub-question finished. Checking for next sub-question or next part.");
         const part1_1Q = currentQ as Part1_1Question;
@@ -218,7 +201,7 @@ export const useMockTestLogic = ({
   useEffect(() => {
     const loadAllQuestions = () => {
       const loadedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
-        "Part 1": [], "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
+        "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
       };
       allSpeakingParts.forEach(part => {
         const storageKey = getSpeakingQuestionStorageKey(part);
@@ -254,9 +237,6 @@ export const useMockTestLogic = ({
 
     let duration = 0;
     switch (currentQ.type) {
-      case "part1":
-        duration = TIMINGS.PART1_QUESTION;
-        break;
       case "part1.1":
         duration = TIMINGS.PART1_1_QUESTION;
         break;
@@ -329,11 +309,8 @@ export const useMockTestLogic = ({
 
   const handleStartTestClick = () => {
     const selectedQuestionsForTest: Record<SpeakingPart, SpeakingQuestion[]> = {
-      "Part 1": [], "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
+      "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
     };
-
-    // Part 1: Select 3 random questions
-    selectedQuestionsForTest["Part 1"] = getRandomElements(allAvailableQuestionsRef.current["Part 1"] as Part1Question[], 3);
 
     // Part 1.1: Select 1 random question object (which includes its sub-questions)
     const randomPart1_1Q = getRandomElements(allAvailableQuestionsRef.current["Part 1.1"] as Part1_1Question[], 1)[0];
@@ -405,7 +382,6 @@ export const useMockTestLogic = ({
     setCurrentSubQuestionIndex(0);
     // Clear the questions state to ensure a fresh selection on next start
     setQuestions({
-      "Part 1": [],
       "Part 1.1": [],
       "Part 1.2": [],
       "Part 2": [],

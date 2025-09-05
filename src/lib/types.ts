@@ -1,15 +1,10 @@
 // src/lib/types.ts
 
-export type SpeakingPart = "Part 1" | "Part 1.1" | "Part 1.2" | "Part 2" | "Part 3";
+export type SpeakingPart = "Part 1.1" | "Part 1.2" | "Part 2" | "Part 3";
 
 export interface BaseSpeakingQuestion {
   id: string;
   date: string; // ISO string
-}
-
-export interface Part1Question extends BaseSpeakingQuestion {
-  type: "part1";
-  text: string;
 }
 
 export interface Part1_1Question extends BaseSpeakingQuestion {
@@ -35,7 +30,7 @@ export interface Part3Question extends BaseSpeakingQuestion {
   imageUrls: string[]; // Changed from imageUrl to imageUrls
 }
 
-export type SpeakingQuestion = Part1Question | Part1_1Question | Part1_2Question | Part2Question | Part3Question;
+export type SpeakingQuestion = Part1_1Question | Part1_2Question | Part2Question | Part3Question;
 
 export interface StudentInfo {
   id: string;

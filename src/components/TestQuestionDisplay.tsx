@@ -4,7 +4,6 @@ import React from "react";
 import {
   SpeakingQuestion,
   SpeakingPart,
-  Part1Question,
   Part1_1Question,
   Part1_2Question, // Import new type
   Part2Question,
@@ -39,19 +38,6 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
   }
 
   switch (currentQ.type) {
-    case "part1":
-      const part1Q = currentQ as Part1Question;
-      return (
-        <div className="space-y-4">
-          <h3 className="text-xl font-semibold text-muted-foreground">
-            {currentPartName} - Savol {currentQuestionIndex + 1}
-          </h3>
-          <p className="text-5xl font-bold text-primary mb-4">{countdown}</p>
-          <p className="text-2xl font-medium text-foreground min-h-[100px] flex items-center justify-center p-4 border rounded-md bg-secondary">
-            {part1Q.text}
-          </p>
-        </div>
-      );
     case "part1.1":
       const part1_1Q = currentQ as Part1_1Question;
       return (

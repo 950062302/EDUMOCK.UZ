@@ -16,7 +16,6 @@ import { format } from "date-fns";
 import {
   SpeakingQuestion,
   SpeakingPart,
-  Part1Question,
   Part1_1Question,
   Part1_2Question,
   Part2Question,
@@ -26,7 +25,7 @@ import { allSpeakingParts, getSpeakingQuestionStorageKey } from "@/lib/constants
 import { supabase } from "@/lib/supabase"; // Import Supabase client
 
 const SpeakingQuestionManager: React.FC = () => {
-  const [currentTab, setCurrentTab] = useState<SpeakingPart>("Part 1");
+  const [currentTab, setCurrentTab] = useState<SpeakingPart>("Part 1.1");
   const [questionText, setQuestionText] = useState<string>("");
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
@@ -34,7 +33,6 @@ const SpeakingQuestionManager: React.FC = () => {
   const [isUploading, setIsUploading] = useState<boolean>(false);
 
   const [questions, setQuestions] = useState<Record<SpeakingPart, SpeakingQuestion[]>>({
-    "Part 1": [],
     "Part 1.1": [],
     "Part 1.2": [],
     "Part 2": [],
@@ -43,7 +41,6 @@ const SpeakingQuestionManager: React.FC = () => {
 
   useEffect(() => {
     const loadedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
-      "Part 1": [],
       "Part 1.1": [],
       "Part 1.2": [],
       "Part 2": [],
@@ -162,24 +159,7 @@ const SpeakingQuestionManager: React.FC = () => {
       finalImageUrls = imagePreviewUrls.filter(Boolean);
     }
 
-    if (part === "Part 1") {
-      if (!questionText.trim()) {
-        showError("Savol matni bo'sh bo'lishi mumkin emas.");
-        return;
-      }
-      const newQuestion: Part1Question = {
-        id: uuidv4(),
-        type: "part1",
-        text: questionText.trim(),
-        date: new Date().toISOString(),
-      };
-      setQuestions(prev => ({
-        ...prev,
-        [part]: [newQuestion, ...prev[part]],
-      }));
-      setQuestionText("");
-      showSuccess(`Savol ${part} ga qo'shildi!`);
-    } else if (part === "Part 1.1") {
+    if (part === "Part 1.1") {
       const subQ = subQuestionsText.split('\n').map(q => q.trim()).filter(q => q.length > 0);
       if (subQ.length === 0) {
         showError("Kamida bitta kichik savol kiritishingiz kerak.");
@@ -336,20 +316,6 @@ const SpeakingQuestionManager: React.FC = () => {
           </div>
         )}
 
-        {part === "Part 1" && (
-          <>
-            <Label htmlFor={`question-text-${part}`} className="text-base">Yangi savol qo'shish</Label>
-            <Textarea
-              id={`question-text-${part}`}
-              placeholder={`Part 1 uchun savol kiriting...`}
-              value={questionText}
-              onChange={(e) => setQuestionText(e.target.value)}
-              rows={3}
-              className="mt-1"
-            />
-          </>
-        )}
-
         {["Part 1.1", "Part 1.2"].includes(part) && (
           <>
             <Label htmlFor={`sub-questions-${part}`} className="text-base">Kichik savollar (har birini yangi qatordan kiriting)</Label>
@@ -383,8 +349,6 @@ const SpeakingQuestionManager: React.FC = () => {
 
   const renderQuestionCardContent = (q: SpeakingQuestion) => {
     switch (q.type) {
-      case "part1":
-        return <p className="text-sm flex-grow mr-4">{q.text}</p>;
       case "part1.1":
         const part1_1Q = q as Part1_1Question;
         return (
@@ -457,7 +421,7 @@ const SpeakingQuestionManager: React.FC = () => {
               setImagePreviewUrls([]);
               setSubQuestionsText("");
             }} className="w-full">
-              <TabsList className="grid w-full grid-cols-5">
+              <TabsList className="grid w-full grid-cols-4"> {/* Changed grid-cols to 4 */}
                 {allSpeakingParts.map(part => (
                   <TabsTrigger key={part} value={part}>{part}</TabsTrigger>
                 ))}
