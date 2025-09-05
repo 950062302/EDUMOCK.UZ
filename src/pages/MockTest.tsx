@@ -6,7 +6,7 @@ import { CefrCentreFooter } from "@/components/CefrCentreFooter"; // Updated imp
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { useRecorder } from "@/hooks/use-recorder";
 import { Video } from "lucide-react";
-import StudentInfoForm from "@/components/StudentInfoForm";
+import StudentInfoForm from "@/components/StudentInfoForm"; // Import StudentInfoForm
 import { useMockTestLogic } from "@/hooks/use-mock-test-logic";
 import TestQuestionDisplay from "@/components/TestQuestionDisplay";
 import TestControls from "@/components/TestControls";
@@ -106,6 +106,13 @@ const MockTest: React.FC = () => {
         </Card>
       </main>
       <CefrCentreFooter /> {/* Replaced MadeWithDyad */}
+
+      {/* StudentInfoForm komponentini bu yerda render qilamiz */}
+      <StudentInfoForm
+        isOpen={isStudentInfoFormOpen}
+        onClose={() => setIsStudentInfoFormOpen(false)}
+        onSave={handleStudentInfoSave}
+      />
     </div>
   );
 };
