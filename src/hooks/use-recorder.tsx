@@ -92,6 +92,7 @@ export const useRecorder = () => {
       };
 
       mediaRecorderRef.current.onstop = () => {
+        console.log("MediaRecorder onstop event triggered."); // Debugging log
         const blob = new Blob(recordedChunksRef.current, { type: "video/webm" });
         const url = URL.createObjectURL(blob);
         const endTime = Date.now();
