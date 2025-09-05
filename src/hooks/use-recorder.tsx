@@ -8,6 +8,8 @@ interface RecordingData extends RecordedSession {
   blob: Blob | null;
 }
 
+const MAX_RECORDING_DURATION_MS = 20 * 60 * 1000; // 20 minutes in milliseconds
+
 export const useRecorder = () => {
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [recordedData, setRecordedData] = useState<RecordingData | null>(null);
@@ -18,10 +20,22 @@ export const useRecorder = () => {
   const screenStreamRef = useRef<MediaStream | null>(null);
   const micStreamRef = useRef<MediaStream | null>(null); // Separate ref for microphone stream
   const startTimeRef = useRef<number>(0);
+  const recordingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null); // Timeout for auto-stopping recording
+
+  // Function to clear the recording timeout
+  const clearRecordingTimeout = useCallback(() => {
+    if (recordingTimeoutRef.current) {
+      clearTimeout(recordingTimeoutRef.current);
+      recordingTimeoutRef.current = null;
+      console.log("Recording auto-stop timeout cleared.");
+    }
+  }, []);
 
   // Function to stop all active media streams
   const stopAllStreams = useCallback(() => {
     console.log("Stopping all streams...");
+    clearRecordingTimeout(); // Clear auto-stop timeout
+
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop(); // This will trigger onstop
     }
@@ -39,14 +53,15 @@ export const useRecorder = () => {
 
     setIsRecording(false);
     console.log("All streams stopped.");
-  }, [isRecording, webcamStream]);
+  }, [isRecording, webcamStream, clearRecordingTimeout]);
 
   // Function to stop the MediaRecorder specifically
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
+      clearRecordingTimeout(); // Clear auto-stop timeout
     }
-  }, [isRecording]);
+  }, [isRecording, clearRecordingTimeout]);
 
   // Effect to get webcam stream for preview on component mount
   useEffect(() => {
@@ -161,6 +176,7 @@ export const useRecorder = () => {
 
       mediaRecorderRef.current.onstop = () => {
         console.log("MediaRecorder onstop event triggered. Recorded chunks count:", recordedChunksRef.current.length);
+        clearRecordingTimeout(); // Clear auto-stop timeout
         if (recordedChunksRef.current.length === 0) {
           showError("Yozib olishda hech qanday ma'lumot yig'ilmadi. Iltimos, qayta urinib ko'ring.");
           stopAllStreams(); // Ensure all streams are stopped even if no data
@@ -198,9 +214,9 @@ export const useRecorder = () => {
         showSuccess("Recording stopped and saved!");
       };
 
-      mediaRecorderRef.current.onerror = (event: Event) => { // Changed type to Event
+      mediaRecorderRef.current.onerror = (event: Event) => {
         console.error("MediaRecorder error:", event);
-        showError("Yozib olishda xatolik yuz berdi: " + ((event as any).error?.message || "Noma'lum xato")); // Cast to any to access .error
+        showError("Yozib olishda xatolik yuz berdi: " + ((event as any).error?.message || "Noma'lum xato"));
         stopAllStreams();
       };
 
@@ -209,6 +225,14 @@ export const useRecorder = () => {
       setIsRecording(true);
       showSuccess("Recording started!");
       console.log("Recording successfully started.");
+
+      // Set timeout to automatically stop recording after MAX_RECORDING_DURATION_MS
+      recordingTimeoutRef.current = setTimeout(() => {
+        console.log("Auto-stopping recording after 20 minutes.");
+        stopRecording();
+        showSuccess("Yozib olish 20 daqiqadan so'ng avtomatik to'xtatildi.");
+      }, MAX_RECORDING_DURATION_MS);
+
       return true;
     } catch (err) {
       console.error("General error starting recording:", err);
@@ -217,7 +241,7 @@ export const useRecorder = () => {
       stopAllStreams();
       return false;
     }
-  }, [stopAllStreams, stopRecording, webcamStream]); // webcamStream is in dependencies for cleanup, but not for recording stream itself
+  }, [stopAllStreams, stopRecording, clearRecordingTimeout]);
 
   const resetRecordedData = useCallback(() => {
     setRecordedData(null);
@@ -228,8 +252,9 @@ export const useRecorder = () => {
   useEffect(() => {
     return () => {
       stopAllStreams(); // Ensure all streams are stopped when component unmounts
+      clearRecordingTimeout(); // Also clear the timeout on unmount
     };
-  }, [stopAllStreams]);
+  }, [stopAllStreams, clearRecordingTimeout]);
 
   return {
     isRecording,
