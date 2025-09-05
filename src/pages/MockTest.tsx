@@ -78,10 +78,12 @@ const MockTest: React.FC = () => {
   }, []);
 
   const advanceTest = useCallback(() => {
+    console.log("advanceTest called. Current Part:", allSpeakingParts[currentPartIndex], "Question Index:", currentQuestionIndex, "Sub-Q Index:", currentSubQuestionIndex, "Phase:", currentPhase);
     const currentPartName = allSpeakingParts[currentPartIndex];
     const currentQ = getCurrentQuestion();
 
     if (!currentQ) {
+      console.log("No more questions in current part. Checking next part.");
       // No more questions in current part, try next part
       if (currentPartIndex < allSpeakingParts.length - 1) {
         setCurrentPartIndex(prev => prev + 1);
@@ -90,6 +92,7 @@ const MockTest: React.FC = () => {
         setCurrentPhase("question_display"); // Start next part by displaying its first question
       } else {
         // All parts finished
+        console.log("All parts finished.");
         stopAllStreams();
         setIsTestStarted(false);
         setCurrentPhase("finished");
@@ -101,6 +104,7 @@ const MockTest: React.FC = () => {
     // Logic for advancing within a part based on question type and phase
     switch (currentQ.type) {
       case "part1": {
+        console.log("Part 1 question finished. Moving to next Part 1 question or next part.");
         // Part 1: 30s per question, then next question or next part
         if (currentQuestionIndex < questions[currentPartName].length - 1) {
           setCurrentQuestionIndex(prev => prev + 1);
@@ -113,6 +117,7 @@ const MockTest: React.FC = () => {
         break;
       }
       case "part1.1": {
+        console.log("Part 1.1 sub-question finished. Moving to next sub-question or next image/part.");
         // Part 1.1: 2 images, 3 sub-questions each, 30s per sub-question
         const part1_1Q = currentQ as Part1_1Question;
         if (currentSubQuestionIndex < part1_1Q.subQuestions.length - 1) {
@@ -134,6 +139,7 @@ const MockTest: React.FC = () => {
         break;
       }
       case "part2": {
+        console.log("Part 2 phase transition. Current phase:", currentPhase);
         // Part 2: 60s prep, 120s speak
         if (currentPhase === "question_display") {
           setCurrentPhase("preparation");
@@ -147,6 +153,7 @@ const MockTest: React.FC = () => {
         break;
       }
       case "part3": {
+        console.log("Part 3 phase transition. Current phase:", currentPhase);
         // Part 3: 60s prep, 120s speak, then test finishes
         if (currentPhase === "question_display") {
           setCurrentPhase("preparation");
@@ -166,20 +173,24 @@ const MockTest: React.FC = () => {
   }, [currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, questions, currentPhase, startCountdown, stopAllStreams, getCurrentQuestion]);
 
 
-  // Load questions on component mount
+  // Load questions on component mount (initial load)
   useEffect(() => {
-    const loadedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
-      "Part 1": [], "Part 1.1": [], "Part 2": [], "Part 3": [],
+    const loadAllQuestions = () => {
+      const loadedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
+        "Part 1": [], "Part 1.1": [], "Part 2": [], "Part 3": [],
+      };
+      allSpeakingParts.forEach(part => {
+        const storageKey = getSpeakingQuestionStorageKey(part);
+        const stored = localStorage.getItem(storageKey);
+        if (stored) {
+          loadedQuestions[part] = JSON.parse(stored);
+        }
+      });
+      setQuestions(loadedQuestions);
+      console.log("MockTest: Initial questions loaded from localStorage:", loadedQuestions);
     };
-    allSpeakingParts.forEach(part => {
-      const storageKey = getSpeakingQuestionStorageKey(part);
-      const stored = localStorage.getItem(storageKey);
-      if (stored) {
-        loadedQuestions[part] = JSON.parse(stored);
-      }
-    });
-    setQuestions(loadedQuestions);
-  }, []);
+    loadAllQuestions();
+  }, []); // This runs once on mount
 
   // Manage webcam video stream for display
   useEffect(() => {
@@ -195,6 +206,7 @@ const MockTest: React.FC = () => {
   // Effect to start the test flow when isTestStarted becomes true
   useEffect(() => {
     if (isTestStarted && currentPhase === "idle") {
+      console.log("MockTest: Starting test flow. Current questions state:", questions);
       // Initial check for questions
       const totalQuestions = allSpeakingParts.reduce((sum, part) => sum + questions[part].length, 0);
       if (totalQuestions === 0) {
@@ -260,7 +272,21 @@ const MockTest: React.FC = () => {
 
 
   const handleStartTestClick = () => {
-    const totalQuestions = allSpeakingParts.reduce((sum, part) => sum + questions[part].length, 0);
+    // Reload questions from localStorage right before starting the test
+    const reloadedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
+      "Part 1": [], "Part 1.1": [], "Part 2": [], "Part 3": [],
+    };
+    allSpeakingParts.forEach(part => {
+      const storageKey = getSpeakingQuestionStorageKey(part);
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        reloadedQuestions[part] = JSON.parse(stored);
+      }
+    });
+    setQuestions(reloadedQuestions); // Update the state with fresh questions
+    console.log("MockTest: Questions reloaded before starting test:", reloadedQuestions);
+
+    const totalQuestions = allSpeakingParts.reduce((sum, part) => sum + reloadedQuestions[part].length, 0);
     if (totalQuestions === 0) {
       showError("Mock testni boshlash uchun savollar mavjud emas. Iltimos, avval savollar qo'shing.");
       return;
@@ -301,6 +327,7 @@ const MockTest: React.FC = () => {
 
   const renderCurrentQuestion = () => {
     if (!currentQ) {
+      console.log("renderCurrentQuestion: currentQ is null or undefined.");
       return (
         <div className="space-y-4">
           <h3 className="text-2xl font-bold text-orange-600 dark:text-orange-400">Ushbu bo'limda yoki keyingi bo'limlarda savollar tugadi.</h3>
@@ -308,6 +335,7 @@ const MockTest: React.FC = () => {
         </div>
       );
     }
+    console.log("renderCurrentQuestion: Displaying question:", currentQ);
 
     switch (currentQ.type) {
       case "part1":
