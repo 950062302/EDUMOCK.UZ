@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button";
 import { showSuccess, showError } from "@/utils/toast";
 import { useRecorder } from "@/hooks/use-recorder";
 import { Video } from "lucide-react";
-import { SpeakingQuestion, SpeakingPart } from "@/lib/types";
+import { SpeakingQuestion, SpeakingPart, StudentInfo } from "@/lib/types"; // Import StudentInfo
 import { allSpeakingParts, getSpeakingQuestionStorageKey } from "@/lib/constants";
+import StudentInfoForm from "@/components/StudentInfoForm"; // Import the new component
 
 const MOCK_TEST_QUESTION_DURATION = 30; // seconds
 
@@ -25,6 +26,8 @@ const MockTest: React.FC = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [isTestFinished, setIsTestFinished] = useState<boolean>(false);
   const [countdown, setCountdown] = useState<number>(MOCK_TEST_QUESTION_DURATION);
+  const [isStudentInfoFormOpen, setIsStudentInfoFormOpen] = useState<boolean>(false); // State for dialog
+  const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null); // State to store student info
 
   const { isRecording, startRecording, stopAllStreams, webcamStream, resetRecordedData } = useRecorder();
   const webcamVideoRef = useRef<HTMLVideoElement>(null);
@@ -112,15 +115,22 @@ const MockTest: React.FC = () => {
     };
   }, [isTestStarted, isTestFinished, nextQuestion, currentPartIndex, currentQuestionIndex]); // Re-run effect when question/part changes
 
-  const startTest = async () => {
+  const handleStartTestClick = () => {
     const totalQuestions = allSpeakingParts.reduce((sum, part) => sum + questions[part].length, 0);
     if (totalQuestions === 0) {
       showError("No questions available to start the mock test. Please add some questions first.");
       return;
     }
+    setIsStudentInfoFormOpen(true); // Open student info form
+  };
 
-    const recordingStartedSuccessfully = await startRecording();
+  const handleStudentInfoSave = async (id: string, name: string, phone: string) => {
+    const newStudentInfo: StudentInfo = { id, name, phone };
+    setStudentInfo(newStudentInfo);
+
+    const recordingStartedSuccessfully = await startRecording(newStudentInfo);
     if (!recordingStartedSuccessfully) {
+        setStudentInfo(null); // Clear student info if recording failed
         return;
     }
 
@@ -136,6 +146,7 @@ const MockTest: React.FC = () => {
     stopAllStreams();
     setIsTestFinished(true);
     setIsTestStarted(false);
+    setStudentInfo(null); // Clear student info on test end
     if (countdownIntervalRef.current) {
       clearInterval(countdownIntervalRef.current);
       countdownIntervalRef.current = null;
@@ -170,7 +181,7 @@ const MockTest: React.FC = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             {!isTestStarted && !isTestFinished && (
-              <Button onClick={startTest} size="lg" className="text-lg px-8 py-4">
+              <Button onClick={handleStartTestClick} size="lg" className="text-lg px-8 py-4">
                 Start Test (with Recording)
               </Button>
             )}
@@ -199,7 +210,7 @@ const MockTest: React.FC = () => {
               <div className="space-y-4">
                 <h3 className="text-2xl font-bold text-green-600 dark:text-green-400">Test Completed! 🎉</h3>
                 <p className="text-muted-foreground">You have gone through all available questions.</p>
-                <Button onClick={() => { setIsTestFinished(false); resetRecordedData(); }} variant="outline" className="w-full">
+                <Button onClick={() => { setIsTestFinished(false); resetRecordedData(); setStudentInfo(null); }} variant="outline" className="w-full">
                   Restart Test
                 </Button>
                 <p className="text-sm text-muted-foreground mt-2">
@@ -221,6 +232,11 @@ const MockTest: React.FC = () => {
         </Card>
       </main>
       <MadeWithDyad />
+      <StudentInfoForm
+        isOpen={isStudentInfoFormOpen}
+        onClose={() => setIsStudentInfoFormOpen(false)}
+        onSave={handleStudentInfoSave}
+      />
     </div>
   );
 };

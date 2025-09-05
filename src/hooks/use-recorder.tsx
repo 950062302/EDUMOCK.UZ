@@ -2,12 +2,10 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { showSuccess, showError } from "@/utils/toast";
+import { StudentInfo, RecordedSession } from "@/lib/types"; // Import StudentInfo and RecordedSession
 
-interface RecordingData {
+interface RecordingData extends RecordedSession { // Extend RecordedSession
   blob: Blob | null;
-  url: string | null;
-  timestamp: string;
-  duration: number; // in seconds
 }
 
 export const useRecorder = () => {
@@ -40,7 +38,7 @@ export const useRecorder = () => {
     setIsRecording(false);
   }, [isRecording, displayWebcamStream]); // Add displayWebcamStream to dependencies
 
-  const startRecording = useCallback(async (): Promise<boolean> => {
+  const startRecording = useCallback(async (studentInfo?: StudentInfo): Promise<boolean> => {
     try {
       // 1. Request display webcam stream (video only) for UI preview
       const newDisplayWebcamStream = await navigator.mediaDevices.getUserMedia({
@@ -104,12 +102,14 @@ export const useRecorder = () => {
           url,
           timestamp: new Date().toISOString(),
           duration,
+          studentInfo, // Include student info
         };
         setRecordedData(newRecording);
         sessionStorage.setItem("lastRecording", JSON.stringify({
           url,
           timestamp: newRecording.timestamp,
           duration: newRecording.duration,
+          studentInfo: newRecording.studentInfo, // Include student info in session storage
         }));
         recordedChunksRef.current = [];
         setIsRecording(false);
@@ -136,7 +136,7 @@ export const useRecorder = () => {
       stopAllStreams(); // Ensure all streams are stopped if an error occurs during setup
       return false; // Failed to start recording
     }
-  }, [stopAllStreams]); // Added stopAllStreams to dependencies
+  }, [stopAllStreams, displayWebcamStream]); // Added displayWebcamStream to dependencies
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && isRecording) {

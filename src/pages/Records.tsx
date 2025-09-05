@@ -7,12 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Download, PlayCircle } from "lucide-react";
 import { format } from "date-fns";
-
-interface RecordedSession {
-  url: string;
-  timestamp: string;
-  duration: number; // in seconds
-}
+import { RecordedSession } from "@/lib/types"; // Import RecordedSession type
 
 const Records: React.FC = () => {
   const [lastRecording, setLastRecording] = useState<RecordedSession | null>(null);
@@ -25,10 +20,14 @@ const Records: React.FC = () => {
     }
   }, []);
 
-  const handleDownload = (url: string, timestamp: string) => {
+  const handleDownload = (url: string, timestamp: string, studentName?: string) => {
+    const filename = studentName 
+      ? `mock_test_${studentName.replace(/\s/g, '_')}_${format(new Date(timestamp), "yyyyMMdd_HHmmss")}.webm`
+      : `mock_test_recording_${format(new Date(timestamp), "yyyyMMdd_HHmmss")}.webm`;
+    
     const a = document.createElement("a");
     a.href = url;
-    a.download = `mock_test_recording_${format(new Date(timestamp), "yyyyMMdd_HHmmss")}.webm`;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -47,6 +46,13 @@ const Records: React.FC = () => {
             {lastRecording ? (
               <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Last Recorded Session</h3>
+                {lastRecording.studentInfo && (
+                  <div className="text-left p-3 border rounded-md bg-secondary text-secondary-foreground">
+                    <p><strong>O'quvchi ID:</strong> {lastRecording.studentInfo.id}</p>
+                    <p><strong>Ism:</strong> {lastRecording.studentInfo.name}</p>
+                    <p><strong>Telefon:</strong> {lastRecording.studentInfo.phone}</p>
+                  </div>
+                )}
                 <p className="text-muted-foreground">
                   Recorded on: {format(new Date(lastRecording.timestamp), "PPP - p")}
                 </p>
@@ -68,7 +74,7 @@ const Records: React.FC = () => {
                     <PlayCircle className="h-5 w-5" /> Play Recording
                   </Button>
                   <Button
-                    onClick={() => handleDownload(lastRecording.url, lastRecording.timestamp)}
+                    onClick={() => handleDownload(lastRecording.url, lastRecording.timestamp, lastRecording.studentInfo?.name)}
                     variant="outline"
                     className="flex items-center gap-2"
                   >
