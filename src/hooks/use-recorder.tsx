@@ -2,27 +2,23 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { showSuccess, showError } from "@/utils/toast";
-import { StudentInfo } from "@/lib/types";
-import { addRecordingToDB, RecordingWithSupabaseUrl } from "@/lib/db"; // Updated import
-import { supabase } from "@/lib/supabase"; // Import Supabase client
-import { v4 as uuidv4 } from "uuid"; // For unique file names
+import { StudentInfo, StoredRecording } from "@/lib/types";
+import { addRecordingToDB } from "@/lib/db";
 
 const MAX_RECORDING_DURATION_MS = 60 * 60 * 1000; // 60 minutes in milliseconds
 const MIME_TYPE = "video/webm; codecs=vp8,opus"; // Using a common WebM codec
-const SUPABASE_BUCKET_NAME = 'recordings'; // New bucket for recordings
 
 export const useRecorder = () => {
   const [isRecording, setIsRecording] = useState<boolean>(false);
-  const [webcamStream, setWebcamStream] = useState<MediaStream | null>(null); // Unified webcam stream for display
+  const [webcamStream, setWebcamStream] = useState<MediaStream | null>(null);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
   const screenStreamRef = useRef<MediaStream | null>(null);
-  const micStreamRef = useRef<MediaStream | null>(null); // Separate ref for microphone stream
+  const micStreamRef = useRef<MediaStream | null>(null);
   const startTimeRef = useRef<number>(0);
-  const recordingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null); // Timeout for auto-stopping recording
+  const recordingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Function to clear the recording timeout
   const clearRecordingTimeout = useCallback(() => {
     if (recordingTimeoutRef.current) {
       clearTimeout(recordingTimeoutRef.current);
@@ -31,14 +27,13 @@ export const useRecorder = () => {
     }
   }, []);
 
-  // Function to stop the MediaRecorder specifically and its associated streams (screen, mic)
   const stopRecordingProcess = useCallback(() => {
     console.log("Recorder: Stopping recording process (MediaRecorder, screen, mic streams)...");
-    clearRecordingTimeout(); // Clear auto-stop timeout
+    clearRecordingTimeout();
 
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
       console.log("Recorder: Stopping MediaRecorder. Current state:", mediaRecorderRef.current.state);
-      mediaRecorderRef.current.stop(); // This will trigger onstop
+      mediaRecorderRef.current.stop();
     }
 
     if (screenStreamRef.current) {
@@ -57,22 +52,19 @@ export const useRecorder = () => {
     console.log("Recorder: Recording process streams stopped.");
   }, [clearRecordingTimeout]);
 
-  // Function to stop ALL streams, including webcam preview.
-  // This should only be called on full reset or component unmount.
   const stopAllStreams = useCallback(() => {
     console.log("Recorder: Stopping ALL streams (including webcam preview)...");
-    stopRecordingProcess(); // Stop recording-related streams first
+    stopRecordingProcess();
 
     if (webcamStream) {
       webcamStream.getTracks().forEach(track => track.stop());
       console.log("Recorder: Webcam preview stream stopped.");
     }
-    setWebcamStream(null); // Clear state
+    setWebcamStream(null);
 
     console.log("Recorder: All streams stopped.");
   }, [webcamStream, stopRecordingProcess]);
 
-  // Effect to get webcam stream for preview on component mount
   useEffect(() => {
     const getWebcamPreview = async () => {
       try {
@@ -88,138 +80,80 @@ export const useRecorder = () => {
     getWebcamPreview();
 
     return () => {
-      // This cleanup should only run on actual unmount of the component
-      // and should stop the webcamStream if it's still active.
       if (webcamStream) {
         webcamStream.getTracks().forEach(track => track.stop());
         setWebcamStream(null);
         console.log("Recorder: Webcam preview stream cleaned up on unmount.");
       }
     };
-  }, []); // Run only once on mount
-
-  const uploadVideoToSupabase = async (blob: Blob, studentInfo?: StudentInfo): Promise<string | null> => {
-    const timestamp = new Date().toISOString();
-    const studentIdentifier = studentInfo ? `${studentInfo.name.replace(/\s/g, '_')}_${studentInfo.id}_` : '';
-    const fileName = `${studentIdentifier}${timestamp}.webm`;
-    const filePath = `public/${fileName}`; // Store in a 'public' folder within the bucket
-
-    console.log("Recorder: Attempting to upload video to Supabase. FilePath:", filePath);
-
-    try {
-      const { data, error } = await supabase.storage
-        .from(SUPABASE_BUCKET_NAME)
-        .upload(filePath, blob, {
-          cacheControl: '3600',
-          upsert: false,
-          contentType: MIME_TYPE,
-        });
-
-      if (error) {
-        console.error("Recorder: Supabase upload error:", error.message);
-        throw error;
-      }
-      console.log("Recorder: Supabase upload successful. Data:", data);
-
-      const { data: publicUrlData } = supabase.storage
-        .from(SUPABASE_BUCKET_NAME)
-        .getPublicUrl(filePath);
-
-      console.log("Recorder: Supabase public URL obtained:", publicUrlData.publicUrl);
-      return publicUrlData.publicUrl;
-
-    } catch (error: any) {
-      console.error("Recorder: Error uploading video to Supabase:", error.message);
-      showError(`Videoni yuklashda xatolik yuz berdi: ${error.message}`);
-      return null;
-    }
-  };
+  }, []);
 
   const startRecording = useCallback(async (studentInfo?: StudentInfo): Promise<boolean> => {
     console.log("Recorder: Attempting to start recording...");
-    recordedChunksRef.current = []; // Clear previous chunks
+    recordedChunksRef.current = [];
 
-    // Check for MediaRecorder support
     if (!MediaRecorder.isTypeSupported(MIME_TYPE)) {
       showError(`Yozib olish formati (${MIME_TYPE}) brauzeringiz tomonidan qo'llab-quvvatlanmaydi.`);
       console.error(`Recorder: MIME type ${MIME_TYPE} is not supported.`);
-      stopRecordingProcess(); // Use the new function
+      stopRecordingProcess();
       return false;
     }
 
     try {
-      // 1. Get screen and system audio
       const screenStream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
         audio: true,
       });
       if (!screenStream || screenStream.getVideoTracks().length === 0) {
         showError("Ekran ulashish bekor qilindi yoki video stream olinmadi.");
-        stopRecordingProcess(); // Use the new function
+        stopRecordingProcess();
         return false;
       }
       screenStreamRef.current = screenStream;
-      console.log("Recorder: Screen stream obtained. Video tracks:", screenStream.getVideoTracks().length, "Audio tracks:", screenStream.getAudioTracks().length);
       screenStream.addEventListener('ended', () => {
         console.log("Recorder: Screen sharing ended by user or system.");
         showError("Ekran ulashish to'xtatildi. Yozib olish tugatildi.");
-        stopRecordingProcess(); // Use the new function
+        stopRecordingProcess();
       });
-      
 
-      // 2. Get microphone audio
       let micStream: MediaStream | null = null;
       try {
         micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
         if (!micStream || micStream.getAudioTracks().length === 0) {
           showError("Mikrofon ruxsatnomasi berilmadi yoki audio stream olinmadi.");
-          stopRecordingProcess(); // Use the new function
+          stopRecordingProcess();
           return false;
         }
         micStreamRef.current = micStream;
-        console.log("Recorder: Microphone stream obtained. Audio tracks:", micStream.getAudioTracks().length);
       } catch (micErr) {
         console.error("Recorder: Error getting microphone stream:", micErr);
         showError("Mikrofon ruxsatnomasi berilmadi. Yozib olish uchun mikrofon kerak.");
-        stopRecordingProcess(); // Use the new function
+        stopRecordingProcess();
         return false;
       }
 
-      // Combine audio tracks: system audio + microphone audio
       const audioContext = new AudioContext();
       const destination = audioContext.createMediaStreamDestination();
 
       screenStream.getAudioTracks().forEach(track => {
-        console.log("Recorder: Adding screen audio track to destination:", track.id);
         const source = audioContext.createMediaStreamSource(new MediaStream([track]));
         source.connect(destination);
       });
 
       micStream.getAudioTracks().forEach(track => {
-        console.log("Recorder: Adding mic audio track to destination:", track.id);
         const source = audioContext.createMediaStreamSource(new MediaStream([track]));
         source.connect(destination);
       });
 
-      // Create a new stream with screen video and combined audio (NO WEBCAM VIDEO IN RECORDING)
       const combinedStream = new MediaStream();
-      screenStream.getVideoTracks().forEach(track => {
-        console.log("Recorder: Adding screen video track to combined stream:", track.id, "ReadyState:", track.readyState);
-        combinedStream.addTrack(track);
-      });
-      destination.stream.getAudioTracks().forEach(track => {
-        console.log("Recorder: Adding combined audio track to combined stream:", track.id, "ReadyState:", track.readyState);
-        combinedStream.addTrack(track);
-      });
-
-      console.log("Recorder: Combined stream tracks before MediaRecorder init:", combinedStream.getTracks().map(t => ({ id: t.id, kind: t.kind, readyState: t.readyState, enabled: t.enabled })));
+      screenStream.getVideoTracks().forEach(track => combinedStream.addTrack(track));
+      destination.stream.getAudioTracks().forEach(track => combinedStream.addTrack(track));
 
       if (combinedStream.getTracks().length === 0) {
         showError("Yozib olish uchun hech qanday stream topilmadi. Iltimos, ekran va mikrofon ruxsatnomalarini tekshiring.");
-        stopRecordingProcess(); // Use the new function
+        stopRecordingProcess();
         return false;
       }
-      console.log("Recorder: Combined stream tracks count:", combinedStream.getTracks().length);
 
       mediaRecorderRef.current = new MediaRecorder(combinedStream, {
         mimeType: MIME_TYPE,
@@ -228,19 +162,15 @@ export const useRecorder = () => {
       mediaRecorderRef.current.ondataavailable = (event) => {
         if (event.data && event.data.size > 0) {
           recordedChunksRef.current.push(event.data);
-          console.log("Recorder: Data available, size:", event.data.size, "bytes. Total chunks:", recordedChunksRef.current.length, "MediaRecorder state:", mediaRecorderRef.current?.state);
-        } else {
-          console.warn("Recorder: ondataavailable event fired with no data or zero size data. MediaRecorder state:", mediaRecorderRef.current?.state);
         }
       };
 
       mediaRecorderRef.current.onstop = async () => {
-        console.log("Recorder: MediaRecorder onstop event triggered. Recorded chunks count:", recordedChunksRef.current.length, "MediaRecorder state:", mediaRecorderRef.current?.state);
-        clearRecordingTimeout(); // Clear auto-stop timeout
+        console.log("Recorder: MediaRecorder onstop event triggered.");
+        clearRecordingTimeout();
         if (recordedChunksRef.current.length === 0) {
           showError("Yozib olishda hech qanday ma'lumot yig'ilmadi. Iltimos, qayta urinib ko'ring.");
-          console.error("Recorder: No data collected during recording.");
-          stopRecordingProcess(); // Use the new function
+          stopRecordingProcess();
           return;
         }
 
@@ -248,28 +178,17 @@ export const useRecorder = () => {
         const endTime = Date.now();
         const duration = Math.round((endTime - startTimeRef.current) / 1000);
 
-        // Upload to Supabase Storage
-        showSuccess("Videoni yuklash boshlandi...");
-        const supabaseUrl = await uploadVideoToSupabase(blob, studentInfo);
-
-        if (!supabaseUrl) {
-          showError("Videoni Supabase'ga yuklashda xatolik yuz berdi. Yozib olish saqlanmadi.");
-          stopRecordingProcess();
-          return;
-        }
-        console.log("Recorder: Supabase URL obtained:", supabaseUrl); // NEW LOG
-
-        const newRecording: RecordingWithSupabaseUrl = {
+        const newRecording: StoredRecording = {
           timestamp: new Date().toISOString(),
           duration,
           studentInfo,
-          supabaseUrl, // Save the Supabase URL
+          videoBlob: blob,
         };
         
         try {
           await addRecordingToDB(newRecording);
-          showSuccess("Recording stopped and saved to cloud!");
-          console.log("Recorder: Recording successfully processed and saved to IndexedDB with Supabase URL.");
+          showSuccess("Yozib olingan video brauzer xotirasiga saqlandi!");
+          console.log("Recorder: Recording successfully processed and saved to IndexedDB.");
         } catch (error) {
           console.error("Recorder: Failed to save recording to IndexedDB", error);
           showError("Yozib olingan videoni saqlashda xatolik yuz berdi.");
@@ -278,7 +197,6 @@ export const useRecorder = () => {
         recordedChunksRef.current = [];
         setIsRecording(false);
 
-        // Stop only the recording-specific streams here
         screenStreamRef.current?.getTracks().forEach(track => track.stop());
         screenStreamRef.current = null;
         micStreamRef.current?.getTracks().forEach(track => track.stop());
@@ -288,21 +206,17 @@ export const useRecorder = () => {
       mediaRecorderRef.current.onerror = (event: Event) => {
         console.error("Recorder: MediaRecorder error:", event);
         showError("Yozib olishda xatolik yuz berdi: " + ((event as any).error?.message || "Noma'lum xato"));
-        stopRecordingProcess(); // Use the new function
+        stopRecordingProcess();
       };
 
-      console.log("Recorder: MediaRecorder state before start:", mediaRecorderRef.current.state);
-      mediaRecorderRef.current.start(1000); // Add timeslice to ensure data is collected regularly
+      mediaRecorderRef.current.start(1000);
       startTimeRef.current = Date.now();
       setIsRecording(true);
       showSuccess("Recording started!");
-      console.log("Recorder: Recording successfully started. MediaRecorder state after start:", mediaRecorderRef.current.state);
 
-      // Set timeout to automatically stop recording after MAX_RECORDING_DURATION_MS
-      console.log(`Recorder: Setting auto-stop timeout for ${MAX_RECORDING_DURATION_MS / 1000 / 60} minutes.`);
       recordingTimeoutRef.current = setTimeout(() => {
         console.log("Recorder: Auto-stopping recording after max duration.");
-        stopRecordingProcess(); // Use the new function
+        stopRecordingProcess();
         showSuccess("Yozib olish maksimal vaqtga yetgani uchun avtomatik to'xtatildi.");
       }, MAX_RECORDING_DURATION_MS);
 
@@ -311,47 +225,40 @@ export const useRecorder = () => {
       console.error("Recorder: General error starting recording:", err);
       showError("Yozib olishni boshlashda kutilmagan xatolik yuz berdi. Ruxsatnomalarni tekshiring.");
       setIsRecording(false);
-      stopRecordingProcess(); // Use the new function
+      stopRecordingProcess();
       return false;
     }
-  }, [stopRecordingProcess, clearRecordingTimeout, uploadVideoToSupabase]);
+  }, [stopRecordingProcess, clearRecordingTimeout]);
 
-  // Cleanup on component unmount
   useEffect(() => {
     return () => {
       console.log("Recorder: Component unmounting, performing cleanup.");
       clearRecordingTimeout();
 
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-        console.log("Recorder: Stopping MediaRecorder during unmount cleanup.");
         mediaRecorderRef.current.stop();
       }
 
-      // Stop webcam stream if it's still active (it might have been stopped by stopAllStreams already)
       if (webcamStream) {
         webcamStream.getTracks().forEach(track => track.stop());
         setWebcamStream(null);
-        console.log("Recorder: Webcam preview stream stopped during unmount cleanup.");
       }
 
       if (screenStreamRef.current) {
         screenStreamRef.current.getTracks().forEach(track => track.stop());
-        console.log("Recorder: Screen stream stopped during unmount cleanup.");
       }
 
       if (micStreamRef.current) {
         micStreamRef.current.getTracks().forEach(track => track.stop());
-        console.log("Recorder: Microphone stream stopped during unmount cleanup.");
       }
-      console.log("Recorder: All streams and timeouts cleared on unmount.");
     };
-  }, [clearRecordingTimeout]);
+  }, [clearRecordingTimeout, webcamStream]);
 
   return {
     isRecording,
     startRecording,
-    stopRecording: stopRecordingProcess, // Expose the recording-specific stop
-    stopAllStreams, // Expose the full cleanup
-    webcamStream, // Return the unified webcam stream for display
+    stopRecording: stopRecordingProcess,
+    stopAllStreams,
+    webcamStream,
   };
 };

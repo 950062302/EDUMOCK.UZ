@@ -7,35 +7,37 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Download, PlayCircle, Trash2 } from "lucide-react";
 import { format } from "date-fns";
-import { RecordedSession } from "@/lib/types";
+import { RecordedSession, StoredRecording } from "@/lib/types";
 import { showError, showSuccess } from "@/utils/toast";
-import { getAllRecordingsFromDB, deleteRecordingFromDB, RecordingWithSupabaseUrl } from "@/lib/db"; // Updated import
-import { supabase } from "@/lib/supabase"; // Import Supabase client
-
-const SUPABASE_BUCKET_NAME = 'recordings'; // Ensure this matches the recorder hook
+import { getAllRecordingsFromDB, deleteRecordingFromDB } from "@/lib/db";
 
 const Records: React.FC = () => {
   const [recordings, setRecordings] = useState<RecordedSession[]>([]);
 
-  // Load recordings from IndexedDB on component mount
   useEffect(() => {
+    const objectUrls: string[] = [];
+
     const loadRecordings = async () => {
-      const recordingsFromDb: RecordingWithSupabaseUrl[] = await getAllRecordingsFromDB();
-      console.log("Records: Loaded recordings from IndexedDB:", recordingsFromDb); // NEW LOG
-      // Map to RecordedSession, ensuring 'url' points to 'supabaseUrl'
-      const recordingsWithUrls: RecordedSession[] = recordingsFromDb.map(rec => ({
-        ...rec,
-        url: rec.supabaseUrl, // Use supabaseUrl for the 'url' property
-      }));
+      const recordingsFromDb: StoredRecording[] = await getAllRecordingsFromDB();
+      console.log("Records: Loaded recordings from IndexedDB:", recordingsFromDb);
+      
+      const recordingsWithUrls: RecordedSession[] = recordingsFromDb.map(rec => {
+        const url = URL.createObjectURL(rec.videoBlob);
+        objectUrls.push(url);
+        return {
+          ...rec,
+          url: url,
+        };
+      });
       setRecordings(recordingsWithUrls);
     };
 
     loadRecordings();
 
-    // No need to revoke Object URLs here as we are using direct Supabase URLs
-    // return () => {
-    //   objectUrls.forEach(url => URL.revokeObjectURL(url));
-    // };
+    return () => {
+      console.log("Records: Revoking object URLs on unmount.", objectUrls);
+      objectUrls.forEach(url => URL.revokeObjectURL(url));
+    };
   }, []);
 
   const handleDownload = useCallback((recording: RecordedSession) => {
@@ -49,49 +51,22 @@ const Records: React.FC = () => {
     }
     
     const a = document.createElement("a");
-    a.href = recording.url; // Use the Supabase URL directly
+    a.href = recording.url;
     a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
   }, []);
 
-  const deleteVideoFromSupabase = async (supabaseUrl: string) => {
+  const handleDelete = useCallback(async (timestampToDelete: string) => {
     try {
-      // Extract the file path from the public URL
-      const urlParts = supabaseUrl.split('/');
-      const bucketIndex = urlParts.indexOf(SUPABASE_BUCKET_NAME);
-      if (bucketIndex === -1 || bucketIndex + 1 >= urlParts.length) {
-        throw new Error("Invalid Supabase URL format for deletion.");
+      const recordingToDelete = recordings.find(rec => rec.timestamp === timestampToDelete);
+      if (recordingToDelete) {
+        URL.revokeObjectURL(recordingToDelete.url);
       }
-      // The path starts after the bucket name, including 'public/'
-      const filePath = urlParts.slice(bucketIndex + 1).join('/');
-      console.log("Records: Attempting to delete from Supabase Storage. FilePath:", filePath);
 
-      const { error } = await supabase.storage
-        .from(SUPABASE_BUCKET_NAME)
-        .remove([filePath]);
-
-      if (error) {
-        console.error("Records: Supabase delete error:", error.message);
-        throw error;
-      }
-      console.log(`Records: Video ${filePath} deleted from Supabase Storage.`);
-    } catch (error: any) {
-      console.error("Records: Error deleting video from Supabase:", error.message);
-      showError(`Videoni Supabase'dan o'chirishda xatolik yuz berdi: ${error.message}`);
-    }
-  };
-
-  const handleDelete = useCallback(async (timestampToDelete: string, supabaseUrl: string) => {
-    try {
-      // First, delete from Supabase Storage
-      await deleteVideoFromSupabase(supabaseUrl);
-
-      // Then, delete from IndexedDB
       await deleteRecordingFromDB(timestampToDelete);
       
-      // Update state
       setRecordings(prevRecordings => prevRecordings.filter(rec => rec.timestamp !== timestampToDelete));
 
       showSuccess("Yozib olingan sessiya o'chirildi!");
@@ -99,7 +74,7 @@ const Records: React.FC = () => {
       console.error("Failed to delete recording:", error);
       showError("Yozib olingan videoni o'chirishda xatolik yuz berdi.");
     }
-  }, []);
+  }, [recordings]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
@@ -132,7 +107,7 @@ const Records: React.FC = () => {
                       <div className="flex gap-2">
                         <Button
                           onClick={() => {
-                            const videoWindow = window.open(recording.url, "_blank"); // Use Supabase URL directly
+                            const videoWindow = window.open(recording.url, "_blank");
                             if (videoWindow) {
                               videoWindow.focus();
                             } else {
@@ -153,7 +128,7 @@ const Records: React.FC = () => {
                           <Download className="h-4 w-4" /> Download
                         </Button>
                         <Button
-                          onClick={() => handleDelete(recording.timestamp, recording.supabaseUrl)} // Pass supabaseUrl for deletion
+                          onClick={() => handleDelete(recording.timestamp)}
                           variant="destructive"
                           size="sm"
                           className="flex items-center gap-1"
@@ -173,8 +148,8 @@ const Records: React.FC = () => {
               </div>
             )}
             <p className="text-sm text-red-500 mt-4 text-center">
-              Note: Recordings are saved as .webm format. MP4 conversion is not supported directly in the browser.
-              These recordings are now stored in Supabase Storage and indexed in your browser's local storage.
+              Eslatma: Yozuvlar endi to'g'ridan-to'g'ri brauzeringizning mahalliy xotirasida (IndexedDB) saqlanadi.
+              Brauzer ma'lumotlarini tozalash ularni butunlay o'chirib yuboradi.
             </p>
           </CardContent>
         </Card>

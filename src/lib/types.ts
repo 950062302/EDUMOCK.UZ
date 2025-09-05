@@ -42,11 +42,14 @@ export interface BaseRecordedSession {
   timestamp: string;
   duration: number; // in seconds
   studentInfo?: StudentInfo; // Optional student information
-  supabaseUrl: string; // Supabase'da saqlangan videoning URL manzili
 }
 
-export interface RecordedSession extends BaseRecordedSession {
-  // `url` endi `supabaseUrl` bilan bir xil bo'ladi, shuning uchun alohida `url` maydoni kerak emas.
-  // Lekin mavjud komponentlar bilan moslik uchun uni saqlab qolamiz va `supabaseUrl` ga tenglashtiramiz.
-  url: string; 
+// This is what we'll store in IndexedDB
+export interface StoredRecording extends BaseRecordedSession {
+  videoBlob: Blob;
+}
+
+// This is what we'll use in the Records page component's state
+export interface RecordedSession extends StoredRecording {
+  url: string; // Temporary Object URL for playback/download
 }

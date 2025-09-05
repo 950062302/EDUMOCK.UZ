@@ -1,19 +1,14 @@
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
-import { BaseRecordedSession } from './types';
+import { StoredRecording } from './types';
 
 const DB_NAME = 'MockTestDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Increment DB version for schema change
 const STORE_NAME = 'recordings';
-
-// Endi blob o'rniga supabaseUrl saqlanadi
-export interface RecordingWithSupabaseUrl extends BaseRecordedSession {
-  supabaseUrl: string;
-}
 
 interface MockTestDB extends DBSchema {
   [STORE_NAME]: {
     key: string; // timestamp
-    value: RecordingWithSupabaseUrl;
+    value: StoredRecording;
   };
 }
 
@@ -22,8 +17,13 @@ let dbPromise: Promise<IDBPDatabase<MockTestDB>> | null = null;
 const getDb = (): Promise<IDBPDatabase<MockTestDB>> => {
   if (!dbPromise) {
     dbPromise = openDB<MockTestDB>(DB_NAME, DB_VERSION, {
-      upgrade(db) {
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
+      upgrade(db, oldVersion) {
+        // This upgrade function will run if the DB_VERSION is higher than the existing one.
+        // It will delete the old data (with Supabase links) and create a new structure.
+        if (oldVersion < 2) {
+          if (db.objectStoreNames.contains(STORE_NAME)) {
+            db.deleteObjectStore(STORE_NAME);
+          }
           db.createObjectStore(STORE_NAME, { keyPath: 'timestamp' });
         }
       },
@@ -32,12 +32,12 @@ const getDb = (): Promise<IDBPDatabase<MockTestDB>> => {
   return dbPromise;
 };
 
-export const addRecordingToDB = async (recording: RecordingWithSupabaseUrl): Promise<void> => {
+export const addRecordingToDB = async (recording: StoredRecording): Promise<void> => {
   const db = await getDb();
   await db.put(STORE_NAME, recording);
 };
 
-export const getAllRecordingsFromDB = async (): Promise<RecordingWithSupabaseUrl[]> => {
+export const getAllRecordingsFromDB = async (): Promise<StoredRecording[]> => {
   const db = await getDb();
   // Get all and sort by timestamp descending to show newest first
   const recordings = await db.getAll(STORE_NAME);
