@@ -15,6 +15,7 @@ import { allSpeakingParts, getSpeakingQuestionStorageKey } from "@/lib/constants
 
 // Define timings for each phase/part
 const TIMINGS = {
+  PRE_TEST_COUNTDOWN: 5, // New: 5 seconds before test officially starts
   PART1_1_QUESTION: 30, // seconds
   PART1_2_QUESTION: 30, // seconds for Part 1.2
   PART2_PREP: 60, // seconds
@@ -23,7 +24,7 @@ const TIMINGS = {
   PART3_SPEAK: 120, // seconds
 };
 
-export type TestPhase = "idle" | "preparation" | "speaking" | "question_display" | "finished";
+export type TestPhase = "idle" | "pre_test_countdown" | "preparation" | "speaking" | "question_display" | "finished";
 
 interface UseMockTestLogicProps {
   startRecording: (studentInfo: StudentInfo) => Promise<boolean>;
@@ -249,40 +250,50 @@ export const useMockTestLogic = ({
       return;
     }
 
-    const currentPartName = allSpeakingParts[currentPartIndex];
-    const currentQ = questions[currentPartName]?.[currentQuestionIndex];
-    console.log("Countdown useEffect: Current Question:", currentQ ? { id: currentQ.id, type: currentQ.type } : "None");
-
-    if (!currentQ) {
-      console.log("Countdown useEffect: No current question found, attempting to advance.");
-      advanceTest();
-      console.log("Countdown useEffect: After advanceTest call (no currentQ).");
-      return;
-    }
-
     let duration = 0;
-    switch (currentQ.type) {
-      case "part1.1":
-        duration = TIMINGS.PART1_1_QUESTION;
-        break;
-      case "part1.2":
-        duration = TIMINGS.PART1_2_QUESTION;
-        break;
-      case "part2":
-        duration = currentPhase === "preparation" ? TIMINGS.PART2_PREP : TIMINGS.PART2_SPEAK;
-        break;
-      case "part3":
-        // FIX: Ensure Part 3 also correctly transitions from preparation to speaking
-        duration = currentPhase === "preparation" ? TIMINGS.PART3_PREP : TIMINGS.PART3_SPEAK;
-        break;
+    let nextAction: () => void;
+
+    if (currentPhase === "pre_test_countdown") {
+      duration = TIMINGS.PRE_TEST_COUNTDOWN;
+      nextAction = () => {
+        console.log("Pre-test countdown finished. Setting phase to idle to trigger test start.");
+        setCurrentPhase("idle"); // This will trigger the other useEffect to start the actual test flow
+      };
+    } else {
+      const currentPartName = allSpeakingParts[currentPartIndex];
+      const currentQ = questions[currentPartName]?.[currentQuestionIndex];
+      console.log("Countdown useEffect: Current Question:", currentQ ? { id: currentQ.id, type: currentQ.type } : "None");
+
+      if (!currentQ) {
+        console.log("Countdown useEffect: No current question found, attempting to advance.");
+        advanceTest();
+        console.log("Countdown useEffect: After advanceTest call (no currentQ).");
+        return;
+      }
+
+      switch (currentQ.type) {
+        case "part1.1":
+          duration = TIMINGS.PART1_1_QUESTION;
+          break;
+        case "part1.2":
+          duration = TIMINGS.PART1_2_QUESTION;
+          break;
+        case "part2":
+          duration = currentPhase === "preparation" ? TIMINGS.PART2_PREP : TIMINGS.PART2_SPEAK;
+          break;
+        case "part3":
+          duration = currentPhase === "preparation" ? TIMINGS.PART3_PREP : TIMINGS.PART3_SPEAK;
+          break;
+      }
+      nextAction = advanceTest;
     }
 
     if (duration > 0) {
-      console.log(`Countdown useEffect: Starting countdown for ${currentPartName}, Q${currentQuestionIndex + 1}, Phase: ${currentPhase} with duration ${duration}s.`);
-      startCountdown(duration, advanceTest);
+      console.log(`Countdown useEffect: Starting countdown for Phase: ${currentPhase} with duration ${duration}s.`);
+      startCountdown(duration, nextAction);
     } else {
       console.warn("Countdown useEffect: Duration is 0 for current phase, advancing immediately.");
-      advanceTest();
+      nextAction();
     }
 
     return () => {
@@ -382,8 +393,8 @@ export const useMockTestLogic = ({
     }
 
     setIsTestStarted(true);
-    setCurrentPhase("idle"); // This will trigger the useEffect to start the test flow
-    showSuccess("Mock test boshlandi!");
+    setCurrentPhase("pre_test_countdown"); // Start pre-test countdown
+    showSuccess("Mock test boshlanishiga tayyorlanmoqda!");
     setIsStudentInfoFormOpen(false); // Close form after saving and starting
   };
 

@@ -28,6 +28,16 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
   currentPhase,
   countdown,
 }) => {
+  if (currentPhase === "pre_test_countdown") {
+    return (
+      <div className="space-y-4">
+        <h3 className="text-2xl font-bold text-primary dark:text-primary-foreground">Please prepare yourself!</h3>
+        <p className="text-7xl font-bold text-primary mb-4">{countdown}</p>
+        <p className="text-xl text-muted-foreground">Test {countdown} soniyadan so'ng boshlanadi.</p>
+      </div>
+    );
+  }
+
   if (!currentQ) {
     return (
       <div className="space-y-4">
