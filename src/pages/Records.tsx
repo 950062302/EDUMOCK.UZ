@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Navbar from "@/components/Navbar";
-import { MadeWithDyad } from "@/components/made-with-dyad";
+import { CefrCentreFooter } from "@/components/CefrCentreFooter"; // Updated import
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, PlayCircle, Trash2 } from "lucide-react";
@@ -125,7 +125,7 @@ const Records: React.FC = () => {
           </CardContent>
         </Card>
       </main>
-      <MadeWithDyad />
+      <CefrCentreFooter /> {/* Replaced MadeWithDyad */}
     </div>
   );
 };

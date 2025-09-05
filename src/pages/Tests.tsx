@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
-import { MadeWithDyad } from "@/components/made-with-dyad";
+import { CefrCentreFooter } from "@/components/CefrCentreFooter"; // Updated import
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { format } from "date-fns";
 import { SpeakingQuestion, SpeakingPart, Part1_1Question, Part1_2Question, Part2Question, Part3Question } from "@/lib/types"; // Import all new types
 import { allSpeakingParts, getSpeakingQuestionStorageKey } from "@/lib/constants";
+import { format } from "date-fns";
 
 const Tests: React.FC = () => {
   const [questions, setQuestions] = useState<Record<SpeakingPart, SpeakingQuestion[]>>({
@@ -131,7 +131,7 @@ const Tests: React.FC = () => {
           </CardContent>
         </Card>
       </main>
-      <MadeWithDyad />
+      <CefrCentreFooter /> {/* Replaced MadeWithDyad */}
     </div>
   );
 };

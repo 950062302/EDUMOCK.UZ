@@ -2,7 +2,7 @@
 
 import React from "react";
 import Navbar from "@/components/Navbar";
-import { MadeWithDyad } from "@/components/made-with-dyad";
+import { CefrCentreFooter } from "@/components/CefrCentreFooter"; // Updated import
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -50,7 +50,7 @@ const UserProfile: React.FC = () => {
           </CardContent>
         </Card>
       </main>
-      <MadeWithDyad />
+      <CefrCentreFooter /> {/* Replaced MadeWithDyad */}
     </div>
   );
 };

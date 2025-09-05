@@ -2,7 +2,7 @@
 
 import React, { useRef } from "react";
 import Navbar from "@/components/Navbar";
-import { MadeWithDyad } from "@/components/made-with-dyad";
+import { CefrCentreFooter } from "@/components/CefrCentreFooter"; // Updated import
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { useRecorder } from "@/hooks/use-recorder";
 import { Video } from "lucide-react";
@@ -105,12 +105,7 @@ const MockTest: React.FC = () => {
           </CardContent>
         </Card>
       </main>
-      <MadeWithDyad />
-      <StudentInfoForm
-        isOpen={isStudentInfoFormOpen}
-        onClose={() => setIsStudentInfoFormOpen(false)}
-        onSave={handleStudentInfoSave}
-      />
+      <CefrCentreFooter /> {/* Replaced MadeWithDyad */}
     </div>
   );
 };

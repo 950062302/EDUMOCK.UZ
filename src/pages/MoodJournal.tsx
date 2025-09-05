@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import JournalEntryForm from "@/components/JournalEntryForm";
 import MoodEntryCard from "@/components/MoodEntryCard";
-import { MadeWithDyad } from "@/components/made-with-dyad";
+import { CefrCentreFooter } from "@/components/CefrCentreFooter"; // Updated import
 import {
   Select,
   SelectContent,
@@ -101,7 +101,7 @@ const MoodJournal: React.FC = () => {
           ))}
         </div>
       )}
-      <MadeWithDyad />
+      <CefrCentreFooter /> {/* Replaced MadeWithDyad */}
     </div>
   );
 };

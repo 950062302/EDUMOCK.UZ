@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { showSuccess, showError } from "@/utils/toast";
+import { CefrCentreFooter } from "@/components/CefrCentreFooter"; // Updated import
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState("");
@@ -26,7 +27,7 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold">Login</CardTitle>
@@ -65,6 +66,7 @@ const Login: React.FC = () => {
           </p>
         </CardContent>
       </Card>
+      <CefrCentreFooter /> {/* Replaced MadeWithDyad */}
     </div>
   );
 };

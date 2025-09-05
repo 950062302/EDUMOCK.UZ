@@ -1,4 +1,4 @@
-import { MadeWithDyad } from "@/components/made-with-dyad";
+import { CefrCentreFooter } from "@/components/CefrCentreFooter"; // Updated import
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -23,7 +23,7 @@ const Index = () => {
           </Link>
         </div>
       </div>
-      <MadeWithDyad />
+      <CefrCentreFooter /> {/* Replaced MadeWithDyad */}
     </div>
   );
 };
