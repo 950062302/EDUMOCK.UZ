@@ -26,12 +26,7 @@ const StudentInfoForm: React.FC<StudentInfoFormProps> = ({ isOpen, onClose, onSa
   const [studentName, setStudentName] = useState<string>("");
   const [studentPhone, setStudentPhone] = useState<string>("");
 
-  useEffect(() => {
-    console.log("StudentInfoForm: isOpen prop changed to:", isOpen);
-    if (isOpen) {
-      console.log("StudentInfoForm: Dialog should be visible now.");
-    }
-  }, [isOpen]);
+  // Removed useEffect logs to avoid cluttering the console, as isOpen prop is confirmed to be received.
 
   const handleSubmit = () => {
     if (!studentId.trim() || !studentName.trim() || !studentPhone.trim()) {
@@ -39,12 +34,12 @@ const StudentInfoForm: React.FC<StudentInfoFormProps> = ({ isOpen, onClose, onSa
       return;
     }
     onSave(studentId.trim(), studentName.trim(), studentPhone.trim());
-    onClose();
+    onClose(); // Close the dialog after saving
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="fixed left-[50%] top-[50%] z-[9999] w-full max-w-[425px] translate-x-[-50%] translate-y-[-50%] bg-background p-6 shadow-lg sm:rounded-lg">
         <DialogHeader>
           <DialogTitle>O'quvchi ma'lumotlarini kiriting</DialogTitle>
           <DialogDescription>
