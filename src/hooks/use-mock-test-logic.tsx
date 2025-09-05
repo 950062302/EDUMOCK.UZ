@@ -271,21 +271,27 @@ export const useMockTestLogic = ({
         return;
       }
 
-      switch (currentQ.type) {
-        case "part1.1":
-          duration = TIMINGS.PART1_1_QUESTION;
-          break;
-        case "part1.2":
-          duration = TIMINGS.PART1_2_QUESTION;
-          break;
-        case "part2":
-          duration = currentPhase === "preparation" ? TIMINGS.PART2_PREP : TIMINGS.PART2_SPEAK;
-          break;
-        case "part3":
-          duration = currentPhase === "preparation" ? TIMINGS.PART3_PREP : TIMINGS.PART3_SPEAK;
-          break;
+      // Special handling for Part 2 and Part 3 when in 'question_display' phase
+      if (currentQ.type === "part2" || currentQ.type === "part3") {
+        if (currentPhase === "question_display") {
+          // No countdown for just displaying the question, immediately advance to preparation
+          duration = 0; // Set to 0 to immediately trigger nextAction
+          nextAction = advanceTest;
+        } else if (currentPhase === "preparation") {
+          duration = currentQ.type === "part2" ? TIMINGS.PART2_PREP : TIMINGS.PART3_PREP;
+          nextAction = advanceTest;
+        } else if (currentPhase === "speaking") {
+          duration = currentQ.type === "part2" ? TIMINGS.PART2_SPEAK : TIMINGS.PART3_SPEAK;
+          nextAction = advanceTest;
+        } else {
+          console.warn(`Countdown useEffect: Unexpected phase for ${currentQ.type}: ${currentPhase}. Advancing immediately.`);
+          duration = 0;
+          nextAction = advanceTest;
+        }
+      } else { // Part 1.1, Part 1.2
+        duration = currentQ.type === "part1.1" ? TIMINGS.PART1_1_QUESTION : TIMINGS.PART1_2_QUESTION;
+        nextAction = advanceTest;
       }
-      nextAction = advanceTest;
     }
 
     if (duration > 0) {
@@ -338,7 +344,7 @@ export const useMockTestLogic = ({
       setCurrentSubQuestionIndex(0);
       const firstQuestion = questions[allSpeakingParts[firstPartWithQuestionsIndex]]?.[0];
       if (firstQuestion && (firstQuestion.type === "part2" || firstQuestion.type === "part3")) {
-        setCurrentPhase("preparation");
+        setCurrentPhase("question_display"); // Start with question display, then it will advance to preparation
       } else {
         setCurrentPhase("question_display");
       }
