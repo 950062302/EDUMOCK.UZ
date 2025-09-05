@@ -335,18 +335,16 @@ export const useMockTestLogic = ({
     // Part 1: Select 3 random questions
     selectedQuestionsForTest["Part 1"] = getRandomElements(allAvailableQuestionsRef.current["Part 1"] as Part1Question[], 3);
 
-    // Part 1.1: Select 1 random question object, then 3 random sub-questions from it
+    // Part 1.1: Select 1 random question object (which includes its sub-questions)
     const randomPart1_1Q = getRandomElements(allAvailableQuestionsRef.current["Part 1.1"] as Part1_1Question[], 1)[0];
     if (randomPart1_1Q) {
-      const selectedSubQuestions = getRandomElements(randomPart1_1Q.subQuestions, 3);
-      selectedQuestionsForTest["Part 1.1"] = [{ ...randomPart1_1Q, subQuestions: selectedSubQuestions }];
+      selectedQuestionsForTest["Part 1.1"] = [randomPart1_1Q];
     }
 
-    // Part 1.2: Select 1 random question object, then 3 random sub-questions from it
+    // Part 1.2: Select 1 random question object (which includes its images and sub-questions)
     const randomPart1_2Q = getRandomElements(allAvailableQuestionsRef.current["Part 1.2"] as Part1_2Question[], 1)[0];
     if (randomPart1_2Q) {
-      const selectedSubQuestions = getRandomElements(randomPart1_2Q.subQuestions, 3);
-      selectedQuestionsForTest["Part 1.2"] = [{ ...randomPart1_2Q, subQuestions: selectedSubQuestions }];
+      selectedQuestionsForTest["Part 1.2"] = [randomPart1_2Q];
     }
 
     // Part 2: Select 1 random question
