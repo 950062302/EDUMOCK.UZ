@@ -23,13 +23,18 @@ const Records: React.FC = () => {
     }
   }, []);
 
-  const handleDownload = useCallback((url: string, timestamp: string, studentName?: string) => {
-    const filename = studentName 
-      ? `mock_test_${studentName.replace(/\s/g, '_')}_${format(new Date(timestamp), "yyyyMMdd_HHmmss")}.webm`
-      : `mock_test_recording_${format(new Date(timestamp), "yyyyMMdd_HHmmss")}.webm`;
+  const handleDownload = useCallback((recording: RecordedSession) => {
+    const timestampFormatted = format(new Date(recording.timestamp), "yyyyMMdd_HHmmss");
+    let filename = `mock_test_recording_${timestampFormatted}.webm`;
+
+    if (recording.studentInfo) {
+      const studentName = recording.studentInfo.name.replace(/\s/g, '_');
+      const studentId = recording.studentInfo.id.replace(/\s/g, '_');
+      filename = `mock_test_${studentName}_${studentId}_${timestampFormatted}.webm`;
+    }
     
     const a = document.createElement("a");
-    a.href = url;
+    a.href = recording.url;
     a.download = filename;
     document.body.appendChild(a);
     a.click();
@@ -91,7 +96,7 @@ const Records: React.FC = () => {
                           <PlayCircle className="h-4 w-4" /> Play
                         </Button>
                         <Button
-                          onClick={() => handleDownload(recording.url, recording.timestamp, recording.studentInfo?.name)}
+                          onClick={() => handleDownload(recording)} {/* Changed to pass the whole recording object */}
                           variant="outline"
                           size="sm"
                           className="flex items-center gap-1"
