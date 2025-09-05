@@ -12,7 +12,7 @@ import TestQuestionDisplay from "@/components/TestQuestionDisplay";
 import TestControls from "@/components/TestControls";
 
 const MockTest: React.FC = () => {
-  const { isRecording, startRecording, stopAllStreams, webcamStream, resetRecordedData } = useRecorder();
+  const { isRecording, startRecording, stopAllStreams, webcamStream } = useRecorder();
   const webcamVideoRef = useRef<HTMLVideoElement>(null);
 
   const {
@@ -31,7 +31,7 @@ const MockTest: React.FC = () => {
     handleResetTest,
     getCurrentQuestion,
     allSpeakingParts,
-  } = useMockTestLogic({ startRecording, stopAllStreams, resetRecordedData });
+  } = useMockTestLogic({ startRecording, stopAllStreams });
 
   const currentPartName = allSpeakingParts[currentPartIndex];
   const currentQ = getCurrentQuestion();

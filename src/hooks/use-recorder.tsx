@@ -2,19 +2,14 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { showSuccess, showError } from "@/utils/toast";
-import { StudentInfo, RecordedSession } from "@/lib/types";
-
-interface RecordingData extends RecordedSession {
-  blob: Blob | null;
-}
+import { StudentInfo } from "@/lib/types";
+import { addRecordingToDB, RecordingWithBlob } from "@/lib/db";
 
 const MAX_RECORDING_DURATION_MS = 60 * 60 * 1000; // 60 minutes in milliseconds
 const MIME_TYPE = "video/webm; codecs=vp8,opus"; // Using a common WebM codec
-const RECORDINGS_STORAGE_KEY = "allMockTestRecordings"; // New storage key for all recordings
 
 export const useRecorder = () => {
   const [isRecording, setIsRecording] = useState<boolean>(false);
-  const [recordedData, setRecordedData] = useState<RecordingData | null>(null);
   const [webcamStream, setWebcamStream] = useState<MediaStream | null>(null); // Unified webcam stream for display
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -199,7 +194,7 @@ export const useRecorder = () => {
         }
       };
 
-      mediaRecorderRef.current.onstop = () => {
+      mediaRecorderRef.current.onstop = async () => {
         console.log("Recorder: MediaRecorder onstop event triggered. Recorded chunks count:", recordedChunksRef.current.length, "MediaRecorder state:", mediaRecorderRef.current?.state);
         clearRecordingTimeout(); // Clear auto-stop timeout
         if (recordedChunksRef.current.length === 0) {
@@ -210,22 +205,25 @@ export const useRecorder = () => {
         }
 
         const blob = new Blob(recordedChunksRef.current, { type: MIME_TYPE });
-        const url = URL.createObjectURL(blob);
         const endTime = Date.now();
         const duration = Math.round((endTime - startTimeRef.current) / 1000);
 
-        const newRecording: RecordedSession = { // Use RecordedSession type
-          url,
+        const newRecording: RecordingWithBlob = {
           timestamp: new Date().toISOString(),
           duration,
           studentInfo,
+          blob,
         };
         
-        // Save all recordings to localStorage
-        const existingRecordings = JSON.parse(localStorage.getItem(RECORDINGS_STORAGE_KEY) || "[]") as RecordedSession[];
-        localStorage.setItem(RECORDINGS_STORAGE_KEY, JSON.stringify([newRecording, ...existingRecordings]));
+        try {
+          await addRecordingToDB(newRecording);
+          showSuccess("Recording stopped and saved!");
+          console.log("Recorder: Recording successfully processed and saved to IndexedDB.");
+        } catch (error) {
+          console.error("Recorder: Failed to save recording to IndexedDB", error);
+          showError("Yozib olingan videoni saqlashda xatolik yuz berdi.");
+        }
 
-        setRecordedData({ ...newRecording, blob }); // Update state with the latest recording
         recordedChunksRef.current = [];
         setIsRecording(false);
 
@@ -234,9 +232,6 @@ export const useRecorder = () => {
         screenStreamRef.current = null;
         micStreamRef.current?.getTracks().forEach(track => track.stop());
         micStreamRef.current = null;
-        
-        showSuccess("Recording stopped and saved!");
-        console.log("Recorder: Recording successfully processed and saved.");
       };
 
       mediaRecorderRef.current.onerror = (event: Event) => {
@@ -269,12 +264,6 @@ export const useRecorder = () => {
       return false;
     }
   }, [stopRecordingProcess, clearRecordingTimeout]);
-
-  const resetRecordedData = useCallback(() => {
-    setRecordedData(null);
-    // We no longer clear sessionStorage for "lastRecording" as we're using localStorage for all recordings
-    console.log("Recorder: Recorded data state reset.");
-  }, []);
 
   // Cleanup on component unmount
   useEffect(() => {
@@ -312,8 +301,6 @@ export const useRecorder = () => {
     startRecording,
     stopRecording: stopRecordingProcess, // Expose the recording-specific stop
     stopAllStreams, // Expose the full cleanup
-    recordedData,
     webcamStream, // Return the unified webcam stream for display
-    resetRecordedData,
   };
 };

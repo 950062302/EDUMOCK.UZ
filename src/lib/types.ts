@@ -38,9 +38,12 @@ export interface StudentInfo {
   phone: string;
 }
 
-export interface RecordedSession {
-  url: string;
+export interface BaseRecordedSession {
   timestamp: string;
   duration: number; // in seconds
   studentInfo?: StudentInfo; // Optional student information
+}
+
+export interface RecordedSession extends BaseRecordedSession {
+  url: string; // This will be a temporary object URL created at runtime
 }

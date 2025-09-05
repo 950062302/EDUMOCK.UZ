@@ -9,18 +9,31 @@ import { Download, PlayCircle, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { RecordedSession } from "@/lib/types";
 import { showError, showSuccess } from "@/utils/toast";
-
-const RECORDINGS_STORAGE_KEY = "allMockTestRecordings";
+import { getAllRecordingsFromDB, deleteRecordingFromDB } from "@/lib/db";
 
 const Records: React.FC = () => {
   const [recordings, setRecordings] = useState<RecordedSession[]>([]);
 
-  // Load recordings from localStorage on component mount
+  // Load recordings from IndexedDB on component mount
   useEffect(() => {
-    const storedRecordings = localStorage.getItem(RECORDINGS_STORAGE_KEY);
-    if (storedRecordings) {
-      setRecordings(JSON.parse(storedRecordings));
-    }
+    const objectUrls: string[] = [];
+
+    const loadRecordings = async () => {
+      const recordingsFromDb = await getAllRecordingsFromDB();
+      const recordingsWithUrls = recordingsFromDb.map(rec => {
+        const url = URL.createObjectURL(rec.blob);
+        objectUrls.push(url); // Keep track of URL to revoke later
+        return { ...rec, url };
+      });
+      setRecordings(recordingsWithUrls);
+    };
+
+    loadRecordings();
+
+    // Cleanup function to revoke object URLs on unmount
+    return () => {
+      objectUrls.forEach(url => URL.revokeObjectURL(url));
+    };
   }, []);
 
   const handleDownload = useCallback((recording: RecordedSession) => {
@@ -41,15 +54,26 @@ const Records: React.FC = () => {
     document.body.removeChild(a);
   }, []);
 
-  const handleDelete = useCallback((timestampToDelete: string) => {
-    setRecordings(prevRecordings => {
-      const updatedRecordings = prevRecordings.filter(
-        (rec) => rec.timestamp !== timestampToDelete
-      );
-      localStorage.setItem(RECORDINGS_STORAGE_KEY, JSON.stringify(updatedRecordings));
+  const handleDelete = useCallback(async (timestampToDelete: string) => {
+    try {
+      // Delete from DB
+      await deleteRecordingFromDB(timestampToDelete);
+      
+      // Update state
+      setRecordings(prevRecordings => {
+        const recordingToDelete = prevRecordings.find(rec => rec.timestamp === timestampToDelete);
+        if (recordingToDelete) {
+          // Revoke the object URL to free up memory immediately
+          URL.revokeObjectURL(recordingToDelete.url);
+        }
+        return prevRecordings.filter(rec => rec.timestamp !== timestampToDelete);
+      });
+
       showSuccess("Yozib olingan sessiya o'chirildi!");
-      return updatedRecordings;
-    });
+    } catch (error) {
+      console.error("Failed to delete recording:", error);
+      showError("Yozib olingan videoni o'chirishda xatolik yuz berdi.");
+    }
   }, []);
 
   return (

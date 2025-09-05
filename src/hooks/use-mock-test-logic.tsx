@@ -32,7 +32,6 @@ export type TestPhase = "idle" | "pre_test_countdown" | "preparation" | "speakin
 interface UseMockTestLogicProps {
   startRecording: (studentInfo: StudentInfo) => Promise<boolean>;
   stopAllStreams: () => void;
-  resetRecordedData: () => void;
 }
 
 // Helper function to get N random unique elements from an array
@@ -47,7 +46,6 @@ function getRandomElements<T>(arr: T[], num: number): T[] {
 export const useMockTestLogic = ({
   startRecording,
   stopAllStreams,
-  resetRecordedData,
 }: UseMockTestLogicProps) => {
   const [isTestStarted, setIsTestStarted] = useState<boolean>(false);
   const [questions, setQuestions] = useState<Record<SpeakingPart, SpeakingQuestion[]>>({
@@ -479,7 +477,6 @@ export const useMockTestLogic = ({
   const handleResetTest = () => {
     setIsTestStarted(false);
     setCurrentPhase("idle");
-    resetRecordedData();
     setStudentInfo(null);
     setCurrentPartIndex(0);
     setCurrentQuestionIndex(0);
