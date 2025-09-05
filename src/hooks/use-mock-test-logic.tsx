@@ -77,7 +77,19 @@ export const useMockTestLogic = ({
   // Helper to get current question based on part and index
   const getCurrentQuestion = useCallback(() => {
     const currentPartName = allSpeakingParts[currentPartIndex];
-    return questions[currentPartName]?.[currentQuestionIndex];
+    // console.log("getCurrentQuestion: currentPartName:", currentPartName);
+    // console.log("getCurrentQuestion: currentPartIndex:", currentPartIndex);
+    // console.log("getCurrentQuestion: currentQuestionIndex:", currentQuestionIndex);
+    // console.log("getCurrentQuestion: questions state keys:", Object.keys(questions)); // Log keys to see if part name exists
+
+    if (!currentPartName || !questions[currentPartName]) {
+      // console.warn(`getCurrentQuestion: Invalid part name or no questions for part: ${currentPartName}`);
+      return undefined;
+    }
+
+    const question = questions[currentPartName]?.[currentQuestionIndex];
+    // console.log("getCurrentQuestion: returning question:", question);
+    return question;
   }, [currentPartIndex, currentQuestionIndex, questions]);
 
   // Function to manage countdown
@@ -374,7 +386,13 @@ export const useMockTestLogic = ({
   useEffect(() => {
     if (isTestStarted && currentPhase === "question_display") {
       const currentPartName = allSpeakingParts[currentPartIndex];
-      const currentQ = getCurrentQuestion(); // currentQ is defined here
+      
+      if (!currentPartName || !questions[currentPartName]) {
+        console.warn(`Speaking useEffect: Invalid part name or no questions for part: ${currentPartName}`);
+        return;
+      }
+
+      const currentQ = questions[currentPartName]?.[currentQuestionIndex];
 
       if (currentQ) {
         let textToSpeak = "";
@@ -386,12 +404,13 @@ export const useMockTestLogic = ({
 
         if (textToSpeak) {
           console.log(`Speaking question: "${textToSpeak}"`);
-          // Assuming questions are in English, adjust 'en-US' if they are in Uzbek ('uz-UZ')
           speakText(textToSpeak, 'en-US'); 
         }
+      } else {
+        console.warn("Speaking useEffect: currentQ is undefined, cannot speak question.");
       }
     }
-  }, [isTestStarted, currentPhase, currentSubQuestionIndex, currentPartIndex, getCurrentQuestion]);
+  }, [isTestStarted, currentPhase, currentSubQuestionIndex, currentPartIndex, questions]);
 
 
   const handleStartTestClick = () => {
