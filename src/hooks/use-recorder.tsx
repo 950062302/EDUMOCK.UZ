@@ -251,7 +251,7 @@ export const useRecorder = () => {
       };
 
       console.log("Recorder: MediaRecorder state before start:", mediaRecorderRef.current.state);
-      mediaRecorderRef.current.start();
+      mediaRecorderRef.current.start(1000); // Add timeslice to ensure data is collected regularly
       startTimeRef.current = Date.now();
       setIsRecording(true);
       showSuccess("Recording started!");
