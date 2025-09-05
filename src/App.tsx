@@ -12,8 +12,9 @@ import AddQuestion from "./pages/AddQuestion";
 import Tests from "./pages/Tests";
 import MockTest from "./pages/MockTest";
 import Settings from "./pages/Settings";
-import UserProfile from "./pages/UserProfile"; // Import the new UserProfile page
-import Questions from "./pages/Questions"; // Import the new Questions page
+import UserProfile from "./pages/UserProfile";
+import Questions from "./pages/Questions";
+import Records from "./pages/Records"; // Import the new Records page
 
 const queryClient = new QueryClient();
 
@@ -32,8 +33,9 @@ const App = () => (
           <Route path="/tests" element={<Tests />} />
           <Route path="/mock-test" element={<MockTest />} />
           <Route path="/settings" element={<Settings />} />
-          <Route path="/user-profile" element={<UserProfile />} /> {/* Add the new UserProfile route */}
-          <Route path="/questions" element={<Questions />} /> {/* Add the new Questions route */}
+          <Route path="/user-profile" element={<UserProfile />} />
+          <Route path="/questions" element={<Questions />} />
+          <Route path="/records" element={<Records />} /> {/* Add the new Records route */}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -4,7 +4,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, LogOut, User, Settings, Home as HomeIcon, ListChecks, PlusCircle, BookOpen } from "lucide-react";
+import { Menu, LogOut, User, Settings, Home as HomeIcon, ListChecks, PlusCircle, BookOpen, Video } from "lucide-react"; // Import Video icon
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const navLinks = [
@@ -12,7 +12,8 @@ const navLinks = [
   { name: "Questions", path: "/questions", icon: BookOpen },
   { name: "Add Question", path: "/add-question", icon: PlusCircle },
   { name: "Tests", path: "/tests", icon: ListChecks },
-  { name: "Mock Test", path: "/mock-test", icon: ListChecks }, // Assuming mock.html is for taking a mock test
+  { name: "Mock Test", path: "/mock-test", icon: ListChecks },
+  { name: "Records", path: "/records", icon: Video }, // Add Records link
   { name: "Settings", path: "/settings", icon: Settings },
   { name: "Profile", path: "/user-profile", icon: User },
 ];
