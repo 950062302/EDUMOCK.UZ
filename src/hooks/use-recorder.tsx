@@ -8,7 +8,7 @@ interface RecordingData extends RecordedSession {
   blob: Blob | null;
 }
 
-const MAX_RECORDING_DURATION_MS = 20 * 60 * 1000; // 20 minutes in milliseconds
+const MAX_RECORDING_DURATION_MS = 60 * 60 * 1000; // 60 minutes in milliseconds (increased from 20 minutes)
 const MIME_TYPE = "video/webm; codecs=vp8,opus"; // Using a common WebM codec
 const RECORDINGS_STORAGE_KEY = "allMockTestRecordings"; // New storage key for all recordings
 
@@ -263,10 +263,11 @@ export const useRecorder = () => {
       console.log("Recorder: Recording successfully started. MediaRecorder state after start:", mediaRecorderRef.current.state);
 
       // Set timeout to automatically stop recording after MAX_RECORDING_DURATION_MS
+      console.log(`Recorder: Setting auto-stop timeout for ${MAX_RECORDING_DURATION_MS / 1000 / 60} minutes.`);
       recordingTimeoutRef.current = setTimeout(() => {
-        console.log("Recorder: Auto-stopping recording after 20 minutes.");
+        console.log("Recorder: Auto-stopping recording after max duration.");
         stopRecording();
-        showSuccess("Yozib olish 20 daqiqadan so'ng avtomatik to'xtatildi.");
+        showSuccess("Yozib olish maksimal vaqtga yetgani uchun avtomatik to'xtatildi.");
       }, MAX_RECORDING_DURATION_MS);
 
       return true;
