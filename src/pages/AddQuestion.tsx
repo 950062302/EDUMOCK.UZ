@@ -18,6 +18,7 @@ import {
   SpeakingPart,
   Part1Question,
   Part1_1Question,
+  Part1_2Question, // Import new type
   Part2Question,
   Part3Question,
 } from "@/lib/types";
@@ -34,6 +35,7 @@ const SpeakingQuestionManager: React.FC = () => {
   const [questions, setQuestions] = useState<Record<SpeakingPart, SpeakingQuestion[]>>({
     "Part 1": [],
     "Part 1.1": [],
+    "Part 1.2": [], // Initialize for new part
     "Part 2": [],
     "Part 3": [],
   });
@@ -42,6 +44,7 @@ const SpeakingQuestionManager: React.FC = () => {
     const loadedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
       "Part 1": [],
       "Part 1.1": [],
+      "Part 1.2": [], // Load for new part
       "Part 2": [],
       "Part 3": [],
     };
@@ -100,8 +103,14 @@ const SpeakingQuestionManager: React.FC = () => {
 
   const handleAddQuestion = async (part: SpeakingPart) => {
     let base64Images: string[] = [];
-    const validImageFiles = imageFiles.filter(Boolean); // Filter out any null/undefined entries
-    if (validImageFiles.length > 0) {
+    const isImageRequiredPart = ["Part 1.2", "Part 2", "Part 3"].includes(part);
+
+    if (isImageRequiredPart) {
+      const validImageFiles = imageFiles.filter(Boolean); // Filter out any null/undefined entries
+      if (validImageFiles.length < 2) {
+        showError("Kamida ikkita rasm yuklanmagan.");
+        return;
+      }
       try {
         base64Images = await Promise.all(validImageFiles.map(file => fileToBase64(file)));
       } catch (error) {
@@ -128,10 +137,6 @@ const SpeakingQuestionManager: React.FC = () => {
       setQuestionText("");
       showSuccess(`Savol ${part} ga qo'shildi!`);
     } else if (part === "Part 1.1") {
-      if (base64Images.length < 2) { // Now requires two images
-        showError("Kamida ikkita rasm yuklanmagan.");
-        return;
-      }
       const subQ = subQuestionsText.split('\n').map(q => q.trim()).filter(q => q.length > 0);
       if (subQ.length === 0) {
         showError("Kamida bitta kichik savol kiritishingiz kerak.");
@@ -140,7 +145,25 @@ const SpeakingQuestionManager: React.FC = () => {
       const newQuestion: Part1_1Question = {
         id: uuidv4(),
         type: "part1.1",
-        imageUrls: base64Images, // Store array
+        subQuestions: subQ,
+        date: new Date().toISOString(),
+      };
+      setQuestions(prev => ({
+        ...prev,
+        [part]: [newQuestion, ...prev[part]],
+      }));
+      setSubQuestionsText("");
+      showSuccess(`Savol ${part} ga qo'shildi!`);
+    } else if (part === "Part 1.2") { // New Part 1.2 logic
+      const subQ = subQuestionsText.split('\n').map(q => q.trim()).filter(q => q.length > 0);
+      if (base64Images.length < 2 || subQ.length === 0) {
+        showError("Kamida ikkita rasm va bitta kichik savol kiritishingiz kerak.");
+        return;
+      }
+      const newQuestion: Part1_2Question = {
+        id: uuidv4(),
+        type: "part1.2",
+        imageUrls: base64Images,
         subQuestions: subQ,
         date: new Date().toISOString(),
       };
@@ -152,7 +175,8 @@ const SpeakingQuestionManager: React.FC = () => {
       setImagePreviewUrls([]);
       setSubQuestionsText("");
       showSuccess(`Savol ${part} ga qo'shildi!`);
-    } else if (part === "Part 2") {
+    }
+    else if (part === "Part 2") {
       if (base64Images.length < 2 || !questionText.trim()) { // Now requires two images
         showError("Kamida ikkita rasm va savol matni bo'sh bo'lishi mumkin emas.");
         return;
@@ -204,10 +228,10 @@ const SpeakingQuestionManager: React.FC = () => {
   };
 
   const renderQuestionInput = (part: SpeakingPart) => {
-    const isImagePart = ["Part 1.1", "Part 2", "Part 3"].includes(part);
+    const isImageRequiredPart = ["Part 1.2", "Part 2", "Part 3"].includes(part);
     return (
       <>
-        {isImagePart && (
+        {isImageRequiredPart && (
           <div className="space-y-4 mb-4">
             <Label className="text-base">Rasmlar yuklash (2 ta rasm talab qilinadi)</Label>
             {[0, 1].map((idx) => (
@@ -248,7 +272,7 @@ const SpeakingQuestionManager: React.FC = () => {
           </>
         )}
 
-        {part === "Part 1.1" && (
+        {["Part 1.1", "Part 1.2"].includes(part) && (
           <>
             <Label htmlFor={`sub-questions-${part}`} className="text-base">Kichik savollar (har birini yangi qatordan kiriting)</Label>
             <Textarea
@@ -262,26 +286,12 @@ const SpeakingQuestionManager: React.FC = () => {
           </>
         )}
 
-        {part === "Part 2" && (
+        {["Part 2", "Part 3"].includes(part) && (
           <>
             <Label htmlFor={`question-text-${part}`} className="text-base">Asosiy savol</Label>
             <Textarea
               id={`question-text-${part}`}
-              placeholder={`Part 2 uchun savol kiriting...`}
-              value={questionText}
-              onChange={(e) => setQuestionText(e.target.value)}
-              rows={3}
-              className="mt-1"
-            />
-          </>
-        )}
-
-        {part === "Part 3" && (
-          <>
-            <Label htmlFor={`question-text-${part}`} className="text-base">Asosiy savol</Label>
-            <Textarea
-              id={`question-text-${part}`}
-              placeholder={`Part 3 uchun savol kiriting...`}
+              placeholder={`${part} uchun savol kiriting...`}
               value={questionText}
               onChange={(e) => setQuestionText(e.target.value)}
               rows={3}
@@ -301,13 +311,24 @@ const SpeakingQuestionManager: React.FC = () => {
         const part1_1Q = q as Part1_1Question;
         return (
           <div className="flex flex-col items-start flex-grow mr-4">
+            <ul className="list-disc list-inside text-sm">
+              {part1_1Q.subQuestions.map((subQ, i) => (
+                <li key={i}>{subQ}</li>
+              ))}
+            </ul>
+          </div>
+        );
+      case "part1.2": // New Part 1.2 display
+        const part1_2Q = q as Part1_2Question;
+        return (
+          <div className="flex flex-col items-start flex-grow mr-4">
             <div className="flex gap-2 mb-2">
-              {part1_1Q.imageUrls.map((url, idx) => (
+              {part1_2Q.imageUrls.map((url, idx) => (
                 <img key={idx} src={url} alt={`Question image ${idx + 1}`} className="max-h-24 object-contain rounded-md" />
               ))}
             </div>
             <ul className="list-disc list-inside text-sm">
-              {part1_1Q.subQuestions.map((subQ, i) => (
+              {part1_2Q.subQuestions.map((subQ, i) => (
                 <li key={i}>{subQ}</li>
               ))}
             </ul>
@@ -358,7 +379,7 @@ const SpeakingQuestionManager: React.FC = () => {
               setImagePreviewUrls([]);
               setSubQuestionsText("");
             }} className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5"> {/* Updated grid-cols to 5 */}
                 {allSpeakingParts.map(part => (
                   <TabsTrigger key={part} value={part}>{part}</TabsTrigger>
                 ))}

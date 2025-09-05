@@ -6,13 +6,14 @@ import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
-import { SpeakingQuestion, SpeakingPart, Part1Question, Part1_1Question, Part2Question, Part3Question } from "@/lib/types"; // Import all new types
+import { SpeakingQuestion, SpeakingPart, Part1Question, Part1_1Question, Part1_2Question, Part2Question, Part3Question } from "@/lib/types"; // Import all new types
 import { allSpeakingParts, getSpeakingQuestionStorageKey } from "@/lib/constants";
 
 const Questions: React.FC = () => {
   const [questions, setQuestions] = useState<Record<SpeakingPart, SpeakingQuestion[]>>({
     "Part 1": [],
     "Part 1.1": [],
+    "Part 1.2": [], // Initialize for new part
     "Part 2": [],
     "Part 3": [],
   });
@@ -22,6 +23,7 @@ const Questions: React.FC = () => {
     const loadedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
       "Part 1": [],
       "Part 1.1": [],
+      "Part 1.2": [], // Load for new part
       "Part 2": [],
       "Part 3": [],
     };
@@ -44,15 +46,29 @@ const Questions: React.FC = () => {
         const part1_1Q = q as Part1_1Question;
         return (
           <div className="flex flex-col sm:flex-row sm:items-center flex-grow mb-2 sm:mb-0 sm:mr-4">
+            <div className="flex flex-col">
+              <p className="text-sm font-semibold">Savollar:</p>
+              <ul className="list-disc list-inside text-xs">
+                {part1_1Q.subQuestions.map((subQ, i) => (
+                  <li key={i}>{subQ}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        );
+      case "part1.2": // New Part 1.2 display
+        const part1_2Q = q as Part1_2Question;
+        return (
+          <div className="flex flex-col sm:flex-row sm:items-center flex-grow mb-2 sm:mb-0 sm:mr-4">
             <div className="flex gap-2 mr-4 mb-2 sm:mb-0">
-              {part1_1Q.imageUrls.map((url, idx) => (
+              {part1_2Q.imageUrls.map((url, idx) => (
                 <img key={idx} src={url} alt={`Question image ${idx + 1}`} className="max-h-16 object-contain rounded-md" />
               ))}
             </div>
             <div className="flex flex-col">
               <p className="text-sm font-semibold">Savollar:</p>
               <ul className="list-disc list-inside text-xs">
-                {part1_1Q.subQuestions.map((subQ, i) => (
+                {part1_2Q.subQuestions.map((subQ, i) => (
                   <li key={i}>{subQ}</li>
                 ))}
               </ul>

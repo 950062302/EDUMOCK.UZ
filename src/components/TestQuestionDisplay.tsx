@@ -6,6 +6,7 @@ import {
   SpeakingPart,
   Part1Question,
   Part1_1Question,
+  Part1_2Question, // Import new type
   Part2Question,
   Part3Question,
 } from "@/lib/types";
@@ -56,17 +57,31 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
       return (
         <div className="space-y-4">
           <h3 className="text-xl font-semibold text-muted-foreground">
+            {currentPartName} - Savol {currentQuestionIndex + 1}
+          </h3>
+          <p className="text-5xl font-bold text-primary mb-4">{countdown}</p>
+          <div className="min-h-[100px] flex flex-col items-center justify-center p-4 border rounded-md bg-secondary text-foreground">
+            <p className="text-xl font-medium mb-2">Savol {currentSubQuestionIndex + 1}:</p>
+            <p className="text-2xl font-medium text-center">{part1_1Q.subQuestions[currentSubQuestionIndex]}</p>
+          </div>
+        </div>
+      );
+    case "part1.2": // New Part 1.2 display
+      const part1_2Q = currentQ as Part1_2Question;
+      return (
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-muted-foreground">
             {currentPartName} - Rasm {currentQuestionIndex + 1}
           </h3>
           <div className="flex justify-center gap-4 mb-4"> {/* Display two images */}
-            {part1_1Q.imageUrls.map((url, idx) => (
+            {part1_2Q.imageUrls.map((url, idx) => (
               <img key={idx} src={url} alt={`Question image ${idx + 1}`} className="max-h-64 object-contain rounded-lg shadow-md" />
             ))}
           </div>
           <p className="text-5xl font-bold text-primary mb-4">{countdown}</p>
           <div className="min-h-[100px] flex flex-col items-center justify-center p-4 border rounded-md bg-secondary text-foreground">
             <p className="text-xl font-medium mb-2">Savol {currentSubQuestionIndex + 1}:</p>
-            <p className="text-2xl font-medium text-center">{part1_1Q.subQuestions[currentSubQuestionIndex]}</p>
+            <p className="text-2xl font-medium text-center">{part1_2Q.subQuestions[currentSubQuestionIndex]}</p>
           </div>
         </div>
       );

@@ -8,6 +8,7 @@ import {
   StudentInfo,
   Part1Question,
   Part1_1Question,
+  Part1_2Question, // Import new type
   Part2Question,
   Part3Question,
 } from "@/lib/types";
@@ -17,6 +18,7 @@ import { allSpeakingParts, getSpeakingQuestionStorageKey } from "@/lib/constants
 const TIMINGS = {
   PART1_QUESTION: 30, // seconds
   PART1_1_QUESTION: 30, // seconds
+  PART1_2_QUESTION: 30, // seconds for Part 1.2
   PART2_PREP: 60, // seconds
   PART2_SPEAK: 120, // seconds
   PART3_PREP: 60, // seconds
@@ -40,6 +42,7 @@ export const useMockTestLogic = ({
   const [questions, setQuestions] = useState<Record<SpeakingPart, SpeakingQuestion[]>>({
     "Part 1": [],
     "Part 1.1": [],
+    "Part 1.2": [], // Initialize for new part
     "Part 2": [],
     "Part 3": [],
   });
@@ -116,9 +119,29 @@ export const useMockTestLogic = ({
         break;
       }
       case "part1.1": {
-        console.log("Part 1.1 sub-question finished. Checking for next sub-question or next image/part.");
+        console.log("Part 1.1 sub-question finished. Checking for next sub-question or next part.");
         const part1_1Q = currentQ as Part1_1Question;
         if (currentSubQuestionIndex < part1_1Q.subQuestions.length - 1) {
+          setCurrentSubQuestionIndex(prev => prev + 1);
+          setCurrentPhase("question_display");
+        } else {
+          if (currentQuestionIndex < questions[currentPartName].length - 1) {
+            setCurrentQuestionIndex(prev => prev + 1);
+            setCurrentSubQuestionIndex(0);
+            setCurrentPhase("question_display");
+          } else {
+            setCurrentPartIndex(prev => prev + 1);
+            setCurrentQuestionIndex(0);
+            setCurrentSubQuestionIndex(0);
+            setCurrentPhase("question_display");
+          }
+        }
+        break;
+      }
+      case "part1.2": { // New Part 1.2 logic
+        console.log("Part 1.2 sub-question finished. Checking for next sub-question or next image/part.");
+        const part1_2Q = currentQ as Part1_2Question;
+        if (currentSubQuestionIndex < part1_2Q.subQuestions.length - 1) {
           setCurrentSubQuestionIndex(prev => prev + 1);
           setCurrentPhase("question_display");
         } else {
@@ -177,7 +200,7 @@ export const useMockTestLogic = ({
   useEffect(() => {
     const loadAllQuestions = () => {
       const loadedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
-        "Part 1": [], "Part 1.1": [], "Part 2": [], "Part 3": [],
+        "Part 1": [], "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
       };
       allSpeakingParts.forEach(part => {
         const storageKey = getSpeakingQuestionStorageKey(part);
@@ -218,6 +241,9 @@ export const useMockTestLogic = ({
         break;
       case "part1.1":
         duration = TIMINGS.PART1_1_QUESTION;
+        break;
+      case "part1.2": // New Part 1.2 timing
+        duration = TIMINGS.PART1_2_QUESTION;
         break;
       case "part2":
         duration = currentPhase === "preparation" ? TIMINGS.PART2_PREP : TIMINGS.PART2_SPEAK;
@@ -285,7 +311,7 @@ export const useMockTestLogic = ({
 
   const handleStartTestClick = () => {
     const reloadedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
-      "Part 1": [], "Part 1.1": [], "Part 2": [], "Part 3": [],
+      "Part 1": [], "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
     };
     allSpeakingParts.forEach(part => {
       const storageKey = getSpeakingQuestionStorageKey(part);
