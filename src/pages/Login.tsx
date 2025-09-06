@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Tabs komponentlari import qilindi
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showSuccess, showError } from "@/utils/toast";
 import { CefrCentreFooter } from "@/components/CefrCentreFooter";
 
@@ -147,6 +147,13 @@ const Login: React.FC = () => {
               </form>
             </TabsContent>
           </Tabs>
+          <div className="mt-6 text-center">
+            <Link to="/mock-test">
+              <Button variant="secondary" className="w-full">
+                Loginsiz testni boshlash
+              </Button>
+            </Link>
+          </div>
         </CardContent>
       </Card>
       <CefrCentreFooter />
