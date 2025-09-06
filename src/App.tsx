@@ -15,30 +15,30 @@ import UserProfile from "./pages/UserProfile";
 import Questions from "./pages/Questions";
 import Records from "./pages/Records";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { supabase } from "./lib/supabase"; // Supabase client'ni import qilish
 import { useState, useEffect } from "react";
-import { Session } from "@supabase/supabase-js";
 
 const queryClient = new QueryClient();
 
 const App = () => {
-  const [session, setSession] = useState<Session | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-    });
+    // Lokal login holatini tekshirish
+    const loggedInStatus = localStorage.getItem("isLoggedIn") === "true";
+    setIsLoggedIn(loggedInStatus);
+    setLoading(false);
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setLoading(false);
-    });
+    // localStorage o'zgarishlarini kuzatish
+    const handleStorageChange = () => {
+      const newLoggedInStatus = localStorage.getItem("isLoggedIn") === "true";
+      setIsLoggedIn(newLoggedInStatus);
+    };
+    window.addEventListener('storage', handleStorageChange);
 
-    return () => subscription.unsubscribe();
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   if (loading) {
@@ -57,18 +57,18 @@ const App = () => {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/mock-test" element={<MockTest />} /> {/* MockTest har doim ochiq */}
+            <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
+            <Route path="/mock-test" element={<MockTest />} />
             
             {/* Himoyalangan marshrutlar guruhi */}
-            <Route element={<ProtectedRoute session={session} allowedPaths={["/mock-test", "/records"]} />}>
+            <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} />}>
               <Route path="/home" element={<Home />} />
               <Route path="/add-question" element={<AddQuestion />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/user-profile" element={<UserProfile />} />
               <Route path="/questions" element={<Questions />} />
               <Route path="/records" element={<Records />} />
-              <Route path="/mood-journal" element={<MoodJournal />} /> {/* MoodJournal ham himoyalangan */}
+              <Route path="/mood-journal" element={<MoodJournal />} />
             </Route>
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

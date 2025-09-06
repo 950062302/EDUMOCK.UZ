@@ -2,30 +2,20 @@
 
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
-import { Session } from "@supabase/supabase-js";
 
 interface ProtectedRouteProps {
-  session: Session | null; // Supabase sessiyasini prop sifatida qabul qilamiz
-  allowedPaths?: string[]; // Guest mode uchun ruxsat etilgan yo'llar
+  isLoggedIn: boolean; // Lokal login holatini prop sifatida qabul qilamiz
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ session, allowedPaths = [] }) => {
-  const isLoggedIn = !!session; // Supabase sessiyasi mavjud bo'lsa, login bo'lgan hisoblanadi
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ isLoggedIn }) => {
   const isGuestMode = localStorage.getItem("isGuestMode") === "true";
   const currentPath = window.location.pathname;
 
-  if (isLoggedIn) {
-    return <Outlet />; // Agar foydalanuvchi tizimga kirgan bo'lsa, ruxsat berish
-  }
+  // MockTest va Records har doim ochiq bo'lishi kerak, shuning uchun ularni bu yerda tekshirmaymiz
+  // Ular App.tsx da alohida Route sifatida belgilangan.
 
-  if (isGuestMode) {
-    // Agar guest mode bo'lsa, faqat ruxsat etilgan yo'llarga kirishga ruxsat berish
-    if (allowedPaths.includes(currentPath)) {
-      return <Outlet />;
-    } else {
-      // Boshqa barcha yo'llarni /mock-test ga yo'naltirish
-      return <Navigate to="/mock-test" replace />;
-    }
+  if (isLoggedIn || isGuestMode) {
+    return <Outlet />; // Agar foydalanuvchi login bo'lgan bo'lsa yoki guest mode'da bo'lsa, ruxsat berish
   }
 
   // Agar na login, na guest mode bo'lmasa, login sahifasiga yo'naltirish

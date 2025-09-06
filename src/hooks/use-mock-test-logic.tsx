@@ -13,7 +13,7 @@ import {
   Part3Question,
 } from "@/lib/types";
 import { allSpeakingParts } from "@/lib/constants";
-import { supabase } from "@/lib/supabase";
+import { getLocalQuestions, saveLocalQuestions } from "@/lib/local-db";
 
 const TIMINGS = {
   PRE_TEST_COUNTDOWN: 5,
@@ -133,16 +133,12 @@ export const useMockTestLogic = ({
     }
   }, [currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, questions, currentPhase, stopAllStreams, getCurrentQuestion]);
 
-  const loadAllQuestions = useCallback(async () => {
-    const { data, error } = await supabase.from('speaking_questions').select('*');
-    if (error) {
-      showError("Test uchun savollarni yuklab bo'lmadi.");
-      return;
-    }
+  const loadAllQuestions = useCallback(() => {
+    const data = getLocalQuestions();
     const loadedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
       "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
     };
-    data.forEach((q: any) => {
+    data.forEach((q: SpeakingQuestion) => {
       if (loadedQuestions[q.type as SpeakingPart]) {
         loadedQuestions[q.type as SpeakingPart].push(q);
       }
@@ -258,7 +254,7 @@ export const useMockTestLogic = ({
   }, [isTestStarted, currentPhase, currentSubQuestionIndex, getCurrentQuestion]);
 
   const handleStartTestClick = async () => {
-    await loadAllQuestions();
+    loadAllQuestions(); // Eng so'nggi savollarni yuklash
     const selectedQuestionsForTest: Record<SpeakingPart, SpeakingQuestion[]> = {
       "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
     };
@@ -270,9 +266,12 @@ export const useMockTestLogic = ({
     let hasEnoughQuestions = true;
     let missingParts: string[] = [];
 
+    const allQuestions = getLocalQuestions(); // Barcha savollarni olish
+    const updatedAllQuestions = [...allQuestions]; // Yangilash uchun nusxa
+
     allSpeakingParts.forEach(part => {
       const eligibleQuestions = allAvailableQuestionsRef.current[part].filter(q =>
-        !q.last_used || (now.getTime() - new Date(q.last_used).getTime() > twoHoursInMs)
+        !q.last_used || (now.getTime() - new Date(q.last_used!).getTime() > twoHoursInMs)
       );
       if (eligibleQuestions.length < minQuestions[part]) {
         hasEnoughQuestions = false;
@@ -286,15 +285,24 @@ export const useMockTestLogic = ({
       return;
     }
 
-    const nowISO = now.toISOString();
-    const questionIdsToUpdate = Object.values(selectedQuestionsForTest).flat().map(q => q.id);
-    if (questionIdsToUpdate.length > 0) {
-      const { error } = await supabase
-        .from('speaking_questions')
-        .update({ last_used: nowISO })
-        .in('id', questionIdsToUpdate);
-      if (error) console.error("Failed to update last_used:", error);
-    }
+    // last_used ni yangilash
+    selectedQuestionsForTest["Part 1.1"].forEach(q => {
+      const index = updatedAllQuestions.findIndex(uq => uq.id === q.id);
+      if (index !== -1) updatedAllQuestions[index].last_used = now.toISOString();
+    });
+    selectedQuestionsForTest["Part 1.2"].forEach(q => {
+      const index = updatedAllQuestions.findIndex(uq => uq.id === q.id);
+      if (index !== -1) updatedAllQuestions[index].last_used = now.toISOString();
+    });
+    selectedQuestionsForTest["Part 2"].forEach(q => {
+      const index = updatedAllQuestions.findIndex(uq => uq.id === q.id);
+      if (index !== -1) updatedAllQuestions[index].last_used = now.toISOString();
+    });
+    selectedQuestionsForTest["Part 3"].forEach(q => {
+      const index = updatedAllQuestions.findIndex(uq => uq.id === q.id);
+      if (index !== -1) updatedAllQuestions[index].last_used = now.toISOString();
+    });
+    saveLocalQuestions(updatedAllQuestions); // Lokal xotiraga saqlash
 
     setQuestions(selectedQuestionsForTest);
     setIsStudentInfoFormOpen(true);

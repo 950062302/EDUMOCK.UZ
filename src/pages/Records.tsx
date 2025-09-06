@@ -9,7 +9,7 @@ import { Download, PlayCircle, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { RecordedSession } from "@/lib/types";
 import { showError, showSuccess } from "@/utils/toast";
-import { supabase } from "@/lib/supabase";
+import { getLocalRecordings, deleteLocalRecording } from "@/lib/local-db";
 
 const Records: React.FC = () => {
   const [recordings, setRecordings] = useState<RecordedSession[]>([]);
@@ -17,53 +17,40 @@ const Records: React.FC = () => {
 
   const fetchRecordings = useCallback(async () => {
     setIsLoading(true);
-    const { data, error } = await supabase
-      .from('recordings')
-      .select('*')
-      .order('timestamp', { ascending: false });
-
-    if (error) {
+    try {
+      const data = await getLocalRecordings();
+      setRecordings(data.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
+    } catch (error: any) {
       showError(`Yozuvlarni yuklashda xatolik: ${error.message}`);
-    } else {
-      setRecordings(data as RecordedSession[]);
     }
     setIsLoading(false);
   }, []);
 
   useEffect(() => {
-    const isGuest = localStorage.getItem("isGuestMode") === "true";
-    if (isGuest) {
-      showError("Mehmon rejimida yozuvlar saqlanmaydi va ko'rsatilmaydi.");
-      setIsLoading(false);
-      return;
-    }
     fetchRecordings();
   }, [fetchRecordings]);
 
-  const handleDownload = useCallback((recording: RecordedSession) => {
-    const a = document.createElement("a");
-    a.href = recording.video_url;
-    a.target = "_blank"; // Open in new tab to let browser handle download
-    a.download = `recording_${recording.id}.webm`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+  const handleDownload = useCallback(async (recording: RecordedSession) => {
+    try {
+      const response = await fetch(recording.video_url);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `recording_${recording.id}.webm`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url); // URL ni tozalash
+    } catch (error: any) {
+      showError(`Videoni yuklashda xatolik: ${error.message}`);
+    }
   }, []);
 
   const handleDelete = useCallback(async (recording: RecordedSession) => {
     try {
-      // Delete from Storage
-      const url = new URL(recording.video_url);
-      const filePath = url.pathname.split('/recordings/')[1];
-      if (filePath) {
-        const { error: storageError } = await supabase.storage.from('recordings').remove([filePath]);
-        if (storageError) throw storageError;
-      }
-
-      // Delete from Database
-      const { error: dbError } = await supabase.from('recordings').delete().eq('id', recording.id);
-      if (dbError) throw dbError;
-
+      await deleteLocalRecording(recording.id);
       setRecordings(prev => prev.filter(rec => rec.id !== recording.id));
       showSuccess("Yozuv muvaffaqiyatli o'chirildi!");
     } catch (error: any) {

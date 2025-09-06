@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showSuccess, showError } from "@/utils/toast";
-import { v4 as uuidv4 } from "uuid";
 import { Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import {
@@ -22,15 +21,21 @@ import {
   Part3Question,
 } from "@/lib/types";
 import { allSpeakingParts } from "@/lib/constants";
-import { supabase } from "@/lib/supabase";
+import {
+  getLocalQuestions,
+  addLocalQuestion,
+  deleteLocalQuestion,
+  resetLocalQuestionCooldowns,
+  saveLocalQuestions
+} from "@/lib/local-db";
+import { fileToBase64 } from "@/utils/imageUtils";
 
 const SpeakingQuestionManager: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<SpeakingPart>("Part 1.1");
   const [questionText, setQuestionText] = useState<string>("");
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [subQuestionsText, setSubQuestionsText] = useState<string>("");
-  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [isUploading, setIsUploading] = useState<boolean>(false); // Rasmlarni yuklash holati
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const [questions, setQuestions] = useState<Record<SpeakingPart, SpeakingQuestion[]>>({
@@ -40,81 +45,26 @@ const SpeakingQuestionManager: React.FC = () => {
     "Part 3": [],
   });
 
-  const fetchQuestions = useCallback(async () => {
+  const fetchQuestions = useCallback(() => {
     setIsLoading(true);
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (!sessionData.session) {
-      showError("Savollarni yuklash uchun tizimga kiring.");
-      setIsLoading(false);
-      return;
-    }
-
-    const { data, error } = await supabase
-      .from('speaking_questions')
-      .select('*')
-      .order('date', { ascending: false });
-
-    if (error) {
-      showError(`Savollarni yuklashda xatolik: ${error.message}`);
-    } else if (data) {
-      const groupedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
-        "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
-      };
-      data.forEach((q: any) => {
-        if (groupedQuestions[q.type as SpeakingPart]) {
-          groupedQuestions[q.type as SpeakingPart].push(q);
-        }
-      });
-      setQuestions(groupedQuestions);
-    }
+    const allLocalQuestions = getLocalQuestions();
+    const groupedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
+      "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
+    };
+    allLocalQuestions.forEach((q: SpeakingQuestion) => {
+      if (groupedQuestions[q.type as SpeakingPart]) {
+        groupedQuestions[q.type as SpeakingPart].push(q);
+      }
+    });
+    setQuestions(groupedQuestions);
     setIsLoading(false);
   }, []);
 
   useEffect(() => {
     fetchQuestions();
-
-    // Jonli yangilanishlar uchun Supabase subscription'ni sozlash
-    const channel = supabase
-      .channel('speaking_questions_add_page')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'speaking_questions' },
-        (payload) => {
-          console.log('O`zgarish qabul qilindi!', payload);
-          fetchQuestions(); // O'zgarish bo'lganda savollarni qayta yuklash
-        }
-      )
-      .subscribe();
-
-    // Komponent o'chirilganda subscription'ni tozalash
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    // Lokal rejimda real-time subscription yo'q, shuning uchun faqat bir marta yuklaymiz
+    // Yoki har bir o'zgarishdan keyin fetchQuestions() ni chaqiramiz.
   }, [fetchQuestions]);
-
-  const uploadImageToSupabase = async (file: File): Promise<string | null> => {
-    if (!file) return null;
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
-
-    const fileExtension = file.name.split('.').pop();
-    const filePath = `${user.id}/${uuidv4()}.${fileExtension}`;
-    
-    const { error, data } = await supabase.storage
-      .from('question-images')
-      .upload(filePath, file);
-
-    if (error) {
-      showError(`Rasmni yuklashda xatolik: ${error.message}`);
-      return null;
-    }
-
-    const { data: publicUrlData } = supabase.storage
-      .from('question-images')
-      .getPublicUrl(data.path);
-
-    return publicUrlData.publicUrl;
-  };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     if (e.target.files && e.target.files[0]) {
@@ -122,107 +72,68 @@ const SpeakingQuestionManager: React.FC = () => {
       setIsUploading(true);
       showSuccess("Rasm yuklanmoqda...");
 
-      const publicUrl = await uploadImageToSupabase(file);
-      if (publicUrl) {
+      try {
+        const base64 = await fileToBase64(file);
         const newImagePreviewUrls = [...imagePreviewUrls];
-        newImagePreviewUrls[index] = publicUrl;
+        newImagePreviewUrls[index] = base64;
         setImagePreviewUrls(newImagePreviewUrls);
         showSuccess("Rasm muvaffaqiyatli yuklandi!");
+      } catch (error) {
+        showError("Rasmni yuklashda xatolik yuz berdi.");
+      } finally {
+        setIsUploading(false);
       }
-      setIsUploading(false);
     }
   };
 
-  const handleAddQuestion = async (part: SpeakingPart) => {
+  const handleAddQuestion = (part: SpeakingPart) => {
     if (isUploading) {
       showError("Rasmlar yuklanmoqda. Iltimos kuting.");
       return;
     }
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      showError("Savol qo'shish uchun tizimga kiring.");
-      return;
-    }
-
-    let newQuestion: any;
+    let newQuestionData: Omit<SpeakingQuestion, 'id' | 'date' | 'user_id'> | null = null;
     const finalImageUrls = imagePreviewUrls.filter(Boolean);
 
     if (part === "Part 1.1") {
       const subQ = subQuestionsText.split('\n').map(q => q.trim()).filter(Boolean);
       if (subQ.length === 0) return showError("Kamida bitta kichik savol kiriting.");
-      newQuestion = { type: "part1.1", sub_questions: subQ };
+      newQuestionData = { type: "part1.1", sub_questions: subQ } as Omit<Part1_1Question, 'id' | 'date' | 'user_id'>;
     } else if (part === "Part 1.2") {
       const subQ = subQuestionsText.split('\n').map(q => q.trim()).filter(Boolean);
       if (finalImageUrls.length === 0 || subQ.length === 0) return showError("Rasm va kichik savollar bo'sh bo'lishi mumkin emas.");
-      newQuestion = { type: "part1.2", image_urls: finalImageUrls, sub_questions: subQ };
+      newQuestionData = { type: "part1.2", image_urls: finalImageUrls, sub_questions: subQ } as Omit<Part1_2Question, 'id' | 'date' | 'user_id'>;
     } else if (part === "Part 2") {
       if (finalImageUrls.length === 0 || !questionText.trim()) return showError("Rasm va asosiy savol bo'sh bo'lishi mumkin emas.");
-      newQuestion = { type: "part2", image_urls: finalImageUrls, question_text: questionText.trim() };
+      newQuestionData = { type: "part2", image_urls: finalImageUrls, question_text: questionText.trim() } as Omit<Part2Question, 'id' | 'date' | 'user_id'>;
     } else if (part === "Part 3") {
       if (finalImageUrls.length === 0 || !questionText.trim()) return showError("Rasm va asosiy savol bo'sh bo'lishi mumkin emas.");
-      newQuestion = { type: "part3", image_urls: finalImageUrls, question_text: questionText.trim() };
+      newQuestionData = { type: "part3", image_urls: finalImageUrls, question_text: questionText.trim() } as Omit<Part3Question, 'id' | 'date' | 'user_id'>;
     } else {
       return;
     }
 
-    const { error } = await supabase.from('speaking_questions').insert([newQuestion]);
-
-    if (error) {
-      showError(`Savolni saqlashda xatolik: ${error.message}`);
-    } else {
+    if (newQuestionData) {
+      addLocalQuestion(newQuestionData);
       showSuccess(`Savol ${part} ga qo'shildi!`);
-      // fetchQuestions() is no longer needed here, the real-time subscription will handle it.
+      fetchQuestions(); // Ro'yxatni yangilash
       // Reset fields
       setQuestionText("");
-      setImageFiles([]);
       setImagePreviewUrls([]);
       setSubQuestionsText("");
     }
   };
 
-  const deleteImageFromSupabase = async (imageUrl: string) => {
-    try {
-      const url = new URL(imageUrl);
-      const filePath = url.pathname.split('/question-images/')[1];
-      if (filePath) {
-        await supabase.storage.from('question-images').remove([filePath]);
-      }
-    } catch (error: any) {
-      console.error("Error deleting image from Supabase:", error.message);
-    }
+  const handleDeleteQuestion = (part: SpeakingPart, id: string) => {
+    deleteLocalQuestion(id);
+    showSuccess("Savol muvaffaqiyatli o'chirildi!");
+    fetchQuestions(); // Ro'yxatni yangilash
   };
 
-  const handleDeleteQuestion = async (part: SpeakingPart, id: string) => {
-    const questionToDelete = questions[part].find(q => q.id === id);
-    if (questionToDelete && 'image_urls' in questionToDelete) {
-      await Promise.all(questionToDelete.image_urls.map(deleteImageFromSupabase));
-    }
-
-    const { error } = await supabase.from('speaking_questions').delete().eq('id', id);
-    if (error) {
-      showError(`Savolni o'chirishda xatolik: ${error.message}`);
-    } else {
-      showSuccess("Savol muvaffaqiyatli o'chirildi!");
-      // fetchQuestions() is no longer needed here, the real-time subscription will handle it.
-    }
-  };
-
-  const handleResetAllCooldowns = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { error } = await supabase
-      .from('speaking_questions')
-      .update({ last_used: null })
-      .eq('user_id', user.id);
-
-    if (error) {
-      showError(`Cooldown'larni tiklashda xatolik: ${error.message}`);
-    } else {
-      showSuccess("Barcha savollar cooldown'lari tiklandi!");
-      // fetchQuestions() is no longer needed here, the real-time subscription will handle it.
-    }
+  const handleResetAllCooldowns = () => {
+    resetLocalQuestionCooldowns();
+    showSuccess("Barcha savollar cooldown'lari tiklandi!");
+    fetchQuestions(); // Ro'yxatni yangilash
   };
 
   const renderQuestionInput = (part: SpeakingPart) => {
@@ -232,6 +143,9 @@ const SpeakingQuestionManager: React.FC = () => {
         {isImageRequiredPart && (
           <div className="space-y-4 mb-4">
             <Label className="text-base">Rasmlar yuklash (1 yoki 2 ta rasm)</Label>
+            <p className="text-sm text-red-500">
+              Eslatma: Rasmlar brauzeringizning lokal xotirasida saqlanadi. Katta hajmli rasmlar xotirani to'ldirishi mumkin.
+            </p>
             {[0, 1].map((idx) => (
               <div key={idx} className="space-y-2 border p-2 rounded-md">
                 <Label htmlFor={`image-upload-${part}-${idx}`} className="text-sm">Rasm {idx + 1} yuklash</Label>

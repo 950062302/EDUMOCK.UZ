@@ -12,7 +12,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { showError, showSuccess } from "@/utils/toast";
-import { supabase } from "@/lib/supabase";
+import { getLocalMoodEntries, addLocalMoodEntry, deleteLocalMoodEntry } from "@/lib/local-db";
+import Navbar from "@/components/Navbar"; // Navbar'ni import qilish
 
 interface MoodEntry {
   id: string; // uuid
@@ -35,17 +36,13 @@ const MoodJournal: React.FC = () => {
   const [filterMood, setFilterMood] = useState<string>("All");
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchEntries = useCallback(async () => {
+  const fetchEntries = useCallback(() => {
     setIsLoading(true);
-    const { data, error } = await supabase
-      .from('mood_entries')
-      .select('*')
-      .order('date', { ascending: false });
-
-    if (error) {
+    try {
+      const data = getLocalMoodEntries();
+      setEntries(data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    } catch (error: any) {
       showError(`Yozuvlarni yuklashda xatolik: ${error.message}`);
-    } else {
-      setEntries(data as MoodEntry[]);
     }
     setIsLoading(false);
   }, []);
@@ -54,31 +51,22 @@ const MoodJournal: React.FC = () => {
     fetchEntries();
   }, [fetchEntries]);
 
-  const handleAddEntry = async (mood: string, text: string) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      showError("Yozuv qo'shish uchun tizimga kiring.");
-      return;
-    }
-
-    const newEntry = { mood, text }; // id, date, user_id will be set by DB
-    const { error } = await supabase.from('mood_entries').insert([newEntry]);
-
-    if (error) {
+  const handleAddEntry = (mood: string, text: string) => {
+    try {
+      addLocalMoodEntry({ mood, text });
+      fetchEntries(); // Ro'yxatni yangilash
+    } catch (error: any) {
       showError(`Yozuvni saqlashda xatolik: ${error.message}`);
-    } else {
-      // No need to show success toast here, JournalEntryForm already does
-      fetchEntries(); // Refresh the list from DB
     }
   };
 
-  const handleDeleteEntry = async (id: string) => {
-    const { error } = await supabase.from('mood_entries').delete().eq('id', id);
-    if (error) {
-      showError(`Yozuvni o'chirishda xatolik: ${error.message}`);
-    } else {
+  const handleDeleteEntry = (id: string) => {
+    try {
+      deleteLocalMoodEntry(id);
       showSuccess("Yozuv muvaffaqiyatli o'chirildi!");
       setEntries((prevEntries) => prevEntries.filter((entry) => entry.id !== id));
+    } catch (error: any) {
+      showError(`Yozuvni o'chirishda xatolik: ${error.message}`);
     }
   };
 
@@ -87,37 +75,40 @@ const MoodJournal: React.FC = () => {
   );
 
   return (
-    <div className="container mx-auto p-4 max-w-3xl">
-      <h1 className="text-4xl font-bold text-center mb-8">Mood Journal & Tracker</h1>
-      <div className="mb-8">
-        <JournalEntryForm onAddEntry={handleAddEntry} />
-      </div>
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-semibold">Your Past Entries</h2>
-        <Select value={filterMood} onValueChange={setFilterMood}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by mood" />
-          </SelectTrigger>
-          <SelectContent>
-            {moods.map((mood) => (
-              <SelectItem key={mood.value} value={mood.value}>
-                {mood.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      {isLoading ? <p className="text-center">Yuklanmoqda...</p> : filteredEntries.length === 0 ? (
-        <p className="text-center text-muted-foreground">
-          {filterMood === "All" ? "Hali yozuvlar yo'q." : `"${filterMood}" yozuvlari topilmadi.`}
-        </p>
-      ) : (
-        <div className="space-y-4">
-          {filteredEntries.map((entry) => (
-            <MoodEntryCard key={entry.id} entry={entry} onDelete={handleDeleteEntry} />
-          ))}
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
+      <Navbar />
+      <main className="flex-grow container mx-auto p-4 max-w-3xl">
+        <h1 className="text-4xl font-bold text-center mb-8">Mood Journal & Tracker</h1>
+        <div className="mb-8">
+          <JournalEntryForm onAddEntry={handleAddEntry} />
         </div>
-      )}
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-semibold">Your Past Entries</h2>
+          <Select value={filterMood} onValueChange={setFilterMood}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by mood" />
+            </SelectTrigger>
+            <SelectContent>
+              {moods.map((mood) => (
+                <SelectItem key={mood.value} value={mood.value}>
+                  {mood.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {isLoading ? <p className="text-center">Yuklanmoqda...</p> : filteredEntries.length === 0 ? (
+          <p className="text-center text-muted-foreground">
+            {filterMood === "All" ? "Hali yozuvlar yo'q." : `"${filterMood}" yozuvlari topilmadi.`}
+          </p>
+        ) : (
+          <div className="space-y-4">
+            {filteredEntries.map((entry) => (
+              <MoodEntryCard key={entry.id} entry={entry} onDelete={handleDeleteEntry} />
+            ))}
+          </div>
+        )}
+      </main>
       <CefrCentreFooter />
     </div>
   );

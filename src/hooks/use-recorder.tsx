@@ -3,8 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { showSuccess, showError } from "@/utils/toast";
 import { StudentInfo, RecordedSession } from "@/lib/types";
-import { supabase } from "@/lib/supabase";
-import { v4 as uuidv4 } from "uuid";
+import { addLocalRecording } from "@/lib/local-db";
 
 const MAX_RECORDING_DURATION_MS = 60 * 60 * 1000;
 const MIME_TYPE = "video/webm; codecs=vp8,opus";
@@ -109,42 +108,19 @@ export const useRecorder = () => {
         const endTime = Date.now();
         const duration = Math.round((endTime - startTimeRef.current) / 1000);
 
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          showError("Yozuvni saqlash uchun tizimga kiring.");
-          return;
-        }
+        showSuccess("Video saqlanmoqda, iltimos kuting...");
 
-        const filePath = `${user.id}/${uuidv4()}.webm`;
-        showSuccess("Video yuklanmoqda, iltimos kuting...");
-
-        const { error: uploadError } = await supabase.storage
-          .from('recordings')
-          .upload(filePath, blob);
-
-        if (uploadError) {
-          showError(`Videoni yuklashda xatolik: ${uploadError.message}`);
-          return;
-        }
-
-        const { data: publicUrlData } = supabase.storage
-          .from('recordings')
-          .getPublicUrl(filePath);
-
-        const newRecording = {
-          duration,
-          student_id: studentInfo?.id,
-          student_name: studentInfo?.name,
-          student_phone: studentInfo?.phone,
-          video_url: publicUrlData.publicUrl,
-        };
-
-        const { error: dbError } = await supabase.from('recordings').insert([newRecording]);
-
-        if (dbError) {
-          showError(`Yozuv ma'lumotlarini saqlashda xatolik: ${dbError.message}`);
-        } else {
+        try {
+          await addLocalRecording({
+            duration,
+            student_id: studentInfo?.id,
+            student_name: studentInfo?.name,
+            student_phone: studentInfo?.phone,
+            videoBlob: blob,
+          });
           showSuccess("Yozib olingan video muvaffaqiyatli saqlandi!");
+        } catch (dbError: any) {
+          showError(`Yozuv ma'lumotlarini saqlashda xatolik: ${dbError.message}`);
         }
 
         recordedChunksRef.current = [];

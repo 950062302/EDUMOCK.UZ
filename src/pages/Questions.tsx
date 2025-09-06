@@ -8,8 +8,8 @@ import { Separator } from "@/components/ui/separator";
 import { SpeakingQuestion, SpeakingPart } from "@/lib/types";
 import { allSpeakingParts } from "@/lib/constants";
 import { format } from "date-fns";
-import { supabase } from "@/lib/supabase";
 import { showError } from "@/utils/toast";
+import { getLocalQuestions } from "@/lib/local-db";
 
 const Questions: React.FC = () => {
   const [questions, setQuestions] = useState<Record<SpeakingPart, SpeakingQuestion[]>>({
@@ -20,49 +20,24 @@ const Questions: React.FC = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchQuestions = useCallback(async () => {
+  const fetchQuestions = useCallback(() => {
     setIsLoading(true);
-    const { data, error } = await supabase
-      .from('speaking_questions')
-      .select('*')
-      .order('date', { ascending: false });
-
-    if (error) {
-      showError(`Savollarni yuklashda xatolik: ${error.message}`);
-    } else if (data) {
-      const groupedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
-        "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
-      };
-      data.forEach((q: any) => {
-        if (groupedQuestions[q.type as SpeakingPart]) {
-          groupedQuestions[q.type as SpeakingPart].push(q);
-        }
-      });
-      setQuestions(groupedQuestions);
-    }
+    const allLocalQuestions = getLocalQuestions();
+    const groupedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
+      "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
+    };
+    allLocalQuestions.forEach((q: SpeakingQuestion) => {
+      if (groupedQuestions[q.type as SpeakingPart]) {
+        groupedQuestions[q.type as SpeakingPart].push(q);
+      }
+    });
+    setQuestions(groupedQuestions);
     setIsLoading(false);
   }, []);
 
   useEffect(() => {
     fetchQuestions();
-
-    // Jonli yangilanishlar uchun Supabase subscription'ni sozlash
-    const channel = supabase
-      .channel('speaking_questions_view_page')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'speaking_questions' },
-        (payload) => {
-          console.log('O`zgarish qabul qilindi!', payload);
-          fetchQuestions(); // O'zgarish bo'lganda savollarni qayta yuklash
-        }
-      )
-      .subscribe();
-
-    // Komponent o'chirilganda subscription'ni tozalash
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    // Lokal rejimda real-time subscription yo'q, shuning uchun faqat bir marta yuklaymiz
   }, [fetchQuestions]);
 
   const renderQuestionContent = (q: SpeakingQuestion) => {

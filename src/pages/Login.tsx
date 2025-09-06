@@ -9,34 +9,36 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showSuccess, showError } from "@/utils/toast";
 import { CefrCentreFooter } from "@/components/CefrCentreFooter";
-import { supabase } from "@/lib/supabase"; // Supabase client'ni import qilish
 
-const Login: React.FC = () => {
-  const [email, setEmail] = useState(""); // Username o'rniga email ishlatamiz
+interface LoginProps {
+  setIsLoggedIn: (isLoggedIn: boolean) => void;
+}
+
+const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+  // Oddiy lokal login/ro'yxatdan o'tish uchun mock funksiyalar
+  const mockUsers = JSON.parse(localStorage.getItem("mockUsers") || "{}");
 
-    if (error) {
-      showError(`Tizimga kirishda xatolik: ${error.message}`);
-    } else {
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (mockUsers[email] && mockUsers[email] === password) {
+      localStorage.setItem("isLoggedIn", "true");
+      localStorage.removeItem("isGuestMode");
+      setIsLoggedIn(true);
       showSuccess("Tizimga muvaffaqiyatli kirdingiz!");
-      // Supabase session avtomatik boshqariladi, localStorage'ga ehtiyoj yo'q
-      localStorage.removeItem("isGuestMode"); // Login qilganda guest mode'ni o'chirish
       navigate("/home");
+    } else {
+      showError("Noto'g'ri email yoki parol.");
     }
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  const handleSignUp = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newEmail.trim() || !newPassword.trim() || !confirmPassword.trim()) {
       showError("Iltimos, barcha maydonlarni to'ldiring.");
@@ -50,25 +52,23 @@ const Login: React.FC = () => {
       showError("Parol kamida 6 ta belgidan iborat bo'lishi kerak.");
       return;
     }
-
-    const { error } = await supabase.auth.signUp({
-      email: newEmail,
-      password: newPassword,
-    });
-
-    if (error) {
-      showError(`Ro'yxatdan o'tishda xatolik: ${error.message}`);
-    } else {
-      showSuccess("Muvaffaqiyatli ro'yxatdan o'tdingiz! Endi tizimga kirishingiz mumkin.");
-      setNewEmail("");
-      setNewPassword("");
-      setConfirmPassword("");
+    if (mockUsers[newEmail]) {
+      showError("Bu email allaqachon ro'yxatdan o'tgan.");
+      return;
     }
+
+    mockUsers[newEmail] = newPassword;
+    localStorage.setItem("mockUsers", JSON.stringify(mockUsers));
+    showSuccess("Muvaffaqiyatli ro'yxatdan o'tdingiz! Endi tizimga kirishingiz mumkin.");
+    setNewEmail("");
+    setNewPassword("");
+    setConfirmPassword("");
   };
 
   const handleStartTestWithoutLogin = () => {
-    localStorage.setItem("isGuestMode", "true"); // Guest mode'ni yoqish
-    // Supabase session'ni o'chirishga hojat yo'q, chunki bu alohida rejim
+    localStorage.setItem("isGuestMode", "true");
+    localStorage.removeItem("isLoggedIn");
+    setIsLoggedIn(false);
     navigate("/mock-test");
   };
 

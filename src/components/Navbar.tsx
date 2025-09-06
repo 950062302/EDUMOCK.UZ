@@ -6,15 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, LogOut, User, Settings, Home as HomeIcon, ListChecks, ImagePlus, BookOpen, Video } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { showSuccess, showError } from "@/utils/toast";
-import { supabase } from "@/lib/supabase"; // Supabase client'ni import qilish
+import { showSuccess } from "@/utils/toast";
 
 const allNavLinks = [
   { name: "Home", path: "/home", icon: HomeIcon, protected: true },
   { name: "Questions", path: "/questions", icon: BookOpen, protected: true },
   { name: "Add Question", path: "/add-question", icon: ImagePlus, protected: true },
-  { name: "Mock Test", path: "/mock-test", icon: ListChecks, protected: false }, // Mock Test har doim ochiq
-  { name: "Records", path: "/records", icon: Video, protected: false }, // Records ham guest mode'da ochiq
+  { name: "Mock Test", path: "/mock-test", icon: ListChecks, protected: false },
+  { name: "Records", path: "/records", icon: Video, protected: false },
   { name: "Settings", path: "/settings", icon: Settings, protected: true },
   { name: "Profile", path: "/user-profile", icon: User, protected: true },
 ];
@@ -26,54 +25,38 @@ const Navbar: React.FC = () => {
   const [isGuestMode, setIsGuestMode] = useState(false);
 
   useEffect(() => {
-    const checkAuthStatus = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setIsLoggedIn(!!session);
+    const checkAuthStatus = () => {
+      setIsLoggedIn(localStorage.getItem("isLoggedIn") === "true");
       setIsGuestMode(localStorage.getItem("isGuestMode") === "true");
     };
 
     checkAuthStatus();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsLoggedIn(!!session);
-      setIsGuestMode(localStorage.getItem("isGuestMode") === "true");
-    });
-
-    // localStorage o'zgarishlarini kuzatish (guest mode uchun)
-    const handleStorageChange = () => {
-      setIsGuestMode(localStorage.getItem("isGuestMode") === "true");
-    };
-    window.addEventListener('storage', handleStorageChange);
+    // localStorage o'zgarishlarini kuzatish
+    window.addEventListener('storage', checkAuthStatus);
 
     return () => {
-      subscription.unsubscribe();
-      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('storage', checkAuthStatus);
     };
   }, []);
 
-  const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      showError(`Tizimdan chiqishda xatolik: ${error.message}`);
-    } else {
-      localStorage.removeItem("isGuestMode"); // Guest mode'ni ham o'chirish
-      showSuccess("Tizimdan chiqdingiz!");
-      navigate("/login");
-    }
+  const handleLogout = () => {
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("isGuestMode");
+    setIsLoggedIn(false);
+    setIsGuestMode(false);
+    showSuccess("Tizimdan chiqdingiz!");
+    navigate("/login");
   };
 
   const renderNavLinks = () => {
     let filteredLinks = allNavLinks;
 
     if (isGuestMode && !isLoggedIn) {
-      // Agar guest mode bo'lsa va login bo'lmagan bo'lsa, faqat ruxsat etilganlarni ko'rsatish
       filteredLinks = allNavLinks.filter(link => !link.protected);
     } else if (!isLoggedIn && !isGuestMode) {
-      // Agar umuman login bo'lmagan bo'lsa, faqat Mock Test va Login (agar mavjud bo'lsa)
-      // Login linki Navbar'da bo'lmasligi kerak, chunki u alohida sahifa
       filteredLinks = allNavLinks.filter(link => link.path === "/mock-test");
     }
-    // Agar isLoggedIn bo'lsa, barcha linklar ko'rinadi (default)
 
     return (
       <>
@@ -85,7 +68,7 @@ const Navbar: React.FC = () => {
             </Link>
           </Button>
         ))}
-        {(isLoggedIn || isGuestMode) && ( // Faqat login bo'lgan yoki guest mode'da bo'lsa logout tugmasini ko'rsatish
+        {(isLoggedIn || isGuestMode) && (
           <Button
             variant="ghost"
             className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive"
