@@ -36,12 +36,12 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
   const CountdownBar = ({ label }: { label?: string }) => (
     <div className="w-full space-y-2">
       {label && <p className="text-xl font-semibold">{label}</p>}
-      <div className="relative w-full h-16 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden shadow-inner">
+      <div className="relative w-full h-10 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden shadow-inner">
         <div
           className="absolute top-0 right-0 h-full bg-primary transition-all duration-1000 linear"
           style={{ width: `${progress}%` }}
         />
-        <span className="absolute inset-0 flex items-center justify-center text-5xl font-bold text-foreground pointer-events-none">
+        <span className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-white mix-blend-difference pointer-events-none">
           {countdown}
         </span>
       </div>
