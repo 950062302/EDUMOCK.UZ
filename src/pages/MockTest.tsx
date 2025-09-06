@@ -22,6 +22,7 @@ const MockTest: React.FC = () => {
     currentSubQuestionIndex,
     currentPhase,
     countdown,
+    initialCountdown, // Get the initial countdown value
     studentInfo,
     isStudentInfoFormOpen,
     setIsStudentInfoFormOpen,
@@ -92,6 +93,7 @@ const MockTest: React.FC = () => {
                 currentSubQuestionIndex={currentSubQuestionIndex}
                 currentPhase={currentPhase}
                 countdown={countdown}
+                initialCountdown={initialCountdown} // Pass it down
               />
             )}
 

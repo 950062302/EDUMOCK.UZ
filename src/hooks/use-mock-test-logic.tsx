@@ -67,6 +67,7 @@ export const useMockTestLogic = ({
   const [currentSubQuestionIndex, setCurrentSubQuestionIndex] = useState<number>(0);
   const [currentPhase, setCurrentPhase] = useState<TestPhase>("idle");
   const [countdown, setCountdown] = useState<number>(0);
+  const [initialCountdown, setInitialCountdown] = useState<number>(0); // New state for initial duration
   const [isStudentInfoFormOpen, setIsStudentInfoFormOpen] = useState<boolean>(false);
   const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null);
 
@@ -83,6 +84,7 @@ export const useMockTestLogic = ({
     if (countdownIntervalRef.current) {
       clearInterval(countdownIntervalRef.current);
     }
+    setInitialCountdown(duration); // Set the initial duration for the progress bar
     setCountdown(duration);
     countdownIntervalRef.current = window.setInterval(() => {
       setCountdown(prev => {
@@ -497,7 +499,7 @@ export const useMockTestLogic = ({
     currentSubQuestionIndex,
     currentPhase,
     countdown,
-    questions,
+    initialCountdown, // Return new state
     studentInfo,
     isStudentInfoFormOpen,
     setIsStudentInfoFormOpen,
