@@ -1,16 +1,17 @@
 "use client";
 
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // useNavigate import qilindi
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, LogOut, User, Settings, Home as HomeIcon, ListChecks, ImagePlus, BookOpen, Video } from "lucide-react"; // Import ImagePlus icon
+import { Menu, LogOut, User, Settings, Home as HomeIcon, ListChecks, ImagePlus, BookOpen, Video } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { showSuccess } from "@/utils/toast"; // showSuccess import qilindi
 
 const navLinks = [
   { name: "Home", path: "/home", icon: HomeIcon },
   { name: "Questions", path: "/questions", icon: BookOpen },
-  { name: "Add Question", path: "/add-question", icon: ImagePlus }, // Changed icon here
+  { name: "Add Question", path: "/add-question", icon: ImagePlus },
   { name: "Tests", path: "/tests", icon: ListChecks },
   { name: "Mock Test", path: "/mock-test", icon: ListChecks },
   { name: "Records", path: "/records", icon: Video },
@@ -20,6 +21,15 @@ const navLinks = [
 
 const Navbar: React.FC = () => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate(); // useNavigate hook ishlatildi
+
+  const handleLogout = () => {
+    // Foydalanuvchi ma'lumotlarini localStorage'dan o'chirish (simulyatsiya)
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("currentUser"); // Agar foydalanuvchi ma'lumotlari saqlangan bo'lsa
+    showSuccess("Tizimdan chiqdingiz!");
+    navigate("/login"); // Login sahifasiga yo'naltirish
+  };
 
   const renderNavLinks = () => (
     <>
@@ -31,7 +41,11 @@ const Navbar: React.FC = () => {
           </Link>
         </Button>
       ))}
-      <Button variant="ghost" className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive">
+      <Button
+        variant="ghost"
+        className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive"
+        onClick={handleLogout} // Logout funksiyasi biriktirildi
+      >
         <LogOut className="h-4 w-4 mr-2" />
         Logout
       </Button>

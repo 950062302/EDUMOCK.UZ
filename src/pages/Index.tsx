@@ -1,4 +1,4 @@
-import { CefrCentreFooter } from "@/components/CefrCentreFooter"; // Updated import
+import { CefrCentreFooter } from "@/components/CefrCentreFooter";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -12,7 +12,7 @@ const Index = () => {
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link to="/mock-test">
-            <Button size="lg" className="text-lg px-8 py-4 w-full sm:w-auto">
+            <Button size="lg" className="text-lg px-8 py-4 w-full sm:w-auto animate-logo-pulse"> {/* Animatsiya qo'shildi */}
               Start Mock Test
             </Button>
           </Link>
@@ -23,7 +23,7 @@ const Index = () => {
           </Link>
         </div>
       </div>
-      <CefrCentreFooter /> {/* Replaced MadeWithDyad */}
+      <CefrCentreFooter />
     </div>
   );
 };
