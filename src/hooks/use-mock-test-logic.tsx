@@ -423,15 +423,25 @@ export const useMockTestLogic = ({
       "Part 3": 1,
     };
 
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2); // Oxirgi 2 kun ichida ishlatilgan savollarni chiqarib tashlash uchun sana
+
     let hasEnoughQuestions = true;
     let missingParts: string[] = [];
 
     allSpeakingParts.forEach(part => {
-      const available = allAvailableQuestionsRef.current[part].length;
+      // Oxirgi 2 kun ichida ishlatilmagan savollarni filtrlaymiz
+      const eligibleQuestions = allAvailableQuestionsRef.current[part].filter(q => {
+        if (!q.lastUsed) return true; // Agar hech qachon ishlatilmagan bo'lsa, u mos keladi
+        const lastUsedDate = new Date(q.lastUsed);
+        return lastUsedDate < twoDaysAgo; // Agar 2 kundan oldin ishlatilgan bo'lsa, u mos keladi
+      });
+
+      const available = eligibleQuestions.length;
       const required = minQuestions[part];
       if (available < required) {
         hasEnoughQuestions = false;
-        missingParts.push(`${part} (kerak: ${required}, mavjud: ${available})`);
+        missingParts.push(`${part} (kerak: ${required}, mavjud: ${available} (oxirgi 2 kunda ishlatilmagan))`);
       }
     });
 
@@ -440,39 +450,54 @@ export const useMockTestLogic = ({
       return;
     }
 
-    // Part 1.1: Select 3 random question objects
-    selectedQuestionsForTest["Part 1.1"] = getRandomElements(allAvailableQuestionsRef.current["Part 1.1"] as Part1_1Question[], minQuestions["Part 1.1"]);
+    // Mos keladigan savollardan tasodifiy tanlov
+    selectedQuestionsForTest["Part 1.1"] = getRandomElements(
+      allAvailableQuestionsRef.current["Part 1.1"].filter(q => !q.lastUsed || new Date(q.lastUsed) < twoDaysAgo) as Part1_1Question[],
+      minQuestions["Part 1.1"]
+    );
     console.log("handleStartTestClick: selectedQuestionsForTest (Part 1.1):", selectedQuestionsForTest["Part 1.1"]);
 
-    // Part 1.2: Select 1 random question object (which includes its images and sub-questions)
-    const randomPart1_2Q = getRandomElements(allAvailableQuestionsRef.current["Part 1.2"] as Part1_2Question[], minQuestions["Part 1.2"])[0];
+    const randomPart1_2Q = getRandomElements(
+      allAvailableQuestionsRef.current["Part 1.2"].filter(q => !q.lastUsed || new Date(q.lastUsed) < twoDaysAgo) as Part1_2Question[],
+      minQuestions["Part 1.2"]
+    )[0];
     if (randomPart1_2Q) {
       selectedQuestionsForTest["Part 1.2"] = [randomPart1_2Q];
     }
     console.log("handleStartTestClick: selectedQuestionsForTest (Part 1.2):", selectedQuestionsForTest["Part 1.2"]);
 
-    // Part 2: Select 1 random question
-    selectedQuestionsForTest["Part 2"] = getRandomElements(allAvailableQuestionsRef.current["Part 2"] as Part2Question[], minQuestions["Part 2"]);
+    selectedQuestionsForTest["Part 2"] = getRandomElements(
+      allAvailableQuestionsRef.current["Part 2"].filter(q => !q.lastUsed || new Date(q.lastUsed) < twoDaysAgo) as Part2Question[],
+      minQuestions["Part 2"]
+    );
     console.log("handleStartTestClick: selectedQuestionsForTest (Part 2):", selectedQuestionsForTest["Part 2"]);
 
-    // Part 3: Select 1 random question
-    selectedQuestionsForTest["Part 3"] = getRandomElements(allAvailableQuestionsRef.current["Part 3"] as Part3Question[], minQuestions["Part 3"]);
+    selectedQuestionsForTest["Part 3"] = getRandomElements(
+      allAvailableQuestionsRef.current["Part 3"].filter(q => !q.lastUsed || new Date(q.lastUsed) < twoDaysAgo) as Part3Question[],
+      minQuestions["Part 3"]
+    );
     console.log("handleStartTestClick: selectedQuestionsForTest (Part 3):", selectedQuestionsForTest["Part 3"]);
 
-    // Filter out empty parts and check if any questions were selected
-    const totalSelectedQuestions = allSpeakingParts.reduce((sum, part) => sum + selectedQuestionsForTest[part].length, 0);
-    console.log("handleStartTestClick: totalSelectedQuestions:", totalSelectedQuestions);
+    // Tanlangan savollarning lastUsed xususiyatini yangilash va localStorage'ga saqlash
+    const now = new Date().toISOString();
+    const updatedAllQuestions: Record<SpeakingPart, SpeakingQuestion[]> = { ...allAvailableQuestionsRef.current };
 
-    if (totalSelectedQuestions === 0) {
-      showError("Mock testni boshlash uchun savollar mavjud emas. Iltimos, avval savollar qo'shing.");
-      return;
-    }
+    allSpeakingParts.forEach(part => {
+      selectedQuestionsForTest[part].forEach(selectedQ => {
+        const indexInAll = updatedAllQuestions[part].findIndex(q => q.id === selectedQ.id);
+        if (indexInAll !== -1) {
+          updatedAllQuestions[part][indexInAll] = { ...updatedAllQuestions[part][indexInAll], lastUsed: now };
+        }
+      });
+      // Yangilangan ro'yxatni localStorage'ga saqlash
+      localStorage.setItem(getSpeakingQuestionStorageKey(part), JSON.stringify(updatedAllQuestions[part]));
+    });
 
-    setQuestions(selectedQuestionsForTest); // Update the questions state with the randomly selected ones
+    setQuestions(selectedQuestionsForTest); // Tanlangan savollarni state'ga o'rnatish
     console.log("MockTest: Randomly selected questions for this test:", selectedQuestionsForTest);
 
     setIsStudentInfoFormOpen(true);
-    console.log("handleStartTestClick: isStudentInfoFormOpen set to true."); // NEW LOG
+    console.log("handleStartTestClick: isStudentInfoFormOpen set to true.");
   };
 
   const handleStudentInfoSave = async (id: string, name: string, phone: string) => {

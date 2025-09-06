@@ -5,6 +5,7 @@ export type SpeakingPart = "Part 1.1" | "Part 1.2" | "Part 2" | "Part 3";
 export interface BaseSpeakingQuestion {
   id: string;
   date: string; // ISO string
+  lastUsed?: string; // NEW: ISO string of when the question was last used
 }
 
 export interface Part1_1Question extends BaseSpeakingQuestion {
