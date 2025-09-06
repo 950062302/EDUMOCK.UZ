@@ -75,7 +75,7 @@ const SpeakingQuestionManager: React.FC = () => {
 
       try {
         const { error: uploadError } = await supabase.storage
-          .from('question_images')
+          .from('question-images')
           .upload(filePath, file);
 
         if (uploadError) {
@@ -83,7 +83,7 @@ const SpeakingQuestionManager: React.FC = () => {
         }
 
         const { data } = supabase.storage
-          .from('question_images')
+          .from('question-images')
           .getPublicUrl(filePath);
 
         if (!data.publicUrl) {
