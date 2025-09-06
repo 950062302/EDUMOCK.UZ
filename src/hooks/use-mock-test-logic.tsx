@@ -425,58 +425,41 @@ export const useMockTestLogic = ({
 
     const twoHoursAgo = new Date();
     twoHoursAgo.setHours(twoHoursAgo.getHours() - 2); // Oxirgi 2 soat ichida ishlatilgan savollarni chiqarib tashlash uchun vaqt
+    console.log("handleStartTestClick: twoHoursAgo (ISO):", twoHoursAgo.toISOString());
 
     let hasEnoughQuestions = true;
     let missingParts: string[] = [];
 
     allSpeakingParts.forEach(part => {
-      // Oxirgi 2 soat ichida ishlatilmagan savollarni filtrlaymiz
+      console.log(`--- Filtering for ${part} ---`);
       const eligibleQuestions = allAvailableQuestionsRef.current[part].filter(q => {
-        if (!q.lastUsed) return true; // Agar hech qachon ishlatilmagan bo'lsa, u mos keladi
+        if (!q.lastUsed) {
+          console.log(`Question ${q.id.substring(0, 8)}... in ${part}: No lastUsed, eligible.`);
+          return true; // Agar hech qachon ishlatilmagan bo'lsa, u mos keladi
+        }
         const lastUsedDate = new Date(q.lastUsed);
-        return lastUsedDate < twoHoursAgo; // Agar 2 soatdan oldin ishlatilgan bo'lsa, u mos keladi
+        const isEligible = lastUsedDate < twoHoursAgo; // Agar 2 soatdan oldin ishlatilgan bo'lsa, u mos keladi
+        console.log(`Question ${q.id.substring(0, 8)}... in ${part}: lastUsed: ${q.lastUsed}, isEligible: ${isEligible}`);
+        return isEligible;
       });
 
+      console.log(`Part ${part}: Eligible questions count: ${eligibleQuestions.length}`);
+      
       const available = eligibleQuestions.length;
       const required = minQuestions[part];
       if (available < required) {
         hasEnoughQuestions = false;
         missingParts.push(`${part} (kerak: ${required}, mavjud: ${available} (oxirgi 2 soatda ishlatilmagan))`);
       }
+      // Tanlangan savollarni eligibleQuestions ichidan olish
+      selectedQuestionsForTest[part] = getRandomElements(eligibleQuestions as any[], required);
+      console.log(`Part ${part}: Selected questions for test:`, selectedQuestionsForTest[part].map(q => q.id.substring(0, 8) + '...'));
     });
 
     if (!hasEnoughQuestions) {
       showError(`Mock testni boshlash uchun yetarli savollar mavjud emas. Iltimos, quyidagi bo'limlarga savollar qo'shing: ${missingParts.join(", ")}`);
       return;
     }
-
-    // Mos keladigan savollardan tasodifiy tanlov
-    selectedQuestionsForTest["Part 1.1"] = getRandomElements(
-      allAvailableQuestionsRef.current["Part 1.1"].filter(q => !q.lastUsed || new Date(q.lastUsed) < twoHoursAgo) as Part1_1Question[],
-      minQuestions["Part 1.1"]
-    );
-    console.log("handleStartTestClick: selectedQuestionsForTest (Part 1.1):", selectedQuestionsForTest["Part 1.1"]);
-
-    const randomPart1_2Q = getRandomElements(
-      allAvailableQuestionsRef.current["Part 1.2"].filter(q => !q.lastUsed || new Date(q.lastUsed) < twoHoursAgo) as Part1_2Question[],
-      minQuestions["Part 1.2"]
-    )[0];
-    if (randomPart1_2Q) {
-      selectedQuestionsForTest["Part 1.2"] = [randomPart1_2Q];
-    }
-    console.log("handleStartTestClick: selectedQuestionsForTest (Part 1.2):", selectedQuestionsForTest["Part 1.2"]);
-
-    selectedQuestionsForTest["Part 2"] = getRandomElements(
-      allAvailableQuestionsRef.current["Part 2"].filter(q => !q.lastUsed || new Date(q.lastUsed) < twoHoursAgo) as Part2Question[],
-      minQuestions["Part 2"]
-    );
-    console.log("handleStartTestClick: selectedQuestionsForTest (Part 2):", selectedQuestionsForTest["Part 2"]);
-
-    selectedQuestionsForTest["Part 3"] = getRandomElements(
-      allAvailableQuestionsRef.current["Part 3"].filter(q => !q.lastUsed || new Date(q.lastUsed) < twoHoursAgo) as Part3Question[],
-      minQuestions["Part 3"]
-    );
-    console.log("handleStartTestClick: selectedQuestionsForTest (Part 3):", selectedQuestionsForTest["Part 3"]);
 
     // Tanlangan savollarning lastUsed xususiyatini yangilash va localStorage'ga saqlash
     const now = new Date().toISOString();
@@ -487,14 +470,16 @@ export const useMockTestLogic = ({
         const indexInAll = updatedAllQuestions[part].findIndex(q => q.id === selectedQ.id);
         if (indexInAll !== -1) {
           updatedAllQuestions[part][indexInAll] = { ...updatedAllQuestions[part][indexInAll], lastUsed: now };
+          console.log(`Updated lastUsed for question ${selectedQ.id.substring(0, 8)}... in ${part} to ${now}`);
         }
       });
       // Yangilangan ro'yxatni localStorage'ga saqlash
       localStorage.setItem(getSpeakingQuestionStorageKey(part), JSON.stringify(updatedAllQuestions[part]));
+      console.log(`Saved updated questions for ${part} to localStorage. Current state of questions for ${part}:`, updatedAllQuestions[part].map(q => ({id: q.id.substring(0,8)+'...', lastUsed: q.lastUsed})));
     });
 
     setQuestions(selectedQuestionsForTest); // Tanlangan savollarni state'ga o'rnatish
-    console.log("MockTest: Randomly selected questions for this test:", selectedQuestionsForTest);
+    console.log("MockTest: Randomly selected questions for this test (final state):", selectedQuestionsForTest);
 
     setIsStudentInfoFormOpen(true);
     console.log("handleStartTestClick: isStudentInfoFormOpen set to true.");
