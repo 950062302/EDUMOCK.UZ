@@ -80,9 +80,12 @@ const MockTest: React.FC = () => {
         )}
         
         <Card className="w-full max-w-2xl text-center relative">
-          <CardHeader>
-            <CardTitle className="text-3xl font-bold">Mock Speaking Test</CardTitle>
-            <CardDescription>Practice your speaking skills with generated questions.</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-center gap-4">
+            <img src="/images/cefr-logo-red.png" alt="CEFR Learning Centre Logo" className="h-20 w-20 rounded-md" />
+            <div className="text-left">
+              <CardTitle className="text-3xl font-bold">Mock Speaking Test</CardTitle>
+              <CardDescription>Practice your speaking skills with generated questions.</CardDescription>
+            </div>
           </CardHeader>
           <CardContent className="space-y-6">
             {isTestStarted && currentPhase !== "finished" && (
