@@ -103,31 +103,46 @@ export const deleteLocalMoodEntry = (id: string) => {
 };
 
 // --- Recordings (IndexedDB) ---
+
+// This is the shape of the object we'll store in IndexedDB
+interface StoredRecording {
+  id: string;
+  user_id: string;
+  timestamp: string;
+  duration: number;
+  student_id?: string;
+  student_name?: string;
+  student_phone?: string;
+  videoBlob: Blob;
+}
+
 export const getLocalRecordings = async (): Promise<RecordedSession[]> => {
   const db = await initDB();
-  return db.getAll(STORE_RECORDINGS);
+  const storedRecordings: StoredRecording[] = await db.getAll(STORE_RECORDINGS);
+  
+  // Map the stored data to the format the UI expects, creating a fresh temporary URL for each video
+  return storedRecordings.map(rec => ({
+    ...rec,
+    video_url: URL.createObjectURL(rec.videoBlob),
+  }));
 };
 
 export const addLocalRecording = async (
   recording: Omit<RecordedSession, 'id' | 'timestamp' | 'user_id' | 'video_url'> & { videoBlob: Blob }
-): Promise<RecordedSession> => {
+): Promise<void> => {
   const db = await initDB();
-  const newRecording: RecordedSession = {
+  const newRecording: StoredRecording = {
     ...recording,
     id: uuidv4(),
     timestamp: new Date().toISOString(),
-    user_id: 'local_user', // Lokal rejimda user_id
-    video_url: URL.createObjectURL(recording.videoBlob), // Blob URL
+    user_id: 'local_user',
+    videoBlob: recording.videoBlob, // Store the raw Blob
   };
   await db.add(STORE_RECORDINGS, newRecording);
-  return newRecording;
 };
 
 export const deleteLocalRecording = async (id: string) => {
   const db = await initDB();
-  const recording = await db.get(STORE_RECORDINGS, id);
-  if (recording && recording.video_url) {
-    URL.revokeObjectURL(recording.video_url); // Blob URL ni tozalash
-  }
+  // Just delete the record. URL revocation is handled by the UI component.
   await db.delete(STORE_RECORDINGS, id);
 };

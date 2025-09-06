@@ -15,20 +15,35 @@ const Records: React.FC = () => {
   const [recordings, setRecordings] = useState<RecordedSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchRecordings = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const data = await getLocalRecordings();
-      setRecordings(data.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
-    } catch (error: any) {
-      showError(`Yozuvlarni yuklashda xatolik: ${error.message}`);
-    }
-    setIsLoading(false);
-  }, []);
-
   useEffect(() => {
+    let isMounted = true;
+    let loadedRecordings: RecordedSession[] = [];
+
+    const fetchRecordings = async () => {
+      setIsLoading(true);
+      try {
+        const data = await getLocalRecordings();
+        if (isMounted) {
+          loadedRecordings = data.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+          setRecordings(loadedRecordings);
+        }
+      } catch (error: any) {
+        showError(`Yozuvlarni yuklashda xatolik: ${error.message}`);
+      }
+      if (isMounted) {
+        setIsLoading(false);
+      }
+    };
+
     fetchRecordings();
-  }, [fetchRecordings]);
+
+    // Cleanup function to run when the component unmounts
+    return () => {
+      isMounted = false;
+      // Revoke the temporary URLs to prevent memory leaks
+      loadedRecordings.forEach(rec => URL.revokeObjectURL(rec.video_url));
+    };
+  }, []); // Empty dependency array ensures this runs only on mount and unmount
 
   const handleDownload = useCallback(async (recording: RecordedSession) => {
     try {
@@ -50,7 +65,11 @@ const Records: React.FC = () => {
 
   const handleDelete = useCallback(async (recording: RecordedSession) => {
     try {
+      // First, revoke the temporary URL to free up memory
+      URL.revokeObjectURL(recording.video_url);
+      // Then, delete the record from IndexedDB
       await deleteLocalRecording(recording.id);
+      // Finally, update the state to remove the item from the UI
       setRecordings(prev => prev.filter(rec => rec.id !== recording.id));
       showSuccess("Yozuv muvaffaqiyatli o'chirildi!");
     } catch (error: any) {
