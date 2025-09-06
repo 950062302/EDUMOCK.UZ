@@ -27,7 +27,8 @@ import {
   deleteLocalQuestion,
   resetLocalQuestionCooldowns,
 } from "@/lib/local-db";
-import { fileToBase64 } from "@/utils/imageUtils";
+import { supabase } from "@/lib/supabase"; // Supabase klientini import qilish
+import { v4 as uuidv4 } from 'uuid'; // Noyob fayl nomlari uchun
 
 const SpeakingQuestionManager: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<SpeakingPart>("Part 1.1");
@@ -67,16 +68,34 @@ const SpeakingQuestionManager: React.FC = () => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setIsUploading(true);
-      showSuccess("Rasm yuklanmoqda...");
+      showSuccess("Rasm Supabase'ga yuklanmoqda...");
+
+      const fileName = `${uuidv4()}-${file.name}`;
+      const filePath = `public/${fileName}`;
 
       try {
-        const base64 = await fileToBase64(file);
+        const { error: uploadError } = await supabase.storage
+          .from('question_images')
+          .upload(filePath, file);
+
+        if (uploadError) {
+          throw uploadError;
+        }
+
+        const { data } = supabase.storage
+          .from('question_images')
+          .getPublicUrl(filePath);
+
+        if (!data.publicUrl) {
+          throw new Error("Public URL olinmadi.");
+        }
+
         const newImagePreviewUrls = [...imagePreviewUrls];
-        newImagePreviewUrls[index] = base64;
+        newImagePreviewUrls[index] = data.publicUrl;
         setImagePreviewUrls(newImagePreviewUrls);
         showSuccess("Rasm muvaffaqiyatli yuklandi!");
-      } catch (error) {
-        showError("Rasmni yuklashda xatolik yuz berdi.");
+      } catch (error: any) {
+        showError(`Rasmni yuklashda xatolik: ${error.message}`);
       } finally {
         setIsUploading(false);
       }
@@ -146,9 +165,6 @@ const SpeakingQuestionManager: React.FC = () => {
         {isImageRequiredPart && (
           <div className="space-y-4 mb-4">
             <Label className="text-base">Rasmlar yuklash (1 yoki 2 ta rasm)</Label>
-            <p className="text-sm text-red-500">
-              Eslatma: Rasmlar brauzeringizning lokal xotirasida saqlanadi. Katta hajmli rasmlar xotirani to'ldirishi mumkin.
-            </p>
             {[0, 1].map((idx) => (
               <div key={idx} className="space-y-2 border p-2 rounded-md">
                 <Label htmlFor={`image-upload-${part}-${idx}`} className="text-sm">Rasm {idx + 1} yuklash</Label>
@@ -187,7 +203,7 @@ const SpeakingQuestionManager: React.FC = () => {
 
         {["Part 2", "Part 3"].includes(part) && (
           <>
-            <Label htmlFor={`question-text-${part}`} className="text-base">Asosiy savol</Label>
+            <Label htmlFor={`question-text-${part}`} className="text-base">Asiy savol</Label>
             <Textarea
               id={`question-text-${part}`}
               placeholder={`${part} uchun savol kiriting...`}
