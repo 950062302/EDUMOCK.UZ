@@ -132,7 +132,6 @@ export const useRecorder = () => {
           .getPublicUrl(filePath);
 
         const newRecording = {
-          user_id: user.id,
           duration,
           student_id: studentInfo?.id,
           student_name: studentInfo?.name,
