@@ -81,7 +81,9 @@ const MockTest: React.FC = () => {
         
         <Card className="w-full max-w-2xl text-center relative">
           <CardHeader className="flex flex-row items-center justify-center gap-4">
-            <img src="/images/cefr-logo-red.png" alt="CEFR Learning Centre Logo" className="h-20 w-20 rounded-md" />
+            <div className="h-20 w-20 rounded-md flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+              <span className="text-2xl font-extrabold text-red-600">Cefr LC</span>
+            </div>
             <div className="text-left">
               <CardTitle className="text-3xl font-bold">Mock Speaking Test</CardTitle>
               <CardDescription>Practice your speaking skills with generated questions.</CardDescription>
