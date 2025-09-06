@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { showSuccess, showError } from "@/utils/toast";
-import { StudentInfo, RecordedSession } from "@/lib/types";
+import { StudentInfo } from "@/lib/types";
 import { addLocalRecording } from "@/lib/local-db";
 
 const MAX_RECORDING_DURATION_MS = 60 * 60 * 1000;
@@ -16,6 +16,7 @@ export const useRecorder = () => {
   const recordedChunksRef = useRef<Blob[]>([]);
   const screenStreamRef = useRef<MediaStream | null>(null);
   const micStreamRef = useRef<MediaStream | null>(null);
+  const webcamStreamRef = useRef<MediaStream | null>(null);
   const startTimeRef = useRef<number>(0);
   const recordingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -40,23 +41,24 @@ export const useRecorder = () => {
 
   const stopAllStreams = useCallback(() => {
     stopRecordingProcess();
-    webcamStream?.getTracks().forEach(track => track.stop());
+    if (webcamStreamRef.current) {
+      webcamStreamRef.current.getTracks().forEach(track => track.stop());
+      webcamStreamRef.current = null;
+    }
     setWebcamStream(null);
-  }, [webcamStream, stopRecordingProcess]);
+  }, [stopRecordingProcess]);
 
   useEffect(() => {
     const getWebcamPreview = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        webcamStreamRef.current = stream;
         setWebcamStream(stream);
       } catch (err) {
         showError("Kamera tasvirini olishda xatolik yuz berdi.");
       }
     };
     getWebcamPreview();
-    return () => {
-      webcamStream?.getTracks().forEach(track => track.stop());
-    };
   }, []);
 
   const startRecording = useCallback(async (studentInfo?: StudentInfo): Promise<boolean> => {
