@@ -103,8 +103,8 @@ export const useMockTestLogic = ({
     }
 
     switch (currentQ.type) {
-      case "part1.1":
-      case "part1.2": {
+      case "Part 1.1":
+      case "Part 1.2": {
         const subQCount = (currentQ as Part1_1Question | Part1_2Question).sub_questions.length;
         if (currentSubQuestionIndex < subQCount - 1) {
           setCurrentSubQuestionIndex(prev => prev + 1);
@@ -120,8 +120,8 @@ export const useMockTestLogic = ({
         }
         break;
       }
-      case "part2":
-      case "part3": {
+      case "Part 2":
+      case "Part 3": {
         if (currentPhase === "question_display") setCurrentPhase("preparation");
         else if (currentPhase === "preparation") setCurrentPhase("speaking");
         else if (currentPhase === "speaking") setCurrentPhase("part_finished_announcement");
@@ -197,14 +197,14 @@ export const useMockTestLogic = ({
         return;
       }
       switch (currentQ.type) {
-        case "part1.1": duration = TIMINGS.PART1_1_QUESTION; break;
-        case "part1.2": duration = TIMINGS.PART1_2_QUESTION; break;
-        case "part2":
+        case "Part 1.1": duration = TIMINGS.PART1_1_QUESTION; break;
+        case "Part 1.2": duration = TIMINGS.PART1_2_QUESTION; break;
+        case "Part 2":
           if (currentPhase === "preparation") duration = TIMINGS.PART2_PREP;
           else if (currentPhase === "speaking") duration = TIMINGS.PART2_SPEAK;
           else duration = 0;
           break;
-        case "part3":
+        case "Part 3":
           if (currentPhase === "preparation") duration = TIMINGS.PART3_PREP;
           else if (currentPhase === "speaking") duration = TIMINGS.PART3_SPEAK;
           else duration = 0;
@@ -243,9 +243,9 @@ export const useMockTestLogic = ({
       const currentQ = getCurrentQuestion();
       if (currentQ) {
         let textToSpeak = "";
-        if (currentQ.type === "part1.1" || currentQ.type === "part1.2") {
+        if (currentQ.type === "Part 1.1" || currentQ.type === "Part 1.2") {
           textToSpeak = (currentQ as Part1_1Question | Part1_2Question).sub_questions[currentSubQuestionIndex];
-        } else if (currentQ.type === "part2" || currentQ.type === "part3") {
+        } else if (currentQ.type === "Part 2" || currentQ.type === "Part 3") {
           textToSpeak = (currentQ as Part2Question | Part3Question).question_text;
         }
         if (textToSpeak) speakText(textToSpeak, 'en-US');

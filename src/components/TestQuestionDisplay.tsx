@@ -80,7 +80,7 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
   }
 
   switch (currentQ.type) {
-    case "part1.1":
+    case "Part 1.1":
       const part1_1Q = currentQ as Part1_1Question;
       return (
         <div className="space-y-4">
@@ -94,7 +94,7 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
           </div>
         </div>
       );
-    case "part1.2":
+    case "Part 1.2":
       const part1_2Q = currentQ as Part1_2Question;
       return (
         <div className="space-y-4">
@@ -113,7 +113,7 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
           </div>
         </div>
       );
-    case "part2":
+    case "Part 2":
       const part2Q = currentQ as Part2Question;
       return (
         <div className="space-y-4">
@@ -131,7 +131,7 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
           </p>
         </div>
       );
-    case "part3":
+    case "Part 3":
       const part3Q = currentQ as Part3Question;
       return (
         <div className="space-y-4">

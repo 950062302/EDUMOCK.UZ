@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState } from "react";
 import Navbar from "@/components/Navbar";
 import { CefrCentreFooter } from "@/components/CefrCentreFooter";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -100,27 +100,55 @@ const SpeakingQuestionManager: React.FC = () => {
       return;
     }
 
-    let newQuestionData: Omit<SpeakingQuestion, 'id' | 'date' | 'user_id'> | null = null;
     const finalImageUrls = imagePreviewUrls.filter(Boolean);
+    let questionAdded = false;
 
-    if (part === "Part 1.1") {
-      const subQ = subQuestionsText.split('\n').map(q => q.trim()).filter(Boolean);
-      if (subQ.length === 0) return showError("Kamida bitta kichik savol kiriting.");
-      newQuestionData = { type: "part1.1", sub_questions: subQ } as Omit<Part1_1Question, 'id' | 'date' | 'user_id'>;
-    } else if (part === "Part 1.2") {
-      const subQ = subQuestionsText.split('\n').map(q => q.trim()).filter(Boolean);
-      if (finalImageUrls.length === 0 || subQ.length === 0) return showError("Rasm va kichik savollar bo'sh bo'lishi mumkin emas.");
-      newQuestionData = { type: "part1.2", image_urls: finalImageUrls, sub_questions: subQ } as Omit<Part1_2Question, 'id' | 'date' | 'user_id'>;
-    } else if (part === "Part 2") {
-      if (finalImageUrls.length === 0 || !questionText.trim()) return showError("Rasm va asosiy savol bo'sh bo'lishi mumkin emas.");
-      newQuestionData = { type: "part2", image_urls: finalImageUrls, question_text: questionText.trim() } as Omit<Part2Question, 'id' | 'date' | 'user_id'>;
-    } else if (part === "Part 3") {
-      if (finalImageUrls.length === 0 || !questionText.trim()) return showError("Rasm va asosiy savol bo'sh bo'lishi mumkin emas.");
-      newQuestionData = { type: "part3", image_urls: finalImageUrls, question_text: questionText.trim() } as Omit<Part3Question, 'id' | 'date' | 'user_id'>;
+    switch (part) {
+      case "Part 1.1": {
+        const subQ = subQuestionsText.split('\n').map(q => q.trim()).filter(Boolean);
+        if (subQ.length === 0) {
+          showError("Kamida bitta kichik savol kiriting.");
+          return;
+        }
+        const newQuestion: Omit<Part1_1Question, 'id' | 'date' | 'user_id'> = { type: part, sub_questions: subQ };
+        addLocalQuestion(newQuestion);
+        questionAdded = true;
+        break;
+      }
+      case "Part 1.2": {
+        const subQ = subQuestionsText.split('\n').map(q => q.trim()).filter(Boolean);
+        if (finalImageUrls.length === 0 || subQ.length === 0) {
+          showError("Rasm va kichik savollar bo'sh bo'lishi mumkin emas.");
+          return;
+        }
+        const newQuestion: Omit<Part1_2Question, 'id' | 'date' | 'user_id'> = { type: part, image_urls: finalImageUrls, sub_questions: subQ };
+        addLocalQuestion(newQuestion);
+        questionAdded = true;
+        break;
+      }
+      case "Part 2": {
+        if (finalImageUrls.length === 0 || !questionText.trim()) {
+          showError("Rasm va asosiy savol bo'sh bo'lishi mumkin emas.");
+          return;
+        }
+        const newQuestion: Omit<Part2Question, 'id' | 'date' | 'user_id'> = { type: part, image_urls: finalImageUrls, question_text: questionText.trim() };
+        addLocalQuestion(newQuestion);
+        questionAdded = true;
+        break;
+      }
+      case "Part 3": {
+        if (finalImageUrls.length === 0 || !questionText.trim()) {
+          showError("Rasm va asosiy savol bo'sh bo'lishi mumkin emas.");
+          return;
+        }
+        const newQuestion: Omit<Part3Question, 'id' | 'date' | 'user_id'> = { type: part, image_urls: finalImageUrls, question_text: questionText.trim() };
+        addLocalQuestion(newQuestion);
+        questionAdded = true;
+        break;
+      }
     }
 
-    if (newQuestionData) {
-      addLocalQuestion(newQuestionData);
+    if (questionAdded) {
       showSuccess(`Savol ${part} ga qo'shildi!`);
       setQuestions(loadInitialQuestions()); // Re-load all questions from storage
 
@@ -204,13 +232,13 @@ const SpeakingQuestionManager: React.FC = () => {
 
   const renderQuestionCardContent = (q: SpeakingQuestion) => {
     switch (q.type) {
-      case "part1.1":
+      case "Part 1.1":
         return (
           <ul className="list-disc list-inside text-sm">
             {q.sub_questions.map((subQ, i) => <li key={i}>{subQ}</li>)}
           </ul>
         );
-      case "part1.2":
+      case "Part 1.2":
         return (
           <div className="flex flex-col items-start">
             <div className="flex gap-2 mb-2">
@@ -221,7 +249,7 @@ const SpeakingQuestionManager: React.FC = () => {
             </ul>
           </div>
         );
-      case "part2":
+      case "Part 2":
         return (
           <div className="flex flex-col items-start">
             <div className="flex gap-2 mb-2">
@@ -230,7 +258,7 @@ const SpeakingQuestionManager: React.FC = () => {
             <p className="text-sm">{q.question_text}</p>
           </div>
         );
-      case "part3":
+      case "Part 3":
         return (
           <div className="flex flex-col items-start">
             <p className="text-sm mb-2">{q.question_text}</p>

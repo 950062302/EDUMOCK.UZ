@@ -7,28 +7,28 @@ export interface BaseSpeakingQuestion {
   user_id: string; // Lokal rejimda 'local_user' bo'ladi
   date: string; // ISO string
   last_used?: string; // ISO string
-  type: "part1.1" | "part1.2" | "part2" | "part3";
+  type: SpeakingPart;
 }
 
 export interface Part1_1Question extends BaseSpeakingQuestion {
-  type: "part1.1";
+  type: "Part 1.1";
   sub_questions: string[];
 }
 
 export interface Part1_2Question extends BaseSpeakingQuestion {
-  type: "part1.2";
+  type: "Part 1.2";
   image_urls: string[]; // Base64 stringlari bo'lishi mumkin
   sub_questions: string[];
 }
 
 export interface Part2Question extends BaseSpeakingQuestion {
-  type: "part2";
+  type: "Part 2";
   image_urls: string[]; // Base64 stringlari bo'lishi mumkin
   question_text: string;
 }
 
 export interface Part3Question extends BaseSpeakingQuestion {
-  type: "part3";
+  type: "Part 3";
   question_text: string;
   image_urls: string[]; // Base64 stringlari bo'lishi mumkin
 }

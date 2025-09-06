@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState } from "react";
 import Navbar from "@/components/Navbar";
 import { CefrCentreFooter } from "@/components/CefrCentreFooter";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -8,7 +8,6 @@ import { Separator } from "@/components/ui/separator";
 import { SpeakingQuestion, SpeakingPart } from "@/lib/types";
 import { allSpeakingParts } from "@/lib/constants";
 import { format } from "date-fns";
-import { showError } from "@/utils/toast";
 import { getLocalQuestions } from "@/lib/local-db";
 
 const loadInitialQuestions = (): Record<SpeakingPart, SpeakingQuestion[]> => {
@@ -25,12 +24,12 @@ const loadInitialQuestions = (): Record<SpeakingPart, SpeakingQuestion[]> => {
 };
 
 const Questions: React.FC = () => {
-  const [questions, setQuestions] = useState(loadInitialQuestions);
-  const [isLoading, setIsLoading] = useState(false); // No longer need complex loading state
+  const [questions] = useState(loadInitialQuestions);
+  const [isLoading] = useState(false);
 
   const renderQuestionContent = (q: SpeakingQuestion) => {
     switch (q.type) {
-      case "part1.1":
+      case "Part 1.1":
         return (
           <div className="flex flex-col">
             <p className="text-sm font-semibold">Savollar:</p>
@@ -39,7 +38,7 @@ const Questions: React.FC = () => {
             </ul>
           </div>
         );
-      case "part1.2":
+      case "Part 1.2":
         return (
           <div className="flex flex-col sm:flex-row sm:items-center">
             <div className="flex gap-2 mr-4 mb-2 sm:mb-0">
@@ -53,7 +52,7 @@ const Questions: React.FC = () => {
             </div>
           </div>
         );
-      case "part2":
+      case "Part 2":
         return (
           <div className="flex flex-col sm:flex-row sm:items-center">
             <div className="flex gap-2 mr-4 mb-2 sm:mb-0">
@@ -62,7 +61,7 @@ const Questions: React.FC = () => {
             <p className="text-sm">{q.question_text}</p>
           </div>
         );
-      case "part3":
+      case "Part 3":
         return (
           <div className="flex flex-col sm:flex-row sm:items-center">
             <p className="text-sm mr-4">{q.question_text}</p>
