@@ -118,9 +118,13 @@ const Questions: React.FC = () => {
                     {questions[part].map((q) => (
                       <div key={q.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded-md bg-secondary text-secondary-foreground">
                         {renderQuestionContent(q)}
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          Qo'shilgan: {format(new Date(q.date), "MMM dd, yyyy HH:mm")}
-                        </span>
+                        <div className="flex flex-col items-end text-xs text-muted-foreground whitespace-nowrap mt-2 sm:mt-0">
+                          <span>ID: {q.id.substring(0, 8)}...</span> {/* ID'ni qisqartirib ko'rsatish */}
+                          <span>Qo'shilgan: {format(new Date(q.date), "MMM dd, yyyy HH:mm")}</span>
+                          {q.lastUsed && (
+                            <span>Oxirgi ishlatilgan: {format(new Date(q.lastUsed), "MMM dd, yyyy HH:mm")}</span>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
