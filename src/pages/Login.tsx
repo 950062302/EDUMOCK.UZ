@@ -31,7 +31,8 @@ const Login: React.FC = () => {
     }
 
     if (username === validUser.username && password === validUser.password) {
-      localStorage.setItem("isLoggedIn", "true"); // Foydalanuvchi tizimga kirganligini belgilash
+      localStorage.setItem("isLoggedIn", "true");
+      localStorage.removeItem("isGuestMode"); // Login qilganda guest mode'ni o'chirish
       showSuccess("Tizimga muvaffaqiyatli kirdingiz!");
       navigate("/home");
     } else {
@@ -54,14 +55,17 @@ const Login: React.FC = () => {
       return;
     }
 
-    // Yangi foydalanuvchi ma'lumotlarini localStorage'ga saqlash
     localStorage.setItem("registeredUser", JSON.stringify({ username: newUsername, password: newPassword }));
     showSuccess("Muvaffaqiyatli ro'yxatdan o'tdingiz! Endi tizimga kirishingiz mumkin.");
     setNewUsername("");
     setNewPassword("");
     setConfirmPassword("");
-    // Avtomatik ravishda login tabiga o'tish mumkin
-    // set current tab to login if using tabs
+  };
+
+  const handleStartTestWithoutLogin = () => {
+    localStorage.setItem("isGuestMode", "true"); // Guest mode'ni yoqish
+    localStorage.removeItem("isLoggedIn"); // Agar oldin login bo'lgan bo'lsa, uni o'chirish
+    navigate("/mock-test");
   };
 
   return (
@@ -148,11 +152,9 @@ const Login: React.FC = () => {
             </TabsContent>
           </Tabs>
           <div className="mt-6 text-center">
-            <Link to="/mock-test">
-              <Button variant="secondary" className="w-full">
-                Loginsiz testni boshlash
-              </Button>
-            </Link>
+            <Button variant="secondary" className="w-full" onClick={handleStartTestWithoutLogin}>
+              Loginsiz testni boshlash
+            </Button>
           </div>
         </CardContent>
       </Card>

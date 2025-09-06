@@ -14,7 +14,8 @@ import MockTest from "./pages/MockTest";
 import Settings from "./pages/Settings";
 import UserProfile from "./pages/UserProfile";
 import Questions from "./pages/Questions";
-import Records from "./pages/Records"; // Import the new Records page
+import Records from "./pages/Records";
+import ProtectedRoute from "./components/ProtectedRoute"; // ProtectedRoute import qilindi
 
 const queryClient = new QueryClient();
 
@@ -26,16 +27,21 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/mood-journal" element={<MoodJournal />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/add-question" element={<AddQuestion />} />
-          <Route path="/tests" element={<Tests />} />
-          <Route path="/mock-test" element={<MockTest />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/user-profile" element={<UserProfile />} />
-          <Route path="/questions" element={<Questions />} />
-          <Route path="/records" element={<Records />} /> {/* Add the new Records route */}
+          <Route path="/mock-test" element={<MockTest />} /> {/* MockTest har doim ochiq */}
+          
+          {/* Himoyalangan marshrutlar guruhi */}
+          <Route element={<ProtectedRoute allowedPaths={["/mock-test", "/records"]} />}>
+            <Route path="/home" element={<Home />} />
+            <Route path="/add-question" element={<AddQuestion />} />
+            <Route path="/tests" element={<Tests />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/user-profile" element={<UserProfile />} />
+            <Route path="/questions" element={<Questions />} />
+            <Route path="/records" element={<Records />} />
+            <Route path="/mood-journal" element={<MoodJournal />} /> {/* MoodJournal ham himoyalangan */}
+          </Route>
+
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
