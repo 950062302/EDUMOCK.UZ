@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,40 +9,36 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showSuccess, showError } from "@/utils/toast";
 import { CefrCentreFooter } from "@/components/CefrCentreFooter";
+import { supabase } from "@/lib/supabase"; // Supabase client'ni import qilish
 
 const Login: React.FC = () => {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState(""); // Username o'rniga email ishlatamiz
   const [password, setPassword] = useState("");
-  const [newUsername, setNewUsername] = useState("");
+  const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const navigate = useNavigate();
 
-  // Default user for demonstration if no user is registered
-  const defaultUser = { username: "user", password: "password" };
-
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const storedUser = localStorage.getItem("registeredUser");
-    let validUser = defaultUser;
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-    if (storedUser) {
-      validUser = JSON.parse(storedUser);
-    }
-
-    if (username === validUser.username && password === validUser.password) {
-      localStorage.setItem("isLoggedIn", "true");
-      localStorage.removeItem("isGuestMode"); // Login qilganda guest mode'ni o'chirish
-      showSuccess("Tizimga muvaffaqiyatli kirdingiz!");
-      navigate("/home");
+    if (error) {
+      showError(`Tizimga kirishda xatolik: ${error.message}`);
     } else {
-      showError("Noto'g'ri foydalanuvchi nomi yoki parol.");
+      showSuccess("Tizimga muvaffaqiyatli kirdingiz!");
+      // Supabase session avtomatik boshqariladi, localStorage'ga ehtiyoj yo'q
+      localStorage.removeItem("isGuestMode"); // Login qilganda guest mode'ni o'chirish
+      navigate("/home");
     }
   };
 
-  const handleSignUp = (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newUsername.trim() || !newPassword.trim() || !confirmPassword.trim()) {
+    if (!newEmail.trim() || !newPassword.trim() || !confirmPassword.trim()) {
       showError("Iltimos, barcha maydonlarni to'ldiring.");
       return;
     }
@@ -55,16 +51,24 @@ const Login: React.FC = () => {
       return;
     }
 
-    localStorage.setItem("registeredUser", JSON.stringify({ username: newUsername, password: newPassword }));
-    showSuccess("Muvaffaqiyatli ro'yxatdan o'tdingiz! Endi tizimga kirishingiz mumkin.");
-    setNewUsername("");
-    setNewPassword("");
-    setConfirmPassword("");
+    const { error } = await supabase.auth.signUp({
+      email: newEmail,
+      password: newPassword,
+    });
+
+    if (error) {
+      showError(`Ro'yxatdan o'tishda xatolik: ${error.message}`);
+    } else {
+      showSuccess("Muvaffaqiyatli ro'yxatdan o'tdingiz! Endi tizimga kirishingiz mumkin.");
+      setNewEmail("");
+      setNewPassword("");
+      setConfirmPassword("");
+    }
   };
 
   const handleStartTestWithoutLogin = () => {
     localStorage.setItem("isGuestMode", "true"); // Guest mode'ni yoqish
-    localStorage.removeItem("isLoggedIn"); // Agar oldin login bo'lgan bo'lsa, uni o'chirish
+    // Supabase session'ni o'chirishga hojat yo'q, chunki bu alohida rejim
     navigate("/mock-test");
   };
 
@@ -84,13 +88,13 @@ const Login: React.FC = () => {
             <TabsContent value="login" className="mt-4">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div>
-                  <Label htmlFor="username">Foydalanuvchi nomi</Label>
+                  <Label htmlFor="email">Email</Label>
                   <Input
-                    id="username"
-                    type="text"
-                    placeholder="Foydalanuvchi nomini kiriting"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    id="email"
+                    type="email"
+                    placeholder="Emailingizni kiriting"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </div>
@@ -113,13 +117,13 @@ const Login: React.FC = () => {
             <TabsContent value="signup" className="mt-4">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div>
-                  <Label htmlFor="new-username">Yangi foydalanuvchi nomi</Label>
+                  <Label htmlFor="new-email">Email</Label>
                   <Input
-                    id="new-username"
-                    type="text"
-                    placeholder="Yangi foydalanuvchi nomini kiriting"
-                    value={newUsername}
-                    onChange={(e) => setNewUsername(e.target.value)}
+                    id="new-email"
+                    type="email"
+                    placeholder="Emailingizni kiriting"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
                     required
                   />
                 </div>

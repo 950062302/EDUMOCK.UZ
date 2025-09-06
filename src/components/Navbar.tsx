@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, LogOut, User, Settings, Home as HomeIcon, ListChecks, ImagePlus, BookOpen, Video } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { showSuccess } from "@/utils/toast";
+import { showSuccess, showError } from "@/utils/toast";
+import { supabase } from "@/lib/supabase"; // Supabase client'ni import qilish
 
 const allNavLinks = [
   { name: "Home", path: "/home", icon: HomeIcon, protected: true },
@@ -26,26 +27,40 @@ const Navbar: React.FC = () => {
   const [isGuestMode, setIsGuestMode] = useState(false);
 
   useEffect(() => {
-    const loggedInStatus = localStorage.getItem("isLoggedIn") === "true";
-    const guestModeStatus = localStorage.getItem("isGuestMode") === "true";
-    setIsLoggedIn(loggedInStatus);
-    setIsGuestMode(guestModeStatus);
+    const checkAuthStatus = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+      setIsGuestMode(localStorage.getItem("isGuestMode") === "true");
+    };
 
-    // localStorage o'zgarishlarini kuzatish
+    checkAuthStatus();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+      setIsGuestMode(localStorage.getItem("isGuestMode") === "true");
+    });
+
+    // localStorage o'zgarishlarini kuzatish (guest mode uchun)
     const handleStorageChange = () => {
-      setIsLoggedIn(localStorage.getItem("isLoggedIn") === "true");
       setIsGuestMode(localStorage.getItem("isGuestMode") === "true");
     };
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("isGuestMode"); // Guest mode'ni ham o'chirish
-    localStorage.removeItem("currentUser");
-    showSuccess("Tizimdan chiqdingiz!");
-    navigate("/login");
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      showError(`Tizimdan chiqishda xatolik: ${error.message}`);
+    } else {
+      localStorage.removeItem("isGuestMode"); // Guest mode'ni ham o'chirish
+      showSuccess("Tizimdan chiqdingiz!");
+      navigate("/login");
+    }
   };
 
   const renderNavLinks = () => {
@@ -56,7 +71,8 @@ const Navbar: React.FC = () => {
       filteredLinks = allNavLinks.filter(link => !link.protected);
     } else if (!isLoggedIn && !isGuestMode) {
       // Agar umuman login bo'lmagan bo'lsa, faqat Mock Test va Login (agar mavjud bo'lsa)
-      filteredLinks = allNavLinks.filter(link => link.path === "/mock-test" || link.path === "/login");
+      // Login linki Navbar'da bo'lmasligi kerak, chunki u alohida sahifa
+      filteredLinks = allNavLinks.filter(link => link.path === "/mock-test");
     }
     // Agar isLoggedIn bo'lsa, barcha linklar ko'rinadi (default)
 

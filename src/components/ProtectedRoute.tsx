@@ -2,13 +2,15 @@
 
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
+import { Session } from "@supabase/supabase-js";
 
 interface ProtectedRouteProps {
+  session: Session | null; // Supabase sessiyasini prop sifatida qabul qilamiz
   allowedPaths?: string[]; // Guest mode uchun ruxsat etilgan yo'llar
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedPaths = [] }) => {
-  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ session, allowedPaths = [] }) => {
+  const isLoggedIn = !!session; // Supabase sessiyasi mavjud bo'lsa, login bo'lgan hisoblanadi
   const isGuestMode = localStorage.getItem("isGuestMode") === "true";
   const currentPath = window.location.pathname;
 
