@@ -11,34 +11,22 @@ import { format } from "date-fns";
 import { showError } from "@/utils/toast";
 import { getLocalQuestions } from "@/lib/local-db";
 
-const Questions: React.FC = () => {
-  const [questions, setQuestions] = useState<Record<SpeakingPart, SpeakingQuestion[]>>({
-    "Part 1.1": [],
-    "Part 1.2": [],
-    "Part 2": [],
-    "Part 3": [],
+const loadInitialQuestions = (): Record<SpeakingPart, SpeakingQuestion[]> => {
+  const allLocalQuestions = getLocalQuestions();
+  const groupedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
+    "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
+  };
+  allLocalQuestions.forEach((q: SpeakingQuestion) => {
+    if (groupedQuestions[q.type as SpeakingPart]) {
+      groupedQuestions[q.type as SpeakingPart].push(q);
+    }
   });
-  const [isLoading, setIsLoading] = useState(true);
+  return groupedQuestions;
+};
 
-  const fetchQuestions = useCallback(() => {
-    setIsLoading(true);
-    const allLocalQuestions = getLocalQuestions();
-    const groupedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
-      "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
-    };
-    allLocalQuestions.forEach((q: SpeakingQuestion) => {
-      if (groupedQuestions[q.type as SpeakingPart]) {
-        groupedQuestions[q.type as SpeakingPart].push(q);
-      }
-    });
-    setQuestions(groupedQuestions);
-    setIsLoading(false);
-  }, []);
-
-  useEffect(() => {
-    fetchQuestions();
-    // Lokal rejimda real-time subscription yo'q, shuning uchun faqat bir marta yuklaymiz
-  }, [fetchQuestions]);
+const Questions: React.FC = () => {
+  const [questions, setQuestions] = useState(loadInitialQuestions);
+  const [isLoading, setIsLoading] = useState(false); // No longer need complex loading state
 
   const renderQuestionContent = (q: SpeakingQuestion) => {
     switch (q.type) {

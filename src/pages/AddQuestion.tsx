@@ -30,39 +30,31 @@ import {
 import { supabase } from "../integrations/supabase/client"; // Supabase klientini import qilish
 import { v4 as uuidv4 } from 'uuid'; // Noyob fayl nomlari uchun
 
+const loadInitialQuestions = (): Record<SpeakingPart, SpeakingQuestion[]> => {
+  const allLocalQuestions = getLocalQuestions();
+  const groupedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
+    "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
+  };
+  allLocalQuestions.forEach((q: SpeakingQuestion) => {
+    if (groupedQuestions[q.type as SpeakingPart]) {
+      groupedQuestions[q.type as SpeakingPart].push(q);
+    }
+  });
+  // Sort each part by date descending
+  for (const part in groupedQuestions) {
+    groupedQuestions[part as SpeakingPart].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }
+  return groupedQuestions;
+};
+
 const SpeakingQuestionManager: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<SpeakingPart>("Part 1.1");
   const [questionText, setQuestionText] = useState<string>("");
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [subQuestionsText, setSubQuestionsText] = useState<string>("");
   const [isUploading, setIsUploading] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-
-  const [questions, setQuestions] = useState<Record<SpeakingPart, SpeakingQuestion[]>>({
-    "Part 1.1": [],
-    "Part 1.2": [],
-    "Part 2": [],
-    "Part 3": [],
-  });
-
-  const fetchQuestions = useCallback(() => {
-    setIsLoading(true);
-    const allLocalQuestions = getLocalQuestions();
-    const groupedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
-      "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
-    };
-    allLocalQuestions.forEach((q: SpeakingQuestion) => {
-      if (groupedQuestions[q.type as SpeakingPart]) {
-        groupedQuestions[q.type as SpeakingPart].push(q);
-      }
-    });
-    setQuestions(groupedQuestions);
-    setIsLoading(false);
-  }, []);
-
-  useEffect(() => {
-    fetchQuestions();
-  }, [fetchQuestions]);
+  
+  const [questions, setQuestions] = useState(loadInitialQuestions);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     if (e.target.files && e.target.files[0]) {
@@ -128,13 +120,9 @@ const SpeakingQuestionManager: React.FC = () => {
     }
 
     if (newQuestionData) {
-      const newQuestion = addLocalQuestion(newQuestionData);
+      addLocalQuestion(newQuestionData);
       showSuccess(`Savol ${part} ga qo'shildi!`);
-      
-      setQuestions(prevQuestions => ({
-        ...prevQuestions,
-        [part]: [...prevQuestions[part], newQuestion].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
-      }));
+      setQuestions(loadInitialQuestions()); // Re-load all questions from storage
 
       setQuestionText("");
       setImagePreviewUrls([]);
@@ -145,17 +133,13 @@ const SpeakingQuestionManager: React.FC = () => {
   const handleDeleteQuestion = (part: SpeakingPart, id: string) => {
     deleteLocalQuestion(id);
     showSuccess("Savol muvaffaqiyatli o'chirildi!");
-    
-    setQuestions(prevQuestions => ({
-      ...prevQuestions,
-      [part]: prevQuestions[part].filter(q => q.id !== id),
-    }));
+    setQuestions(loadInitialQuestions()); // Re-load all questions from storage
   };
 
   const handleResetAllCooldowns = () => {
     resetLocalQuestionCooldowns();
     showSuccess("Barcha savollar cooldown'lari tiklandi!");
-    fetchQuestions();
+    setQuestions(loadInitialQuestions()); // Re-load all questions from storage
   };
 
   const renderQuestionInput = (part: SpeakingPart) => {
@@ -282,7 +266,7 @@ const SpeakingQuestionManager: React.FC = () => {
                     </Button>
                   </div>
                   <div className="space-y-3">
-                    {isLoading ? <p>Yuklanmoqda...</p> : questions[part].length === 0 ? (
+                    {questions[part].length === 0 ? (
                       <p className="text-center text-muted-foreground">Hali savollar qo'shilmagan.</p>
                     ) : (
                       questions[part].map((q) => (
