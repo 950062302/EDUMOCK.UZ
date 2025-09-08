@@ -1,0 +1,87 @@
+"use client";
+
+import React, { useState, useEffect } from 'react';
+import { Wifi, WifiOff, Clock, Signal } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+const NetworkStatusFooter: React.FC = () => {
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [connectionType, setConnectionType] = useState<string | null>(null);
+  const [time, setTime] = useState<string>('');
+
+  // Internet holatini tekshirish uchun
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Tarmoq turini olish uchun
+  useEffect(() => {
+    const connection = (navigator as any).connection;
+    if (!connection) return;
+
+    const updateConnectionType = () => {
+      setConnectionType(connection.effectiveType);
+    };
+
+    updateConnectionType();
+    connection.addEventListener('change', updateConnectionType);
+
+    return () => {
+      connection.removeEventListener('change', updateConnectionType);
+    };
+  }, []);
+
+  // Toshkent vaqtini har soniyada yangilash uchun
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const tashkentTime = new Date().toLocaleTimeString('en-GB', {
+        timeZone: 'Asia/Tashkent',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+      setTime(tashkentTime);
+    }, 1000);
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, []);
+
+  return (
+    <footer className="fixed bottom-0 left-0 w-full bg-secondary text-secondary-foreground p-2 shadow-t-lg flex items-center justify-around text-xs z-50 border-t">
+      <div
+        className={cn(
+          'flex items-center gap-2 p-1 rounded-md font-semibold',
+          isOnline ? 'text-green-600' : 'text-red-600',
+        )}
+      >
+        {isOnline ? <Wifi size={14} /> : <WifiOff size={14} />}
+        <span>{isOnline ? 'Online' : 'Offline'}</span>
+      </div>
+
+      {isOnline && connectionType && (
+        <div className="hidden sm:flex items-center gap-2 text-muted-foreground">
+          <Signal size={14} />
+          <span>{connectionType.toUpperCase()}</span>
+        </div>
+      )}
+
+      <div className="flex items-center gap-2 text-muted-foreground">
+        <Clock size={14} />
+        <span>Tashkent: {time}</span>
+      </div>
+    </footer>
+  );
+};
+
+export default NetworkStatusFooter;

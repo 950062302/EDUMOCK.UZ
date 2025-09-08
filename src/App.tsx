@@ -16,6 +16,7 @@ import Questions from "./pages/Questions";
 import Records from "./pages/Records";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthProvider";
+import NetworkStatusFooter from "./components/NetworkStatusFooter";
 
 const queryClient = new QueryClient();
 
@@ -27,25 +28,28 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/mock-test" element={<MockTest />} />
-              
-              {/* Himoyalangan marshrutlar guruhi */}
-              <Route element={<ProtectedRoute />}>
-                <Route path="/home" element={<Home />} />
-                <Route path="/add-question" element={<AddQuestion />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/user-profile" element={<UserProfile />} />
-                <Route path="/questions" element={<Questions />} />
-                <Route path="/records" element={<Records />} />
-                <Route path="/mood-journal" element={<MoodJournal />} />
-              </Route>
+            <div className="pb-10"> {/* Footer uchun joy qoldirish */}
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/mock-test" element={<MockTest />} />
+                
+                {/* Himoyalangan marshrutlar guruhi */}
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/home" element={<Home />} />
+                  <Route path="/add-question" element={<AddQuestion />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/user-profile" element={<UserProfile />} />
+                  <Route path="/questions" element={<Questions />} />
+                  <Route path="/records" element={<Records />} />
+                  <Route path="/mood-journal" element={<MoodJournal />} />
+                </Route>
 
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </div>
+            <NetworkStatusFooter />
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
