@@ -4,7 +4,7 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, LogOut, User, Settings, Home as HomeIcon, ListChecks, ImagePlus, BookOpen, Video } from "lucide-react";
+import { Menu, LogOut, User, Settings, Home as HomeIcon } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { showSuccess } from "@/utils/toast";
 import { useAuth } from "@/context/AuthProvider";
@@ -12,10 +12,6 @@ import { supabase } from "@/integrations/supabase/client";
 
 const allNavLinks = [
   { name: "Home", path: "/home", icon: HomeIcon, protected: true },
-  { name: "Questions", path: "/questions", icon: BookOpen, protected: true },
-  { name: "Add Question", path: "/add-question", icon: ImagePlus, protected: true },
-  { name: "Mock Test", path: "/mock-test", icon: ListChecks, protected: false },
-  { name: "Records", path: "/records", icon: Video, protected: false },
   { name: "Settings", path: "/settings", icon: Settings, protected: true },
   { name: "Profile", path: "/user-profile", icon: User, protected: true },
 ];
@@ -39,10 +35,8 @@ const Navbar: React.FC = () => {
     let filteredLinks = allNavLinks;
 
     if (isGuestMode && !session) {
-      filteredLinks = allNavLinks.filter(link => !link.protected);
-    } else if (!session && !isGuestMode) {
-      // This case might not be reachable if ProtectedRoute is working correctly, but it's good for safety.
-      filteredLinks = allNavLinks.filter(link => link.path === "/mock-test");
+      // Mehmon rejimida faqat "Home" ko'rinsin
+      filteredLinks = allNavLinks.filter(link => link.path === '/home');
     }
 
     return (
