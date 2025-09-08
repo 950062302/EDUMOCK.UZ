@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Navbar from "@/components/Navbar";
 import { CefrCentreFooter } from "@/components/CefrCentreFooter";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -8,42 +8,36 @@ import { Separator } from "@/components/ui/separator";
 import { SpeakingQuestion, SpeakingPart } from "@/lib/types";
 import { allSpeakingParts } from "@/lib/constants";
 import { format } from "date-fns";
-import { getLocalQuestions, saveLocalQuestions } from "@/lib/local-db";
-import { v4 as uuidv4 } from 'uuid';
-
-const loadInitialQuestions = (): Record<SpeakingPart, SpeakingQuestion[]> => {
-  const allLocalQuestions = getLocalQuestions();
-  let questionsModified = false;
-
-  // Ensure all questions have a unique ID
-  const questionsWithIds = allLocalQuestions.map(q => {
-    if (!q.id) {
-      questionsModified = true;
-      return { ...q, id: uuidv4() };
-    }
-    return q;
-  });
-
-  // If we added any IDs, save the updated list back to localStorage
-  if (questionsModified) {
-    saveLocalQuestions(questionsWithIds);
-  }
-
-  const groupedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
-    "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
-  };
-  
-  questionsWithIds.forEach((q: SpeakingQuestion) => {
-    if (q && q.type && groupedQuestions[q.type as SpeakingPart]) {
-      groupedQuestions[q.type as SpeakingPart].push(q);
-    }
-  });
-  return groupedQuestions;
-};
+import { getSupabaseQuestions } from "@/lib/local-db";
+import { useAuth } from "@/context/AuthProvider";
 
 const Questions: React.FC = () => {
-  const [questions] = useState(loadInitialQuestions);
-  const [isLoading] = useState(false);
+  const { session } = useAuth();
+  const [questions, setQuestions] = useState<Record<SpeakingPart, SpeakingQuestion[]>>({
+    "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  const loadQuestions = useCallback(async () => {
+    setIsLoading(true);
+    const allQuestions = await getSupabaseQuestions();
+    const groupedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
+      "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
+    };
+    allQuestions.forEach((q) => {
+      if (q && q.type && groupedQuestions[q.type as SpeakingPart]) {
+        groupedQuestions[q.type as SpeakingPart].push(q);
+      }
+    });
+    setQuestions(groupedQuestions);
+    setIsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (session) {
+      loadQuestions();
+    }
+  }, [session, loadQuestions]);
 
   const renderQuestionContent = (q: SpeakingQuestion) => {
     switch (q.type) {

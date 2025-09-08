@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Navbar from "@/components/Navbar";
 import { CefrCentreFooter } from "@/components/CefrCentreFooter";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -10,78 +10,57 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showSuccess, showError } from "@/utils/toast";
-import { AlertTriangle, Trash2, Pencil, X } from "lucide-react";
+import { Trash2, Pencil, X } from "lucide-react";
 import { format } from "date-fns";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  SpeakingQuestion,
-  SpeakingPart,
-  Part1_1Question,
-  Part1_2Question,
-  Part2Question,
-  Part3Question,
-} from "@/lib/types";
+import { SpeakingQuestion, SpeakingPart } from "@/lib/types";
 import { allSpeakingParts } from "@/lib/constants";
 import {
-  getLocalQuestions,
-  addLocalQuestion,
-  deleteLocalQuestion,
-  resetLocalQuestionCooldowns,
-  saveLocalQuestions,
-  updateLocalQuestion,
+  getSupabaseQuestions,
+  addSupabaseQuestion,
+  deleteSupabaseQuestion,
+  resetSupabaseQuestionCooldowns,
+  updateSupabaseQuestion,
 } from "@/lib/local-db";
 import { supabase } from "../integrations/supabase/client";
 import { v4 as uuidv4 } from 'uuid';
-
-const loadInitialQuestions = (): Record<SpeakingPart, SpeakingQuestion[]> => {
-  const allLocalQuestions = getLocalQuestions();
-  let questionsModified = false;
-
-  const questionsWithIds = allLocalQuestions.map(q => {
-    if (!q.id) {
-      questionsModified = true;
-      return { ...q, id: uuidv4() };
-    }
-    return q;
-  });
-
-  if (questionsModified) {
-    saveLocalQuestions(questionsWithIds);
-  }
-
-  const groupedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
-    "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
-  };
-  
-  questionsWithIds.forEach((q: SpeakingQuestion) => {
-    if (q && q.type && groupedQuestions[q.type as SpeakingPart]) {
-      groupedQuestions[q.type as SpeakingPart].push(q);
-    }
-  });
-
-  for (const part in groupedQuestions) {
-    groupedQuestions[part as SpeakingPart].sort((a, b) => {
-      if (!a.date || !b.date) return 0;
-      return new Date(b.date).getTime() - new Date(a.date).getTime()
-    });
-  }
-  return groupedQuestions;
-};
+import { useAuth } from "@/context/AuthProvider";
 
 const SpeakingQuestionManager: React.FC = () => {
+  const { session } = useAuth();
   const [currentTab, setCurrentTab] = useState<SpeakingPart>("Part 1.1");
   const [questionText, setQuestionText] = useState<string>("");
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [subQuestionsText, setSubQuestionsText] = useState<string>("");
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
-  
-  const [questions, setQuestions] = useState(loadInitialQuestions);
+  const [questions, setQuestions] = useState<Record<SpeakingPart, SpeakingQuestion[]>>({
+    "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
+  });
+
+  const loadQuestions = useCallback(async () => {
+    setIsLoading(true);
+    const allQuestions = await getSupabaseQuestions();
+    const groupedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
+      "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
+    };
+    allQuestions.forEach((q) => {
+      if (q && q.type && groupedQuestions[q.type as SpeakingPart]) {
+        groupedQuestions[q.type as SpeakingPart].push(q);
+      }
+    });
+    for (const part in groupedQuestions) {
+      groupedQuestions[part as SpeakingPart].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }
+    setQuestions(groupedQuestions);
+    setIsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (session) {
+      loadQuestions();
+    }
+  }, [session, loadQuestions]);
 
   const resetForm = () => {
     setQuestionText("");
@@ -152,7 +131,7 @@ const SpeakingQuestionManager: React.FC = () => {
     }
   };
 
-  const handleSubmitQuestion = (part: SpeakingPart) => {
+  const handleSubmitQuestion = async (part: SpeakingPart) => {
     if (isUploading) {
       showError("Rasmlar yuklanmoqda. Iltimos kuting.");
       return;
@@ -188,35 +167,38 @@ const SpeakingQuestionManager: React.FC = () => {
 
     if (questionData) {
       if (editingQuestionId) {
-        const allQuestions = getLocalQuestions();
-        const questionIndex = allQuestions.findIndex(q => q.id === editingQuestionId);
-        if (questionIndex > -1) {
-          const updatedQuestion = { ...allQuestions[questionIndex], ...questionData, type: part };
-          updateLocalQuestion(updatedQuestion);
+        const existingQuestion = questions[part].find(q => q.id === editingQuestionId);
+        if (existingQuestion) {
+          const updatedQuestion = { ...existingQuestion, ...questionData, type: part };
+          await updateSupabaseQuestion(updatedQuestion);
           showSuccess("Savol muvaffaqiyatli yangilandi!");
         }
       } else {
-        addLocalQuestion(questionData);
+        await addSupabaseQuestion(questionData);
         showSuccess(`Savol ${part} ga qo'shildi!`);
       }
-      setQuestions(loadInitialQuestions());
+      await loadQuestions();
       resetForm();
     }
   };
 
-  const handleDeleteQuestion = (id: string) => {
-    deleteLocalQuestion(id);
-    showSuccess("Savol muvaffaqiyatli o'chirildi!");
-    setQuestions(loadInitialQuestions());
-    if (id === editingQuestionId) {
-      resetForm();
+  const handleDeleteQuestion = async (id: string) => {
+    const success = await deleteSupabaseQuestion(id);
+    if (success) {
+      showSuccess("Savol muvaffaqiyatli o'chirildi!");
+      await loadQuestions();
+      if (id === editingQuestionId) {
+        resetForm();
+      }
     }
   };
 
-  const handleResetAllCooldowns = () => {
-    resetLocalQuestionCooldowns();
-    showSuccess("Barcha savollar cooldown'lari tiklandi!");
-    setQuestions(loadInitialQuestions());
+  const handleResetAllCooldowns = async () => {
+    const success = await resetSupabaseQuestionCooldowns();
+    if (success) {
+      showSuccess("Barcha savollar cooldown'lari tiklandi!");
+      await loadQuestions();
+    }
   };
 
   const renderQuestionInput = (part: SpeakingPart) => {
@@ -360,30 +342,32 @@ const SpeakingQuestionManager: React.FC = () => {
                       )}
                     </div>
                   </div>
-                  <div className="space-y-3">
-                    {questions[part].length === 0 ? (
-                      <p className="text-center text-muted-foreground">Hali savollar qo'shilmagan.</p>
-                    ) : (
-                      questions[part].map((q) => (
-                        <div key={q.id} className="flex items-start justify-between p-3 border rounded-md bg-secondary text-secondary-foreground">
-                          <div className="flex-grow mr-4">{renderQuestionCardContent(q)}</div>
-                          <div className="flex flex-col items-end gap-2">
-                            <div className="flex items-center gap-2">
-                              <Button variant="ghost" size="icon" onClick={() => handleEditClick(q)}>
-                                <Pencil className="h-4 w-4 text-blue-500" />
-                              </Button>
-                              <Button variant="ghost" size="icon" onClick={() => handleDeleteQuestion(q.id)}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </div>
-                            <div className="text-xs text-muted-foreground text-right">
-                              <span>{q.last_used ? `Oxirgi: ${format(new Date(q.last_used), "MMM dd, HH:mm")}` : "Ishlatilmagan"}</span>
+                  {isLoading ? <p className="text-center">Savollar yuklanmoqda...</p> : (
+                    <div className="space-y-3">
+                      {questions[part].length === 0 ? (
+                        <p className="text-center text-muted-foreground">Hali savollar qo'shilmagan.</p>
+                      ) : (
+                        questions[part].map((q) => (
+                          <div key={q.id} className="flex items-start justify-between p-3 border rounded-md bg-secondary text-secondary-foreground">
+                            <div className="flex-grow mr-4">{renderQuestionCardContent(q)}</div>
+                            <div className="flex flex-col items-end gap-2">
+                              <div className="flex items-center gap-2">
+                                <Button variant="ghost" size="icon" onClick={() => handleEditClick(q)}>
+                                  <Pencil className="h-4 w-4 text-blue-500" />
+                                </Button>
+                                <Button variant="ghost" size="icon" onClick={() => handleDeleteQuestion(q.id)}>
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </div>
+                              <div className="text-xs text-muted-foreground text-right">
+                                <span>{q.last_used ? `Oxirgi: ${format(new Date(q.last_used), "MMM dd, HH:mm")}` : "Ishlatilmagan"}</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
+                        ))
+                      )}
+                    </div>
+                  )}
                 </TabsContent>
               ))}
             </Tabs>

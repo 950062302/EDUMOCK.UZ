@@ -1,10 +1,11 @@
 import { openDB, IDBPDatabase } from 'idb';
 import { v4 as uuidv4 } from 'uuid';
 import { SpeakingQuestion, MoodEntry, RecordedSession } from './types';
+import { supabase } from '@/integrations/supabase/client';
+import { showError } from '@/utils/toast';
 
 const DB_NAME = 'cefr_lc_db';
 const DB_VERSION = 1;
-const STORE_QUESTIONS = 'speaking_questions';
 const STORE_MOODS = 'mood_entries';
 const STORE_RECORDINGS = 'recordings';
 
@@ -14,9 +15,6 @@ async function initDB() {
   if (!db) {
     db = await openDB(DB_NAME, DB_VERSION, {
       upgrade(db) {
-        if (!db.objectStoreNames.contains(STORE_QUESTIONS)) {
-          db.createObjectStore(STORE_QUESTIONS, { keyPath: 'id' });
-        }
         if (!db.objectStoreNames.contains(STORE_MOODS)) {
           db.createObjectStore(STORE_MOODS, { keyPath: 'id' });
         }
@@ -29,51 +27,107 @@ async function initDB() {
   return db;
 }
 
-// --- Speaking Questions (localStorage) ---
-export const getLocalQuestions = (): SpeakingQuestion[] => {
-  const questionsJson = localStorage.getItem(STORE_QUESTIONS);
-  return questionsJson ? JSON.parse(questionsJson) : [];
+// --- Speaking Questions (Supabase) ---
+
+const getUserId = async (): Promise<string | null> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  return user?.id || null;
 };
 
-export const saveLocalQuestions = (questions: SpeakingQuestion[]) => {
-  localStorage.setItem(STORE_QUESTIONS, JSON.stringify(questions));
+export const getSupabaseQuestions = async (): Promise<SpeakingQuestion[]> => {
+  const userId = await getUserId();
+  if (!userId) return [];
+
+  const { data, error } = await supabase
+    .from('questions')
+    .select('*')
+    .eq('user_id', userId);
+
+  if (error) {
+    showError("Savollarni yuklashda xatolik: " + error.message);
+    return [];
+  }
+  return data as SpeakingQuestion[];
 };
 
-export const addLocalQuestion = (question: Omit<SpeakingQuestion, 'id' | 'date' | 'user_id'>): SpeakingQuestion => {
-  const newQuestion = { 
+export const addSupabaseQuestion = async (question: Omit<SpeakingQuestion, 'id' | 'date' | 'user_id'>): Promise<SpeakingQuestion | null> => {
+  const userId = await getUserId();
+  if (!userId) return null;
+
+  const newQuestion = {
     ...question,
     id: uuidv4(),
     date: new Date().toISOString(),
-    user_id: 'local_user', // Lokal rejimda user_id
-  } as SpeakingQuestion; // Type assertion to resolve union type issue
-  const questions = getLocalQuestions();
-  questions.push(newQuestion);
-  saveLocalQuestions(questions);
-  return newQuestion;
-};
+    user_id: userId,
+  };
 
-export const updateLocalQuestion = (updatedQuestion: SpeakingQuestion) => {
-  const questions = getLocalQuestions();
-  const index = questions.findIndex(q => q.id === updatedQuestion.id);
-  if (index !== -1) {
-    questions[index] = updatedQuestion;
-    saveLocalQuestions(questions);
+  const { data, error } = await supabase
+    .from('questions')
+    .insert(newQuestion)
+    .select()
+    .single();
+
+  if (error) {
+    showError("Savolni saqlashda xatolik: " + error.message);
+    return null;
   }
+  return data as SpeakingQuestion;
 };
 
-export const deleteLocalQuestion = (id: string) => {
-  let questions = getLocalQuestions();
-  questions = questions.filter(q => q.id !== id);
-  saveLocalQuestions(questions);
+export const updateSupabaseQuestion = async (updatedQuestion: SpeakingQuestion): Promise<SpeakingQuestion | null> => {
+  const userId = await getUserId();
+  if (!userId) return null;
+
+  const { data, error } = await supabase
+    .from('questions')
+    .update(updatedQuestion)
+    .eq('id', updatedQuestion.id)
+    .eq('user_id', userId)
+    .select()
+    .single();
+
+  if (error) {
+    showError("Savolni yangilashda xatolik: " + error.message);
+    return null;
+  }
+  return data as SpeakingQuestion;
 };
 
-export const resetLocalQuestionCooldowns = () => {
-  let questions = getLocalQuestions();
-  questions = questions.map(q => ({ ...q, last_used: undefined }));
-  saveLocalQuestions(questions);
+export const deleteSupabaseQuestion = async (id: string): Promise<boolean> => {
+  const userId = await getUserId();
+  if (!userId) return false;
+
+  const { error } = await supabase
+    .from('questions')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', userId);
+
+  if (error) {
+    showError("Savolni o'chirishda xatolik: " + error.message);
+    return false;
+  }
+  return true;
 };
 
-// --- Mood Entries (localStorage) ---
+export const resetSupabaseQuestionCooldowns = async (): Promise<boolean> => {
+  const userId = await getUserId();
+  if (!userId) return false;
+
+  const { error } = await supabase
+    .from('questions')
+    .update({ last_used: null })
+    .eq('user_id', userId);
+
+  if (error) {
+    showError("Cooldown'larni tiklashda xatolik: " + error.message);
+    return false;
+  }
+  return true;
+};
+
+
+// --- Mood Entries (localStorage for now) ---
 export const getLocalMoodEntries = (): MoodEntry[] => {
   const entriesJson = localStorage.getItem(STORE_MOODS);
   return entriesJson ? JSON.parse(entriesJson) : [];
@@ -88,7 +142,7 @@ export const addLocalMoodEntry = (entry: Omit<MoodEntry, 'id' | 'date' | 'user_i
     ...entry,
     id: uuidv4(),
     date: new Date().toISOString(),
-    user_id: 'local_user', // Lokal rejimda user_id
+    user_id: 'local_user',
   };
   const entries = getLocalMoodEntries();
   entries.push(newEntry);
@@ -102,9 +156,7 @@ export const deleteLocalMoodEntry = (id: string) => {
   saveLocalMoodEntries(entries);
 };
 
-// --- Recordings (IndexedDB) ---
-
-// This is the shape of the object we'll store in IndexedDB
+// --- Recordings (IndexedDB for now) ---
 interface StoredRecording {
   id: string;
   user_id: string;
@@ -120,7 +172,6 @@ export const getLocalRecordings = async (): Promise<RecordedSession[]> => {
   const db = await initDB();
   const storedRecordings: StoredRecording[] = await db.getAll(STORE_RECORDINGS);
   
-  // Map the stored data to the format the UI expects, creating a fresh temporary URL for each video
   return storedRecordings.map(rec => ({
     ...rec,
     video_url: URL.createObjectURL(rec.videoBlob),
@@ -136,13 +187,12 @@ export const addLocalRecording = async (
     id: uuidv4(),
     timestamp: new Date().toISOString(),
     user_id: 'local_user',
-    videoBlob: recording.videoBlob, // Store the raw Blob
+    videoBlob: recording.videoBlob,
   };
   await db.add(STORE_RECORDINGS, newRecording);
 };
 
 export const deleteLocalRecording = async (id: string) => {
   const db = await initDB();
-  // Just delete the record. URL revocation is handled by the UI component.
   await db.delete(STORE_RECORDINGS, id);
 };

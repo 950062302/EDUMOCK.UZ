@@ -13,7 +13,7 @@ import {
   Part3Question,
 } from "@/lib/types";
 import { allSpeakingParts } from "@/lib/constants";
-import { getLocalQuestions, saveLocalQuestions } from "@/lib/local-db";
+import { getSupabaseQuestions, updateSupabaseQuestion } from "@/lib/local-db";
 
 const TIMINGS = {
   PRE_TEST_COUNTDOWN: 5,
@@ -133,8 +133,8 @@ export const useMockTestLogic = ({
     }
   }, [currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, questions, currentPhase, stopAllStreams, getCurrentQuestion]);
 
-  const loadAllQuestions = useCallback(() => {
-    const data = getLocalQuestions();
+  const loadAllQuestions = useCallback(async () => {
+    const data = await getSupabaseQuestions();
     const loadedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
       "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
     };
@@ -254,7 +254,7 @@ export const useMockTestLogic = ({
   }, [isTestStarted, currentPhase, currentSubQuestionIndex, getCurrentQuestion]);
 
   const handleStartTestClick = async () => {
-    loadAllQuestions(); // Eng so'nggi savollarni yuklash
+    await loadAllQuestions();
     const selectedQuestionsForTest: Record<SpeakingPart, SpeakingQuestion[]> = {
       "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
     };
@@ -265,9 +265,6 @@ export const useMockTestLogic = ({
     const twoHoursInMs = 2 * 60 * 60 * 1000;
     let hasEnoughQuestions = true;
     let missingParts: string[] = [];
-
-    const allQuestions = getLocalQuestions(); // Barcha savollarni olish
-    const updatedAllQuestions = [...allQuestions]; // Yangilash uchun nusxa
 
     allSpeakingParts.forEach(part => {
       const eligibleQuestions = allAvailableQuestionsRef.current[part].filter(q =>
@@ -285,24 +282,11 @@ export const useMockTestLogic = ({
       return;
     }
 
-    // last_used ni yangilash
-    selectedQuestionsForTest["Part 1.1"].forEach(q => {
-      const index = updatedAllQuestions.findIndex(uq => uq.id === q.id);
-      if (index !== -1) updatedAllQuestions[index].last_used = now.toISOString();
-    });
-    selectedQuestionsForTest["Part 1.2"].forEach(q => {
-      const index = updatedAllQuestions.findIndex(uq => uq.id === q.id);
-      if (index !== -1) updatedAllQuestions[index].last_used = now.toISOString();
-    });
-    selectedQuestionsForTest["Part 2"].forEach(q => {
-      const index = updatedAllQuestions.findIndex(uq => uq.id === q.id);
-      if (index !== -1) updatedAllQuestions[index].last_used = now.toISOString();
-    });
-    selectedQuestionsForTest["Part 3"].forEach(q => {
-      const index = updatedAllQuestions.findIndex(uq => uq.id === q.id);
-      if (index !== -1) updatedAllQuestions[index].last_used = now.toISOString();
-    });
-    saveLocalQuestions(updatedAllQuestions); // Lokal xotiraga saqlash
+    // Update last_used in Supabase
+    const questionsToUpdate = Object.values(selectedQuestionsForTest).flat();
+    for (const q of questionsToUpdate) {
+      await updateSupabaseQuestion({ ...q, last_used: now.toISOString() });
+    }
 
     setQuestions(selectedQuestionsForTest);
     setIsStudentInfoFormOpen(true);
