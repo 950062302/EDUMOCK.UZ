@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Wifi, WifiOff, Clock, Signal } from 'lucide-react';
+import { Wifi, WifiOff, Clock, Signal, ArrowDownCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NetworkStatusFooter: React.FC = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [ping, setPing] = useState<number | null>(null);
+  const [speed, setSpeed] = useState<number | null>(null); // MB/s da
   const [time, setTime] = useState<string>('');
 
   // Internet holatini tekshirish uchun
@@ -23,20 +24,24 @@ const NetworkStatusFooter: React.FC = () => {
     };
   }, []);
 
-  // Tarmoq ping (RTT) ni olish uchun
+  // Tarmoq ma'lumotlarini (ping va tezlik) olish uchun
   useEffect(() => {
     const connection = (navigator as any).connection;
     if (!connection) return;
 
-    const updatePing = () => {
+    const updateNetworkInfo = () => {
       setPing(connection.rtt);
+      // `downlink` Mbps (megabit per second) da keladi. MB/s (megabyte per second) ga o'tkazamiz (1 byte = 8 bit).
+      if (connection.downlink) {
+        setSpeed(connection.downlink / 8);
+      }
     };
 
-    updatePing();
-    connection.addEventListener('change', updatePing);
+    updateNetworkInfo();
+    connection.addEventListener('change', updateNetworkInfo);
 
     return () => {
-      connection.removeEventListener('change', updatePing);
+      connection.removeEventListener('change', updateNetworkInfo);
     };
   }, []);
 
@@ -76,12 +81,16 @@ const NetworkStatusFooter: React.FC = () => {
         </div>
       )}
 
+      {isOnline && typeof speed === 'number' && (
+        <div className="hidden sm:flex items-center gap-2 text-muted-foreground">
+          <ArrowDownCircle size={14} />
+          <span>{speed.toFixed(2)} MB/s</span>
+        </div>
+      )}
+
       <div className="flex items-center gap-2 text-muted-foreground">
         <Clock size={14} />
         <span>Tashkent: {time}</span>
       </div>
     </footer>
   );
-};
-
-export default NetworkStatusFooter;
