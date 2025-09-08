@@ -5,11 +5,12 @@ import Navbar from "@/components/Navbar";
 import { CefrCentreFooter } from "@/components/CefrCentreFooter";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, PlayCircle, Trash2 } from "lucide-react";
+import { Download, PlayCircle, Trash2, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { RecordedSession } from "@/lib/types";
 import { showError, showSuccess } from "@/utils/toast";
 import { getLocalRecordings, deleteLocalRecording } from "@/lib/local-db";
+import { Link } from "react-router-dom";
 
 const Records: React.FC = () => {
   const [recordings, setRecordings] = useState<RecordedSession[]>([]);
@@ -82,7 +83,13 @@ const Records: React.FC = () => {
       <Navbar />
       <main className="flex-grow container mx-auto p-4 flex items-center justify-center">
         <Card className="w-full max-w-3xl">
-          <CardHeader className="text-center">
+          <CardHeader className="relative text-center">
+            <Link to="/home" className="absolute left-0 top-4">
+              <Button variant="outline">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back
+              </Button>
+            </Link>
             <CardTitle className="text-3xl font-bold">Your Recordings</CardTitle>
             <CardDescription>O'tgan mock test sessiyalaringizni ko'rib chiqing.</CardDescription>
           </CardHeader>

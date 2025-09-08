@@ -10,6 +10,9 @@ import { allSpeakingParts } from "@/lib/constants";
 import { format } from "date-fns";
 import { getSupabaseQuestions } from "@/lib/local-db";
 import { useAuth } from "@/context/AuthProvider";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 const Questions: React.FC = () => {
   const { session } = useAuth();
@@ -99,7 +102,15 @@ const Questions: React.FC = () => {
       <main className="flex-grow container mx-auto p-4">
         <Card className="max-w-4xl mx-auto">
           <CardHeader>
-            <CardTitle className="text-3xl font-bold text-center">Barcha Speaking Savollari</CardTitle>
+            <div className="relative text-center">
+              <Link to="/home" className="absolute left-0 top-1/2 -translate-y-1/2">
+                <Button variant="outline">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back
+                </Button>
+              </Link>
+              <CardTitle className="text-3xl font-bold">Barcha Speaking Savollari</CardTitle>
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading ? <p className="text-center">Yuklanmoqda...</p> : allSpeakingParts.map((part, index) => (

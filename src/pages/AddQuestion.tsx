@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showSuccess, showError } from "@/utils/toast";
-import { Trash2, Pencil, X } from "lucide-react";
+import { Trash2, Pencil, X, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { SpeakingQuestion, SpeakingPart } from "@/lib/types";
 import { allSpeakingParts } from "@/lib/constants";
@@ -24,6 +24,7 @@ import {
 import { supabase } from "../integrations/supabase/client";
 import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from "@/context/AuthProvider";
+import { Link } from "react-router-dom";
 
 const SpeakingQuestionManager: React.FC = () => {
   const { session } = useAuth();
@@ -319,7 +320,15 @@ const SpeakingQuestionManager: React.FC = () => {
       <main className="flex-grow container mx-auto p-4">
         <Card className="max-w-3xl mx-auto">
           <CardHeader>
-            <CardTitle className="text-3xl font-bold text-center">Savollarni Boshqarish</CardTitle>
+            <div className="relative text-center">
+              <Link to="/home" className="absolute left-0 top-1/2 -translate-y-1/2">
+                <Button variant="outline">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back
+                </Button>
+              </Link>
+              <CardTitle className="text-3xl font-bold">Savollarni Boshqarish</CardTitle>
+            </div>
           </CardHeader>
           <CardContent>
             <Tabs value={currentTab} onValueChange={(value) => { setCurrentTab(value as SpeakingPart); resetForm(); }} className="w-full">
