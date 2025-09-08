@@ -35,13 +35,18 @@ const getUserId = async (): Promise<string | null> => {
 };
 
 export const getSupabaseQuestions = async (): Promise<SpeakingQuestion[]> => {
-  const userId = await getUserId();
-  if (!userId) return [];
+  const { data: { user } } = await supabase.auth.getUser();
 
-  const { data, error } = await supabase
-    .from('questions')
-    .select('*')
-    .eq('user_id', userId);
+  let query;
+  if (user) {
+    // Agar foydalanuvchi tizimga kirgan bo'lsa, faqat uning savollarini olamiz
+    query = supabase.from('questions').select('*').eq('user_id', user.id);
+  } else {
+    // Agar mehmon bo'lsa (loginsiz), barcha savollarni olamiz
+    query = supabase.from('questions').select('*');
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     showError("Savollarni yuklashda xatolik: " + error.message);
