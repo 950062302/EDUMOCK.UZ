@@ -1,13 +1,11 @@
 {
-  "name": "cefr-lc-desktop",
+  "name": "cefr-lc-webapp",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && electron-builder",
-    "build:dev": "vite build --mode development",
+    "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -74,8 +72,6 @@
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react-swc": "^3.9.0",
     "autoprefixer": "^10.4.20",
-    "electron": "31.2.1",
-    "electron-builder": "25.0.0",
     "eslint": "^9.9.0",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.9",
@@ -84,23 +80,7 @@
     "tailwindcss": "^3.4.11",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",
-    "vite": "^6.3.4",
-    "vite-plugin-electron": "0.28.7",
-    "vite-plugin-electron-renderer": "0.14.6"
-  },
-  "build": {
-    "appId": "com.cefr-lc.app",
-    "productName": "CEFR LC Speaking Platform",
-    "directories": {
-      "output": "release"
-    },
-    "files": [
-      "dist",
-      "dist-electron"
-    ],
-    "win": {
-      "icon": "public/favicon.ico"
-    }
+    "vite": "^6.3.4"
   },
   "packageManager": "pnpm@10.15.1+sha512.34e538c329b5553014ca8e8f4535997f96180a1d0f614339357449935350d924e22f8614682191264ec33d1462ac21561aff97f6bb18065351c162c7e8f6de67"
 }
