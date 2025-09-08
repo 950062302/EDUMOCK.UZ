@@ -32,20 +32,40 @@ import {
   addLocalQuestion,
   deleteLocalQuestion,
   resetLocalQuestionCooldowns,
+  saveLocalQuestions, // Import saveLocalQuestions
 } from "@/lib/local-db";
 import { supabase } from "../integrations/supabase/client";
 import { v4 as uuidv4 } from 'uuid';
 
 const loadInitialQuestions = (): Record<SpeakingPart, SpeakingQuestion[]> => {
   const allLocalQuestions = getLocalQuestions();
+  let questionsModified = false;
+
+  // Ensure all questions have a unique ID
+  const questionsWithIds = allLocalQuestions.map(q => {
+    if (!q.id) {
+      questionsModified = true;
+      return { ...q, id: uuidv4() };
+    }
+    return q;
+  });
+
+  // If we added any IDs, save the updated list back to localStorage
+  if (questionsModified) {
+    saveLocalQuestions(questionsWithIds);
+  }
+
   const groupedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
     "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
   };
-  allLocalQuestions.forEach((q: SpeakingQuestion) => {
+  
+  // Use the cleaned-up data
+  questionsWithIds.forEach((q: SpeakingQuestion) => {
     if (q && q.type && groupedQuestions[q.type as SpeakingPart]) {
       groupedQuestions[q.type as SpeakingPart].push(q);
     }
   });
+
   for (const part in groupedQuestions) {
     groupedQuestions[part as SpeakingPart].sort((a, b) => {
       if (!a.date || !b.date) return 0;

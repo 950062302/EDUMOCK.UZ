@@ -8,14 +8,32 @@ import { Separator } from "@/components/ui/separator";
 import { SpeakingQuestion, SpeakingPart } from "@/lib/types";
 import { allSpeakingParts } from "@/lib/constants";
 import { format } from "date-fns";
-import { getLocalQuestions } from "@/lib/local-db";
+import { getLocalQuestions, saveLocalQuestions } from "@/lib/local-db";
+import { v4 as uuidv4 } from 'uuid';
 
 const loadInitialQuestions = (): Record<SpeakingPart, SpeakingQuestion[]> => {
   const allLocalQuestions = getLocalQuestions();
+  let questionsModified = false;
+
+  // Ensure all questions have a unique ID
+  const questionsWithIds = allLocalQuestions.map(q => {
+    if (!q.id) {
+      questionsModified = true;
+      return { ...q, id: uuidv4() };
+    }
+    return q;
+  });
+
+  // If we added any IDs, save the updated list back to localStorage
+  if (questionsModified) {
+    saveLocalQuestions(questionsWithIds);
+  }
+
   const groupedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
     "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
   };
-  allLocalQuestions.forEach((q: SpeakingQuestion) => {
+  
+  questionsWithIds.forEach((q: SpeakingQuestion) => {
     if (q && q.type && groupedQuestions[q.type as SpeakingPart]) {
       groupedQuestions[q.type as SpeakingPart].push(q);
     }
