@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 
 const NetworkStatusFooter: React.FC = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [connectionType, setConnectionType] = useState<string | null>(null);
+  const [ping, setPing] = useState<number | null>(null);
   const [time, setTime] = useState<string>('');
 
   // Internet holatini tekshirish uchun
@@ -23,20 +23,20 @@ const NetworkStatusFooter: React.FC = () => {
     };
   }, []);
 
-  // Tarmoq turini olish uchun
+  // Tarmoq ping (RTT) ni olish uchun
   useEffect(() => {
     const connection = (navigator as any).connection;
     if (!connection) return;
 
-    const updateConnectionType = () => {
-      setConnectionType(connection.effectiveType);
+    const updatePing = () => {
+      setPing(connection.rtt);
     };
 
-    updateConnectionType();
-    connection.addEventListener('change', updateConnectionType);
+    updatePing();
+    connection.addEventListener('change', updatePing);
 
     return () => {
-      connection.removeEventListener('change', updateConnectionType);
+      connection.removeEventListener('change', updatePing);
     };
   }, []);
 
@@ -69,10 +69,10 @@ const NetworkStatusFooter: React.FC = () => {
         <span>{isOnline ? 'Online' : 'Offline'}</span>
       </div>
 
-      {isOnline && connectionType && (
+      {isOnline && typeof ping === 'number' && (
         <div className="hidden sm:flex items-center gap-2 text-muted-foreground">
           <Signal size={14} />
-          <span>{connectionType.toUpperCase()}</span>
+          <span>Ping: {ping} ms</span>
         </div>
       )}
 
