@@ -39,7 +39,7 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
     return (
       <div className="w-full space-y-2">
         {label && <p className="text-xl font-semibold">{label}</p>}
-        <div className="relative w-full h-10 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden shadow-inner">
+        <div className="relative w-full h-8 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden shadow-inner"> {/* h-10 dan h-8 ga o'zgartirildi */}
           <div
             className="absolute top-0 left-0 h-full bg-primary" // Chap tomondan boshlanadi
             style={{
@@ -47,7 +47,7 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
               transition: 'width 1s linear', // Har bir soniyalik kamayish uchun silliq o'tish
             }}
           />
-          <span className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-white mix-blend-difference pointer-events-none">
+          <span className="absolute inset-0 flex items-center justify-center text-2xl font-bold text-white mix-blend-difference pointer-events-none"> {/* text-3xl dan text-2xl ga o'zgartirildi */}
             {countdown}
           </span>
         </div>
