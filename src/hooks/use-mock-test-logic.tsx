@@ -19,7 +19,7 @@ const TIMINGS = {
   PRE_TEST_COUNTDOWN: 5,
   PART1_READ_QUESTION: 5, // New: 5 seconds for reading Part 1.1/1.2 questions
   PART1_1_ANSWER: 30, // Renamed from PART1_1_QUESTION
-  PART1_2_ANSWER: 30, // Renamed from PART1_2_QUESTION
+  PART1_2_ANSWER: 30, // Renamed from PART1_2_QUESTION (default for 2nd/3rd sub-questions)
   PART2_PREP: 60,
   PART2_SPEAK: 120,
   PART3_PREP: 60,
@@ -239,10 +239,20 @@ export const useMockTestLogic = ({
           nextAction = () => setCurrentPhase("speaking");
           break;
         case "speaking":
-          if (currentQ.type === "Part 1.1") duration = TIMINGS.PART1_1_ANSWER;
-          else if (currentQ.type === "Part 1.2") duration = TIMINGS.PART1_2_ANSWER;
-          else if (currentQ.type === "Part 2") duration = TIMINGS.PART2_SPEAK;
-          else if (currentQ.type === "Part 3") duration = TIMINGS.PART3_SPEAK;
+          if (currentQ.type === "Part 1.1") {
+            duration = TIMINGS.PART1_1_ANSWER;
+          } else if (currentQ.type === "Part 1.2") {
+            // Part 1.2 uchun birinchi savolga 45 soniya, keyingilariga 30 soniya
+            if (currentSubQuestionIndex === 0) {
+              duration = 45;
+            } else {
+              duration = TIMINGS.PART1_2_ANSWER; // 30 soniya
+            }
+          } else if (currentQ.type === "Part 2") {
+            duration = TIMINGS.PART2_SPEAK;
+          } else if (currentQ.type === "Part 3") {
+            duration = TIMINGS.PART3_SPEAK;
+          }
           break;
         case "preparation":
           if (currentQ.type === "Part 2") duration = TIMINGS.PART2_PREP;
