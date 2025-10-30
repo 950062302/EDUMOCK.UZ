@@ -79,11 +79,11 @@ const MockTest: React.FC = () => {
           </div>
         )}
         
-        <Card className="w-full max-w-2xl text-center relative mt-10"> {/* mt-10 qo'shildi */}
-          <CardHeader className="flex flex-row items-center justify-center gap-4 py-6"> {/* py-6 qo'shildi */}
+        <Card className="w-full max-w-2xl text-center relative mt-10">
+          <CardHeader className="flex flex-row items-center justify-center gap-4 py-6">
             <div className="text-left">
               <CardTitle className="text-3xl font-bold">Mock Speaking Test</CardTitle>
-              <CardDescription>Practice your speaking skills with generated questions.</CardDescription>
+              {/* <CardDescription>Practice your speaking skills with generated questions.</CardDescription> */}
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
