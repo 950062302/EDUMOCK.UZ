@@ -49,7 +49,7 @@ const MockTest: React.FC = () => {
   }, [webcamStream]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
+    <div className="min-h-screen flex flex-col">
       {!isTestStarted && <Navbar />} {/* Navbar'ni test boshlanmaganda ko'rsatish */}
       <main className="flex-grow container mx-auto p-4 flex items-center justify-center relative">
         {/* Webcam Preview and Student Info (grouped in a single fixed container) */}

@@ -16,7 +16,7 @@ const dashboardLinks = [
 
 const Home: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-gray-950">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow container mx-auto p-4 flex flex-col items-center justify-center text-center">
         {/* <div className="h-28 w-28 rounded-lg flex items-center justify-center bg-red-50 dark:bg-red-900/20 animate-logo-pulse mb-6 shadow-lg border border-red-200">

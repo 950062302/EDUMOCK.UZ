@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 text-foreground">
+    <div className="min-h-screen flex flex-col items-center justify-center text-foreground">
       <div className="text-center p-6 bg-card rounded-lg shadow-lg">
         <h1 className="text-4xl font-bold mb-4">Cefr LC Speaking Platform</h1>
         <p className="text-xl text-muted-foreground mb-6">

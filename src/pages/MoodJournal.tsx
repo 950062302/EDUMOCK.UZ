@@ -75,7 +75,7 @@ const MoodJournal: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow container mx-auto p-4 max-w-3xl">
         <h1 className="text-4xl font-bold text-center mb-8">Mood Journal & Tracker</h1>
