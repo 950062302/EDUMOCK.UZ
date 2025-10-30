@@ -28,7 +28,7 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <div className="pb-10"> {/* Footer uchun joy qoldirish */}
+            <div className="pb-10 bg-background text-foreground min-h-screen"> {/* Footer uchun joy qoldirish va tema ranglarini qo'shish */}
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/login" element={<Login />} />
