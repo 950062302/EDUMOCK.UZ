@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showSuccess, showError } from "@/utils/toast";
-import { CefrCentreFooter } from "@/components/CefrCentreFooter";
+// import { CefrCentreFooter } from "@/components/CefrCentreFooter"; // Olib tashlandi
 import { supabase } from "@/integrations/supabase/client";
 
 const Login: React.FC = () => {
@@ -76,7 +76,7 @@ const Login: React.FC = () => {
           </Tabs>
         </CardContent>
       </Card>
-      <CefrCentreFooter />
+      {/* <CefrCentreFooter /> */} {/* Olib tashlandi */}
     </div>
   );
 };
