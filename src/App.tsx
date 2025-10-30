@@ -29,10 +29,7 @@ const App = () => {
         <BrowserRouter>
           <AuthProvider>
             <div className="pb-10 bg-background text-foreground min-h-screen">
-              {/* VAQTINCHALIK DEBUG ELEMENTI: Agar Dark Mode ishlasa, bu yashil quti ko'rinishi kerak */}
-              <div className="hidden dark:block fixed top-0 right-0 p-2 bg-green-500 text-white text-xs z-[9999]">
-                DARK MODE ACTIVE
-              </div>
+              {/* VAQTINCHALIK DEBUG ELEMENTI OLIB TASHLANDI */}
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/login" element={<Login />} />
