@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   SpeakingQuestion,
   SpeakingPart,
@@ -31,22 +31,46 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
   countdown,
   initialCountdown,
 }) => {
-  const progress = initialCountdown > 0 ? (countdown / initialCountdown) * 100 : 0;
+  // CountdownBar komponentini ichki holat bilan silliq animatsiya uchun
+  const CountdownBar = ({ label }: { label?: string }) => {
+    const [currentWidth, setCurrentWidth] = useState(100); // Barning boshlang'ich kengligi
+    const [currentDuration, setCurrentDuration] = useState(0); // Animatsiya davomiyligi
 
-  const CountdownBar = ({ label }: { label?: string }) => (
-    <div className="w-full space-y-2">
-      {label && <p className="text-xl font-semibold">{label}</p>}
-      <div className="relative w-full h-10 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden shadow-inner">
-        <div
-          className="absolute top-0 right-0 h-full bg-primary transition-all duration-1000 linear"
-          style={{ width: `${progress}%` }}
-        />
-        <span className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-white mix-blend-difference pointer-events-none">
-          {countdown}
-        </span>
+    useEffect(() => {
+      // initialCountdown o'zgarganda (yangi hisoblash boshlanganda) animatsiyani qayta boshlash
+      if (initialCountdown > 0) {
+        setCurrentWidth(100); // Kenglikni 100% ga o'rnatish
+        setCurrentDuration(initialCountdown); // Animatsiya davomiyligini belgilash
+        // Kichik kechikishdan so'ng kenglikni 0% ga o'rnatish, bu CSS transitionni ishga tushiradi
+        const timer = setTimeout(() => {
+          setCurrentWidth(0);
+        }, 50); // 50ms kechikish, 100% kenglik avval render qilinishini ta'minlash uchun
+        return () => clearTimeout(timer);
+      } else {
+        // Hisoblash faol bo'lmaganda holatni tiklash
+        setCurrentWidth(100);
+        setCurrentDuration(0);
+      }
+    }, [initialCountdown]); // initialCountdown ga bog'liq, shunda har yangi hisoblashda animatsiya qayta boshlanadi
+
+    return (
+      <div className="w-full space-y-2">
+        {label && <p className="text-xl font-semibold">{label}</p>}
+        <div className="relative w-full h-10 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden shadow-inner">
+          <div
+            className="absolute top-0 right-0 h-full bg-primary"
+            style={{
+              width: `${currentWidth}%`,
+              transition: `width ${currentDuration}s linear`,
+            }}
+          />
+          <span className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-white mix-blend-difference pointer-events-none">
+            {countdown}
+          </span>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   if (currentPhase === "part_finished_announcement" || currentPhase === "next_part_announcement") {
     return (
@@ -89,7 +113,6 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
           </h3>
           <CountdownBar label={currentPhase === "reading_question" ? "O'qish:" : "Javob:"} />
           <div className="min-h-[100px] flex flex-col items-center justify-center p-4 border rounded-md bg-secondary text-foreground">
-            {/* Removed "Savol {currentSubQuestionIndex + 1}:" */}
             <p className="text-2xl font-medium text-center">{part1_1Q.sub_questions[currentSubQuestionIndex]}</p>
           </div>
         </div>
@@ -108,7 +131,6 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
           </div>
           <CountdownBar label={currentPhase === "reading_question" ? "O'qish:" : "Javob:"} />
           <div className="min-h-[100px] flex flex-col items-center justify-center p-4 border rounded-md bg-secondary text-foreground">
-            {/* Removed "Savol {currentSubQuestionIndex + 1}:" */}
             <p className="text-2xl font-medium text-center">{part1_2Q.sub_questions[currentSubQuestionIndex]}</p>
           </div>
         </div>
