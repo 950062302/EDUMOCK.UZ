@@ -89,7 +89,7 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
           </h3>
           <CountdownBar label={currentPhase === "reading_question" ? "O'qish:" : "Javob:"} />
           <div className="min-h-[100px] flex flex-col items-center justify-center p-4 border rounded-md bg-secondary text-foreground">
-            <p className="text-xl font-medium mb-2">Savol {currentSubQuestionIndex + 1}:</p>
+            {/* Removed "Savol {currentSubQuestionIndex + 1}:" */}
             <p className="text-2xl font-medium text-center">{part1_1Q.sub_questions[currentSubQuestionIndex]}</p>
           </div>
         </div>
@@ -108,7 +108,7 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
           </div>
           <CountdownBar label={currentPhase === "reading_question" ? "O'qish:" : "Javob:"} />
           <div className="min-h-[100px] flex flex-col items-center justify-center p-4 border rounded-md bg-secondary text-foreground">
-            <p className="text-xl font-medium mb-2">Savol {currentSubQuestionIndex + 1}:</p>
+            {/* Removed "Savol {currentSubQuestionIndex + 1}:" */}
             <p className="text-2xl font-medium text-center">{part1_2Q.sub_questions[currentSubQuestionIndex]}</p>
           </div>
         </div>
