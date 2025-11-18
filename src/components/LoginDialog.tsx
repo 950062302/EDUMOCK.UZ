@@ -77,7 +77,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
                   disabled={loading}
                 />
               </div>
-              <Button type="submit" className="w-full bg-lime-500 hover:bg-lime-600" disabled={loading}>
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={loading}>
                 {loading ? t("common.logging_in") : t("common.login")}
               </Button>
             </form>
