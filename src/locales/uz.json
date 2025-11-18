@@ -23,7 +23,8 @@
     "admin_only": "Faqat admin uchun",
     "enter_admin_credentials": "Admin paneli uchun email va parolingizni kiriting.",
     "success_logged_in": "Tizimga muvaffaqiyatli kirdingiz!",
-    "exit_guest_mode": "Mehmon rejimdan chiqish"
+    "exit_guest_mode": "Mehmon rejimdan chiqish",
+    "guide": "Qo'llanma"
   },
   "landing_page": {
     "title_part1": "Edumock Plus –",
@@ -206,5 +207,15 @@
     "email_address": "Elektron pochta manzili",
     "bio": "Bio",
     "tell_about_yourself": "O'zingiz haqingizda gapirib bering"
+  },
+  "guide_dialog": {
+    "title": "Qo'llanma",
+    "description": "Ilovadan to'g'ri foydalanish bo'yicha muhim ko'rsatmalar:",
+    "rule1_title": "Brauzerdan foydalanish:",
+    "rule1_text": "Ilovani to'g'ri ishlashi uchun iltimos, faqat bitta brauzer (masalan, Google Chrome) dan foydalaning.",
+    "rule2_title": "Yozuvlarni yuklab olish:",
+    "rule2_text": "O'quvchidan test olingandan so'ng, yozuvni 1 soat ichida saytdan yuklab oling.",
+    "rule3_title": "Ma'lumotlarni saqlash:",
+    "rule3_text": "Yozib olingan testlar brauzerning mahalliy xotirasida saqlanadi. Brauzer tarixini, keshini yoki cookie-fayllarini tozalash yozuvlaringizni yo'qotishga olib kelishi mumkin."
   }
 }

@@ -1,21 +1,23 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Book, PlusCircle, ListChecks, Video, Settings as SettingsIcon, User as UserIcon, Home as HomeIcon, LogOut } from "lucide-react";
+import { Book, PlusCircle, ListChecks, Video, Settings as SettingsIcon, User as UserIcon, Home as HomeIcon, LogOut, Info } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { showSuccess } from "@/utils/toast";
 import { useAuth } from "@/context/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from 'react-i18next';
+import GuideDialog from "@/components/GuideDialog"; // GuideDialog komponentini import qilish
 
 export default function Home() {
   const navigate = useNavigate();
   const { session } = useAuth();
   const isGuestMode = localStorage.getItem("isGuestMode") === "true";
   const { t } = useTranslation();
+  const [isGuideDialogOpen, setIsGuideDialogOpen] = useState(false); // GuideDialog holati
 
   const handleLogout = async () => {
     if (session) {
@@ -57,7 +59,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-sky-500 to-slate-900 text-white p-6">
       <header className="flex justify-between items-center mb-16">
         <h1 className="text-3xl font-bold">Edumock.uz</h1>
-        <nav className="flex gap-6 text-lg">
+        <nav className="flex gap-6 text-lg items-center"> {/* items-center qo'shildi */}
           <Link to="/home" className="hover:text-indigo-300 flex items-center gap-1">
             <HomeIcon className="h-4 w-4" /> {t("common.home")}
           </Link>
@@ -67,6 +69,13 @@ export default function Home() {
           <Link to="/user-profile" className="hover:text-indigo-300 flex items-center gap-1">
             <UserIcon className="h-4 w-4" /> {t("common.profile")}
           </Link>
+          <Button 
+            variant="ghost" 
+            className="hover:text-indigo-300 flex items-center gap-1 text-white" 
+            onClick={() => setIsGuideDialogOpen(true)}
+          >
+            <Info className="h-4 w-4" /> {t("common.guide")}
+          </Button>
           {(session || isGuestMode) && (
             <Link to="/login" onClick={handleLogout} className="hover:text-red-300 flex items-center gap-1">
               <LogOut className="h-4 w-4" /> {isGuestMode && !session ? t("common.guest_mode_exit") : t("common.logout")}
@@ -122,6 +131,8 @@ export default function Home() {
         <p className="text-lg mt-4">{t("landing_page.contact_us")}: <span className="font-bold text-white">{t("landing_page.phone_number")}</span></p>
         <p className="text-sm mt-1 text-slate-300">{t("landing_page.support_service")}</p>
       </footer>
+
+      <GuideDialog isOpen={isGuideDialogOpen} onClose={() => setIsGuideDialogOpen(false)} />
     </div>
   );
 }
