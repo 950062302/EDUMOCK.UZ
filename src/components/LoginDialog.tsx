@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { showSuccess, showError } from "@/utils/toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from 'react-i18next'; // useTranslation import qilish
 
 interface LoginDialogProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { t } = useTranslation(); // useTranslation hookini ishlatish
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,8 +31,8 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
     if (error) {
       showError(error.message);
     } else {
-      showSuccess("Tizimga muvaffaqiyatli kirdingiz!");
-      onClose(); // Dialogni yopish
+      showSuccess(t("common.success_logged_in")); // Tarjima qilingan xabar
+      onClose();
       navigate("/home");
     }
     setLoading(false);
@@ -40,23 +42,23 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Tizimga kirish</DialogTitle>
+          <DialogTitle>{t("common.login")}</DialogTitle> {/* Tarjima qilingan matn */}
           <DialogDescription>
-            Admin paneli uchun email va parolingizni kiriting.
+            {t("common.enter_admin_credentials")} {/* Tarjima qilingan matn */}
           </DialogDescription>
         </DialogHeader>
         <Tabs defaultValue="login" className="w-full">
           <TabsList className="grid w-full grid-cols-1">
-            <TabsTrigger value="login">Faqat admin uchun</TabsTrigger>
+            <TabsTrigger value="login">{t("common.admin_only")}</TabsTrigger> {/* Tarjima qilingan matn */}
           </TabsList>
           <TabsContent value="login" className="mt-4">
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t("common.email")}</Label> {/* Tarjima qilingan matn */}
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Emailingizni kiriting"
+                  placeholder={t("common.enter_your_email")} {/* Tarjima qilingan matn */}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -64,11 +66,11 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
                 />
               </div>
               <div>
-                <Label htmlFor="password">Parol</Label>
+                <Label htmlFor="password">{t("common.password")}</Label> {/* Tarjima qilingan matn */}
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Parolni kiriting"
+                  placeholder={t("common.enter_your_password")} {/* Tarjima qilingan matn */}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -76,7 +78,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
                 />
               </div>
               <Button type="submit" className="w-full bg-lime-500 hover:bg-lime-600" disabled={loading}>
-                {loading ? "Kirilmoqda..." : "Login"}
+                {loading ? t("common.logging_in") : t("common.login")} {/* Tarjima qilingan matn */}
               </Button>
             </form>
           </TabsContent>

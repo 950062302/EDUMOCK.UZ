@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { SpeakingQuestion, MoodEntry, RecordedSession } from './types';
 import { supabase } from '@/integrations/supabase/client';
 import { showError } from '@/utils/toast';
+import i18n from '@/i18n'; // i18n instansiyasini import qilish
 
 const DB_NAME = 'edumock_uz_db';
 const DB_VERSION = 1;
@@ -27,8 +28,6 @@ async function initDB() {
   return db;
 }
 
-// --- Speaking Questions (Supabase) ---
-
 const getUserId = async (): Promise<string | null> => {
   const { data: { user } } = await supabase.auth.getUser();
   return user?.id || null;
@@ -39,17 +38,15 @@ export const getSupabaseQuestions = async (): Promise<SpeakingQuestion[]> => {
 
   let query;
   if (user) {
-    // Agar foydalanuvchi tizimga kirgan bo'lsa, faqat uning savollarini olamiz
     query = supabase.from('questions').select('*').eq('user_id', user.id);
   } else {
-    // Agar mehmon bo'lsa (loginsiz), barcha savollarni olamiz
     query = supabase.from('questions').select('*');
   }
 
   const { data, error } = await query;
 
   if (error) {
-    showError("Savollarni yuklashda xatolik: " + error.message);
+    showError(i18n.t("add_question_page.error_loading_entries", { message: error.message })); // Tarjima qilingan xabar
     return [];
   }
   return data as SpeakingQuestion[];
@@ -73,7 +70,7 @@ export const addSupabaseQuestion = async (question: Omit<SpeakingQuestion, 'id' 
     .single();
 
   if (error) {
-    showError("Savolni saqlashda xatolik: " + error.message);
+    showError(i18n.t("add_question_page.error_saving_entry", { message: error.message })); // Tarjima qilingan xabar
     return null;
   }
   return data as SpeakingQuestion;
@@ -92,7 +89,7 @@ export const updateSupabaseQuestion = async (updatedQuestion: SpeakingQuestion):
     .single();
 
   if (error) {
-    showError("Savolni yangilashda xatolik: " + error.message);
+    showError(i18n.t("add_question_page.error_saving_entry", { message: error.message })); // Tarjima qilingan xabar
     return null;
   }
   return data as SpeakingQuestion;
@@ -109,7 +106,7 @@ export const deleteSupabaseQuestion = async (id: string): Promise<boolean> => {
     .eq('user_id', userId);
 
   if (error) {
-    showError("Savolni o'chirishda xatolik: " + error.message);
+    showError(i18n.t("add_question_page.error_deleting_entry", { message: error.message })); // Tarjima qilingan xabar
     return false;
   }
   return true;
@@ -125,14 +122,12 @@ export const resetSupabaseQuestionCooldowns = async (): Promise<boolean> => {
     .eq('user_id', userId);
 
   if (error) {
-    showError("Cooldown'larni tiklashda xatolik: " + error.message);
+    showError(i18n.t("add_question_page.error_saving_entry", { message: error.message })); // Tarjima qilingan xabar
     return false;
   }
   return true;
 };
 
-
-// --- Mood Entries (localStorage for now) ---
 export const getLocalMoodEntries = (): MoodEntry[] => {
   const entriesJson = localStorage.getItem(STORE_MOODS);
   return entriesJson ? JSON.parse(entriesJson) : [];
@@ -161,7 +156,6 @@ export const deleteLocalMoodEntry = (id: string) => {
   saveLocalMoodEntries(entries);
 };
 
-// --- Recordings (IndexedDB for now) ---
 interface StoredRecording {
   id: string;
   user_id: string;

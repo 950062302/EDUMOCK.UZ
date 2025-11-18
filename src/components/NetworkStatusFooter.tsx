@@ -3,14 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import { Wifi, WifiOff, Clock, Signal, ArrowDownCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next'; // useTranslation import qilish
 
 const NetworkStatusFooter: React.FC = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [ping, setPing] = useState<number | null>(null);
-  const [speed, setSpeed] = useState<number | null>(null); // MB/s da
+  const [speed, setSpeed] = useState<number | null>(null);
   const [time, setTime] = useState<string>('');
+  const { t } = useTranslation(); // useTranslation hookini ishlatish
 
-  // Internet holatini tekshirish uchun
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
@@ -24,14 +25,12 @@ const NetworkStatusFooter: React.FC = () => {
     };
   }, []);
 
-  // Tarmoq ma'lumotlarini (ping va tezlik) olish uchun
   useEffect(() => {
     const connection = (navigator as any).connection;
     if (!connection) return;
 
     const updateNetworkInfo = () => {
       setPing(connection.rtt);
-      // `downlink` Mbps (megabit per second) da keladi. MB/s (megabyte per second) ga o'tkazamiz (1 byte = 8 bit).
       if (connection.downlink) {
         setSpeed(connection.downlink / 8);
       }
@@ -45,7 +44,6 @@ const NetworkStatusFooter: React.FC = () => {
     };
   }, []);
 
-  // Toshkent vaqtini har soniyada yangilash uchun
   useEffect(() => {
     const timer = setInterval(() => {
       const tashkentTime = new Date().toLocaleTimeString('en-GB', {
@@ -71,7 +69,7 @@ const NetworkStatusFooter: React.FC = () => {
         )}
       >
         {isOnline ? <Wifi size={14} /> : <WifiOff size={14} />}
-        <span>{isOnline ? 'Online' : 'Offline'}</span>
+        <span>{isOnline ? t("common.online") : t("common.offline")}</span> {/* Tarjima qilingan matn */}
       </div>
 
       {isOnline && typeof ping === 'number' && (
@@ -90,7 +88,7 @@ const NetworkStatusFooter: React.FC = () => {
 
       <div className="flex items-center gap-2 px-4 py-1 text-muted-foreground">
         <Clock size={14} />
-        <span>Tashkent: {time}</span>
+        <span>{t("common.tashkent")}: {time}</span> {/* Tarjima qilingan matn */}
       </div>
     </footer>
   );

@@ -3,6 +3,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { TestPhase } from "@/hooks/use-mock-test-logic";
+import { useTranslation } from 'react-i18next'; // useTranslation import qilish
 
 interface TestControlsProps {
   isTestStarted: boolean;
@@ -19,35 +20,36 @@ const TestControls: React.FC<TestControlsProps> = ({
   handleEndTest,
   handleResetTest,
 }) => {
+  const { t } = useTranslation(); // useTranslation hookini ishlatish
+
   return (
     <div className="space-y-6">
       {!isTestStarted && currentPhase === "idle" && (
         <Button onClick={handleStartTestClick} size="lg" className="text-lg px-8 py-4">
-          Testni boshlash (yozib olish bilan)
+          {t("mock_test_page.start_test_with_recording")} {/* Tarjima qilingan matn */}
         </Button>
       )}
 
       {isTestStarted && currentPhase !== "finished" && (
         <div className="flex gap-2 mt-4">
-          {/* The "Keyingi savol (Avtomatik)" button is now disabled as transitions are automatic */}
           <Button className="flex-grow" disabled={true}>
-            Keyingi savol (Avtomatik)
+            {t("mock_test_page.next_question_auto")} {/* Tarjima qilingan matn */}
           </Button>
           <Button onClick={handleEndTest} variant="destructive" className="flex-grow">
-            Testni tugatish
+            {t("mock_test_page.end_test")} {/* Tarjima qilingan matn */}
           </Button>
         </div>
       )}
 
       {currentPhase === "finished" && (
         <div className="space-y-4">
-          <h3 className="text-2xl font-bold text-green-600 dark:text-green-400">Test yakunlandi! 🎉</h3>
-          <p className="text-muted-foreground">Siz barcha mavjud savollarni ko'rib chiqdingiz.</p>
+          <h3 className="text-2xl font-bold text-green-600 dark:text-green-400">{t("add_question_page.test_finished")}</h3> {/* Tarjima qilingan matn */}
+          <p className="text-muted-foreground">{t("add_question_page.all_questions_reviewed")}</p> {/* Tarjima qilingan matn */}
           <Button onClick={handleResetTest} variant="outline" className="w-full">
-            Testni qayta boshlash
+            {t("add_question_page.restart_test")} {/* Tarjima qilingan matn */}
           </Button>
           <p className="text-sm text-muted-foreground mt-2">
-            Oxirgi yozib olingan sessiyangiz "Records" bo'limida mavjud.
+            {t("add_question_page.last_session_available_in_records")} {/* Tarjima qilingan matn */}
           </p>
         </div>
       )}

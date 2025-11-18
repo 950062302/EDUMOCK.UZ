@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { showError } from "@/utils/toast";
+import { useTranslation } from 'react-i18next'; // useTranslation import qilish
 
 interface StudentInfoFormProps {
   isOpen: boolean;
@@ -25,68 +26,67 @@ const StudentInfoForm: React.FC<StudentInfoFormProps> = ({ isOpen, onClose, onSa
   const [studentId, setStudentId] = useState<string>("");
   const [studentName, setStudentName] = useState<string>("");
   const [studentPhone, setStudentPhone] = useState<string>("");
-
-  // Removed useEffect logs to avoid cluttering the console, as isOpen prop is confirmed to be received.
+  const { t } = useTranslation(); // useTranslation hookini ishlatish
 
   const handleSubmit = () => {
     if (!studentId.trim() || !studentName.trim() || !studentPhone.trim()) {
-      showError("Iltimos, barcha maydonlarni to'ldiring.");
+      showError(t("add_question_page.error_fill_all_fields")); // Tarjima qilingan xabar
       return;
     }
     onSave(studentId.trim(), studentName.trim(), studentPhone.trim());
-    onClose(); // Close the dialog after saving
+    onClose();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="fixed left-[50%] top-[50%] z-[9999] w-full max-w-[425px] translate-x-[-50%] translate-y-[-50%] bg-background p-6 shadow-lg sm:rounded-lg">
         <DialogHeader>
-          <DialogTitle>O'quvchi ma'lumotlarini kiriting</DialogTitle>
+          <DialogTitle>{t("mock_test_page.student_info_title")}</DialogTitle> {/* Tarjima qilingan matn */}
           <DialogDescription>
-            Testni boshlashdan oldin o'quvchi ID, ism va telefon raqamini kiriting.
+            {t("mock_test_page.student_info_description")} {/* Tarjima qilingan matn */}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="studentId" className="text-right">
-              ID
+              {t("mock_test_page.student_id")} {/* Tarjima qilingan matn */}
             </Label>
             <Input
               id="studentId"
               value={studentId}
               onChange={(e) => setStudentId(e.target.value)}
               className="col-span-3"
-              placeholder="O'quvchi ID raqami"
+              placeholder={t("mock_test_page.student_id_placeholder")} {/* Tarjima qilingan matn */}
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="studentName" className="text-right">
-              Ism
+              {t("mock_test_page.student_name")} {/* Tarjima qilingan matn */}
             </Label>
             <Input
               id="studentName"
               value={studentName}
               onChange={(e) => setStudentName(e.target.value)}
               className="col-span-3"
-              placeholder="O'quvchi ismi"
+              placeholder={t("mock_test_page.student_name_placeholder")} {/* Tarjima qilingan matn */}
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="studentPhone" className="text-right">
-              Telefon
+              {t("mock_test_page.student_phone")} {/* Tarjima qilingan matn */}
             </Label>
             <Input
               id="studentPhone"
               value={studentPhone}
               onChange={(e) => setStudentPhone(e.target.value)}
               className="col-span-3"
-              placeholder="Telefon raqami"
+              placeholder={t("mock_test_page.student_phone_placeholder")} {/* Tarjima qilingan matn */}
             />
           </div>
         </div>
         <DialogFooter>
           <Button type="submit" onClick={handleSubmit}>
-            Testni boshlash
+            {t("mock_test_page.start_test")} {/* Tarjima qilingan matn */}
           </Button>
         </DialogFooter>
       </DialogContent>

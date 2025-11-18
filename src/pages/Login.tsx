@@ -7,9 +7,11 @@ import ContactSection from "@/components/ContactSection";
 import PricingCard from "@/components/PricingCard";
 import FixedLoginButton from "@/components/FixedLoginButton";
 import LoginDialog from "@/components/LoginDialog";
+import { useTranslation } from 'react-i18next'; // useTranslation import qilish
 
 const Login: React.FC = () => {
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
+  const { t } = useTranslation(); // useTranslation hookini ishlatish
 
   const openLoginModal = () => {
     setIsLoginDialogOpen(true);
@@ -27,17 +29,17 @@ const Login: React.FC = () => {
         <div className="lg:flex lg:space-x-12">
           <div className="lg:w-3/5 pb-10">
             <h1 className="text-5xl lg:text-6xl font-extrabold text-gray-900 mb-4 leading-tight">
-              Edumock Plus – <span className="text-lime-500">Speaking Platformasi.</span>
+              {t("landing_page.title_part1")} <span className="text-lime-500">{t("landing_page.title_part2")}</span>
             </h1>
             <p className="text-3xl font-semibold text-gray-500 mb-8">
-              Haqiqiy natija.
+              {t("landing_page.subtitle")}
             </p>
 
             <ProcessSteps />
             <ContactSection />
 
             <p className="text-gray-600 max-w-[600px] mt-8">
-              Edumock - bu O'zbekistonda tez rivojlanayotgan ta'lim platformasi bo'lib, o'quvchilarga maqsadlariga erishish uchun individual yondashuv va aniq natijalarga asoslangan dasturlarni taklif etadi.
+              {t("landing_page.description")}
             </p>
           </div>
 

@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { showSuccess, showError } from "@/utils/toast";
 import { StudentInfo } from "@/lib/types";
 import { addLocalRecording } from "@/lib/local-db";
+import { useTranslation } from 'react-i18next'; // useTranslation import qilish
 
 const MAX_RECORDING_DURATION_MS = 60 * 60 * 1000;
 const MIME_TYPE = "video/webm; codecs=vp8,opus";
@@ -19,6 +20,7 @@ export const useRecorder = () => {
   const webcamStreamRef = useRef<MediaStream | null>(null);
   const startTimeRef = useRef<number>(0);
   const recordingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { t } = useTranslation(); // useTranslation hookini ishlatish
 
   const clearRecordingTimeout = useCallback(() => {
     if (recordingTimeoutRef.current) {
@@ -55,16 +57,16 @@ export const useRecorder = () => {
         webcamStreamRef.current = stream;
         setWebcamStream(stream);
       } catch (err) {
-        showError("Kamera tasvirini olishda xatolik yuz berdi.");
+        showError(t("add_question_page.error_webcam_stream")); // Tarjima qilingan xabar
       }
     };
     getWebcamPreview();
-  }, []);
+  }, [t]);
 
   const startRecording = useCallback(async (studentInfo?: StudentInfo): Promise<boolean> => {
     recordedChunksRef.current = [];
     if (!MediaRecorder.isTypeSupported(MIME_TYPE)) {
-      showError(`Yozib olish formati (${MIME_TYPE}) qo'llab-quvvatlanmaydi.`);
+      showError(t("add_question_page.error_recording_format_not_supported", { mimeType: MIME_TYPE })); // Tarjima qilingan xabar
       return false;
     }
 
@@ -72,7 +74,7 @@ export const useRecorder = () => {
       const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
       screenStreamRef.current = screenStream;
       screenStream.addEventListener('ended', () => {
-        showError("Ekran ulashish to'xtatildi. Yozib olish tugatildi.");
+        showError(t("add_question_page.error_screen_sharing_stopped")); // Tarjima qilingan xabar
         stopRecordingProcess();
       });
 
@@ -102,7 +104,7 @@ export const useRecorder = () => {
       mediaRecorderRef.current.onstop = async () => {
         clearRecordingTimeout();
         if (recordedChunksRef.current.length === 0) {
-          showError("Yozib olishda hech qanday ma'lumot yig'ilmadi.");
+          showError(t("add_question_page.error_no_data_recorded")); // Tarjima qilingan xabar
           return;
         }
 
@@ -110,7 +112,7 @@ export const useRecorder = () => {
         const endTime = Date.now();
         const duration = Math.round((endTime - startTimeRef.current) / 1000);
 
-        showSuccess("Video saqlanmoqda, iltimos kuting...");
+        showSuccess(t("add_question_page.success_video_saving")); // Tarjima qilingan xabar
 
         try {
           await addLocalRecording({
@@ -120,9 +122,9 @@ export const useRecorder = () => {
             student_phone: studentInfo?.phone,
             videoBlob: blob,
           });
-          showSuccess("Yozib olingan video muvaffaqiyatli saqlandi!");
+          showSuccess(t("add_question_page.success_video_saved")); // Tarjima qilingan xabar
         } catch (dbError: any) {
-          showError(`Yozuv ma'lumotlarini saqlashda xatolik: ${dbError.message}`);
+          showError(`${t("add_question_page.error_saving_record_data")} ${dbError.message}`); // Tarjima qilingan xabar
         }
 
         recordedChunksRef.current = [];
@@ -131,28 +133,28 @@ export const useRecorder = () => {
       };
 
       mediaRecorderRef.current.onerror = (event: Event) => {
-        showError("Yozib olishda xatolik yuz berdi: " + ((event as any).error?.message || "Noma'lum xato"));
+        showError(`${t("add_question_page.error_recording_failed")} ${((event as any).error?.message || "Noma'lum xato")}`); // Tarjima qilingan xabar
         stopRecordingProcess();
       };
 
       mediaRecorderRef.current.start(1000);
       startTimeRef.current = Date.now();
       setIsRecording(true);
-      showSuccess("Yozib olish boshlandi!");
+      showSuccess(t("add_question_page.success_recording_started")); // Tarjima qilingan xabar
 
       recordingTimeoutRef.current = setTimeout(() => {
         stopRecordingProcess();
-        showSuccess("Yozib olish maksimal vaqtga yetgani uchun to'xtatildi.");
+        showSuccess(t("add_question_page.success_recording_max_time")); // Tarjima qilingan xabar
       }, MAX_RECORDING_DURATION_MS);
 
       return true;
     } catch (err) {
-      showError("Yozib olishni boshlashda xatolik yuz berdi. Ruxsatnomalarni tekshiring.");
+      showError(t("add_question_page.error_recording_failed")); // Tarjima qilingan xabar
       setIsRecording(false);
       stopRecordingProcess();
       return false;
     }
-  }, [stopRecordingProcess, clearRecordingTimeout]);
+  }, [stopRecordingProcess, clearRecordingTimeout, t]);
 
   useEffect(() => {
     return () => {

@@ -9,11 +9,13 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { showSuccess } from "@/utils/toast";
 import { useAuth } from "@/context/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from 'react-i18next'; // useTranslation import qilish
+import LanguageSwitcher from './LanguageSwitcher'; // LanguageSwitcher import qilish
 
 const allNavLinks = [
-  { name: "Home", path: "/home", icon: HomeIcon, protected: true },
-  { name: "Settings", path: "/settings", icon: Settings, protected: true },
-  { name: "Profile", path: "/user-profile", icon: User, protected: true },
+  { name: "common.home", path: "/home", icon: HomeIcon, protected: true },
+  { name: "common.settings", path: "/settings", icon: Settings, protected: true },
+  { name: "common.profile", path: "/user-profile", icon: User, protected: true },
 ];
 
 const Navbar: React.FC = () => {
@@ -21,13 +23,14 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const { session } = useAuth();
   const isGuestMode = localStorage.getItem("isGuestMode") === "true";
+  const { t } = useTranslation(); // useTranslation hookini ishlatish
 
   const handleLogout = async () => {
     if (session) {
       await supabase.auth.signOut();
     }
     localStorage.removeItem("isGuestMode");
-    showSuccess("Tizimdan chiqdingiz!");
+    showSuccess(t("common.success_logged_in")); // Tarjima qilingan xabar
     navigate("/login");
   };
 
@@ -35,7 +38,6 @@ const Navbar: React.FC = () => {
     let filteredLinks = allNavLinks;
 
     if (isGuestMode && !session) {
-      // Mehmon rejimida faqat "Home" ko'rinsin
       filteredLinks = allNavLinks.filter(link => link.path === '/home');
     }
 
@@ -45,7 +47,7 @@ const Navbar: React.FC = () => {
           <Button key={link.name} variant="ghost" asChild className="w-full justify-start hover:bg-primary/80">
             <Link to={link.path} className="flex items-center gap-2">
               <link.icon className="h-4 w-4" />
-              {link.name}
+              {t(link.name)} {/* Matnni tarjima qilish */}
             </Link>
           </Button>
         ))}
@@ -56,7 +58,7 @@ const Navbar: React.FC = () => {
             onClick={handleLogout}
           >
             <LogOut className="h-4 w-4 mr-2" />
-            {isGuestMode && !session ? "Guest Mode'dan chiqish" : "Logout"}
+            {isGuestMode && !session ? t("common.guest_mode_exit") : t("common.logout")} {/* Matnni tarjima qilish */}
           </Button>
         )}
       </>
@@ -83,11 +85,15 @@ const Navbar: React.FC = () => {
             <div className="flex flex-col gap-2">
               {renderNavLinks()}
             </div>
+            <div className="mt-4">
+              <LanguageSwitcher /> {/* LanguageSwitcher ni qo'shish */}
+            </div>
           </SheetContent>
         </Sheet>
       ) : (
         <div className="flex items-center gap-4">
           {renderNavLinks()}
+          <LanguageSwitcher /> {/* LanguageSwitcher ni qo'shish */}
         </div>
       )}
     </nav>

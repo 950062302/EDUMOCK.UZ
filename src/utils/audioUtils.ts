@@ -1,5 +1,7 @@
 "use client";
 
+import i18n from '@/i18n'; // i18n instansiyasini import qilish
+
 /**
  * Matnni ovozga aylantirish uchun Web Speech API'dan foydalanadi.
  * @param text Ovozga aylantiriladigan matn.
@@ -7,14 +9,14 @@
  */
 export const speakText = (text: string, lang: string = 'en-US') => {
   if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel(); // Har qanday avvalgi nutqni bekor qilish
+    window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = lang;
-    utterance.rate = 0.9; // Nutq tezligi
-    utterance.pitch = 1; // Nutq balandligi
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
     window.speechSynthesis.speak(utterance);
     console.log(`AudioUtils: Speaking: "${text}" in ${lang}`);
   } else {
-    console.warn("AudioUtils: Web Speech API is not supported in this browser.");
+    console.warn(i18n.t("add_question_page.web_speech_api_not_supported")); // Tarjima qilingan xabar
   }
 };

@@ -11,7 +11,7 @@ import { RecordedSession } from "@/lib/types";
 import { showError, showSuccess } from "@/utils/toast";
 import { getLocalRecordings, deleteLocalRecording } from "@/lib/local-db";
 import { Link } from "react-router-dom";
-import { // AlertDialog komponentlari import qilindi
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -22,10 +22,12 @@ import { // AlertDialog komponentlari import qilindi
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useTranslation } from 'react-i18next'; // useTranslation import qilish
 
 const Records: React.FC = () => {
   const [recordings, setRecordings] = useState<RecordedSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { t } = useTranslation(); // useTranslation hookini ishlatish
 
   useEffect(() => {
     let isMounted = true;
@@ -40,7 +42,7 @@ const Records: React.FC = () => {
           setRecordings(loadedRecordings);
         }
       } catch (error: any) {
-        showError(`Yozuvlarni yuklashda xatolik: ${error.message}`);
+        showError(`${t("records_page.error_loading_recordings")} ${error.message}`); // Tarjima qilingan xabar
       }
       if (isMounted) {
         setIsLoading(false);
@@ -49,13 +51,11 @@ const Records: React.FC = () => {
 
     fetchRecordings();
 
-    // Cleanup function to run when the component unmounts
     return () => {
       isMounted = false;
-      // Revoke the temporary URLs to prevent memory leaks
       loadedRecordings.forEach(rec => URL.revokeObjectURL(rec.video_url));
     };
-  }, []); // Empty dependency array ensures this runs only on mount and unmount
+  }, [t]);
 
   const handleDownload = useCallback(async (recording: RecordedSession) => {
     try {
@@ -66,10 +66,8 @@ const Records: React.FC = () => {
       const a = document.createElement("a");
       a.href = url;
       
-      // Fayl nomini o'quvchi ismi va telefon raqami bilan shakllantirish
-      let filename = `recording_${recording.id}.webm`; // Default nom
+      let filename = `recording_${recording.id}.webm`;
       if (recording.student_name && recording.student_phone) {
-        // Ism va telefon raqamidagi bo'shliqlarni va maxsus belgilarni almashtirish
         const cleanName = recording.student_name.replace(/[^a-zA-Z0-9]/g, '_');
         const cleanPhone = recording.student_phone.replace(/[^0-9]/g, '');
         filename = `${cleanName}_${cleanPhone}.webm`;
@@ -85,25 +83,22 @@ const Records: React.FC = () => {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url); // URL ni tozalash
+      URL.revokeObjectURL(url);
     } catch (error: any) {
-      showError(`Videoni yuklashda xatolik: ${error.message}`);
+      showError(`${t("records_page.error_downloading_video")} ${error.message}`); // Tarjima qilingan xabar
     }
-  }, []);
+  }, [t]);
 
   const handleDelete = useCallback(async (recording: RecordedSession) => {
     try {
-      // First, revoke the temporary URL to free up memory
       URL.revokeObjectURL(recording.video_url);
-      // Then, delete the record from IndexedDB
       await deleteLocalRecording(recording.id);
-      // Finally, update the state to remove the item from the UI
       setRecordings(prev => prev.filter(rec => rec.id !== recording.id));
-      showSuccess("Yozuv muvaffaqiyatli o'chirildi!");
+      showSuccess(t("records_page.success_recording_deleted")); // Tarjima qilingan xabar
     } catch (error: any) {
-      showError(`Yozuvni o'chirishda xatolik: ${error.message}`);
+      showError(`${t("records_page.error_deleting_recording")} ${error.message}`); // Tarjima qilingan xabar
     }
-  }, []);
+  }, [t]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -114,15 +109,15 @@ const Records: React.FC = () => {
             <Link to="/home" className="absolute left-0 top-4">
               <Button variant="outline">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
+                {t("common.back")} {/* Tarjima qilingan matn */}
               </Button>
             </Link>
-            <CardTitle className="text-3xl font-bold">Your Recordings</CardTitle>
-            <CardDescription>O'tgan mock test sessiyalaringizni ko'rib chiqing.</CardDescription>
+            <CardTitle className="text-3xl font-bold">{t("records_page.your_recordings")}</CardTitle> {/* Tarjima qilingan matn */}
+            <CardDescription>{t("records_page.review_past_sessions")}</CardDescription> {/* Tarjima qilingan matn */}
           </CardHeader>
           <CardContent className="space-y-6">
-            {isLoading ? <p className="text-center">Yuklanmoqda...</p> : recordings.length === 0 ? (
-              <p className="text-muted-foreground text-center">Hali yozuvlar mavjud emas.</p>
+            {isLoading ? <p className="text-center">{t("common.loading")}</p> : recordings.length === 0 ? ( {/* Tarjima qilingan matn */}
+              <p className="text-muted-foreground text-center">{t("records_page.no_recordings_available")}</p> {/* Tarjima qilingan matn */}
             ) : (
               <div className="space-y-4">
                 {recordings.map((recording, index) => (
@@ -130,40 +125,40 @@ const Records: React.FC = () => {
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
                       <div className="text-left mb-2 sm:mb-0">
                         <h3 className="text-lg font-semibold">
-                          {recording.student_name ? `O'quvchi: ${recording.student_name}` : `Sessiya ${recordings.length - index}`}
+                          {recording.student_name ? `${t("records_page.student")}: ${recording.student_name}` : `${t("records_page.session")} ${recordings.length - index}`} {/* Tarjima qilingan matn */}
                         </h3>
                         <p className="text-sm text-muted-foreground">
                           {format(new Date(recording.timestamp), "PPP - p")}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Davomiyligi: {Math.floor(recording.duration / 60)}m {recording.duration % 60}s
+                          {t("records_page.duration")}: {Math.floor(recording.duration / 60)}m {recording.duration % 60}s {/* Tarjima qilingan matn */}
                         </p>
                       </div>
                       <div className="flex gap-2 mt-2 sm:mt-0">
                         <Button asChild size="sm" className="flex items-center gap-1">
                           <a href={recording.video_url} target="_blank" rel="noopener noreferrer">
-                            <PlayCircle className="h-4 w-4" /> Play
+                            <PlayCircle className="h-4 w-4" /> {t("records_page.play")} {/* Tarjima qilingan matn */}
                           </a>
                         </Button>
                         <Button onClick={() => handleDownload(recording)} variant="outline" size="sm" className="flex items-center gap-1">
-                          <Download className="h-4 w-4" /> Download
+                          <Download className="h-4 w-4" /> {t("records_page.download")} {/* Tarjima qilingan matn */}
                         </Button>
-                        <AlertDialog> {/* AlertDialog qo'shildi */}
+                        <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button variant="destructive" size="sm" className="flex items-center gap-1">
-                              <Trash2 className="h-4 w-4" /> Delete
+                              <Trash2 className="h-4 w-4" /> {t("records_page.delete")} {/* Tarjima qilingan matn */}
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Yozuvni o'chirishga ishonchingiz komilmi?</AlertDialogTitle>
+                              <AlertDialogTitle>{t("records_page.delete_recording_confirm_title")}</AlertDialogTitle> {/* Tarjima qilingan matn */}
                               <AlertDialogDescription>
-                                Bu harakatni qaytarib bo'lmaydi. Ushbu yozuv butunlay o'chiriladi.
+                                {t("records_page.delete_recording_confirm_description")} {/* Tarjima qilingan matn */}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Bekor qilish</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDelete(recording)}>O'chirish</AlertDialogAction>
+                              <AlertDialogCancel>{t("add_question_page.cancel")}</AlertDialogCancel> {/* Tarjima qilingan matn */}
+                              <AlertDialogAction onClick={() => handleDelete(recording)}>{t("records_page.delete")}</AlertDialogAction> {/* Tarjima qilingan matn */}
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
@@ -171,8 +166,8 @@ const Records: React.FC = () => {
                     </div>
                     {recording.student_name && (
                       <div className="text-left text-sm text-muted-foreground mt-2 border-t pt-2">
-                        <p><strong>ID:</strong> {recording.student_id}</p>
-                        <p><strong>Telefon:</strong> {recording.student_phone}</p>
+                        <p><strong>{t("mock_test_page.student_id")}:</strong> {recording.student_id}</p> {/* Tarjima qilingan matn */}
+                        <p><strong>{t("mock_test_page.student_phone")}:</strong> {recording.student_phone}</p> {/* Tarjima qilingan matn */}
                       </div>
                     )}
                   </Card>
