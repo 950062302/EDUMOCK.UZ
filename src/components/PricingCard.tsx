@@ -24,33 +24,33 @@ const prices: { [key: string]: PriceOption } = {
   "1": { 
     price: 299000, 
     display: "299,000 so'm",
-    features: ["unlimited_attempts", "unlimited_downloads", "add_custom_questions", "edit_questions"]
+    features: ["unlimited_attempts", "unlimited_downloads", "add_custom_questions", "edit_questions", "support_service_24_7"]
   },
   "3": { 
     price: 749000, 
     display: "749,000 so'm", 
     originalPrice: 900000, 
     discount: "-16.7%",
-    features: ["unlimited_attempts", "unlimited_downloads", "add_custom_questions", "edit_questions"]
+    features: ["unlimited_attempts", "unlimited_downloads", "add_custom_questions", "edit_questions", "support_service_24_7"]
   },
   "6": { 
     price: 1299000, 
     display: "1,299,000 so'm", 
     originalPrice: 1800000, 
     discount: "-27.8%",
-    features: ["unlimited_attempts", "unlimited_downloads", "add_custom_questions", "edit_questions"]
+    features: ["unlimited_attempts", "unlimited_downloads", "add_custom_questions", "edit_questions", "support_service_24_7"]
   },
   "12": { 
     price: 2499000, 
     display: "2,499,000 so'm", 
     originalPrice: 3600000, 
     discount: "-30.6%",
-    features: ["unlimited_attempts", "unlimited_downloads", "add_custom_questions", "edit_questions"]
+    features: ["unlimited_attempts", "unlimited_downloads", "add_custom_questions", "edit_questions", "support_service_24_7"]
   },
   "lifetime": { 
     price: 5999000, 
     display: "5,999,000 so'm",
-    features: ["unlimited_attempts", "unlimited_downloads", "add_custom_questions", "edit_questions"]
+    features: ["unlimited_attempts", "unlimited_downloads", "add_custom_questions", "edit_questions", "support_service_24_7"]
   },
 };
 
