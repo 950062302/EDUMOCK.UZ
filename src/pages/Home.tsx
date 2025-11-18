@@ -59,7 +59,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-sky-500 to-slate-900 text-white p-6">
       <header className="flex justify-between items-center mb-16">
         <h1 className="text-3xl font-bold">Edumock.uz</h1>
-        <nav className="flex gap-6 text-lg items-center"> {/* items-center qo'shildi */}
+        <nav className="flex gap-6 text-lg items-center">
           <Link to="/home" className="hover:text-indigo-300 flex items-center gap-1">
             <HomeIcon className="h-4 w-4" /> {t("common.home")}
           </Link>
@@ -106,7 +106,7 @@ export default function Home() {
                 <CardContent className="flex flex-col items-center text-center p-8">
                   <div className="mb-4 text-indigo-300 transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_10px_rgba(99,102,241,0.8)]">{item.icon}</div>
                   <h3 className="text-2xl font-bold mb-2">{item.title}</h3>
-                  <p className="text-sm text-slate-300 mb-4">{item.subtitle}</p>
+                  <p className="text-sm text-gray-700 mb-4">{item.subtitle}</p> {/* text-slate-300 dan text-gray-700 ga o'zgartirildi */}
                   <Button className="mt-2 bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2 rounded-xl shadow-lg shadow-indigo-500/30 transition-all duration-300 hover:scale-105">{t("common.open")}</Button>
                 </CardContent>
               </Card>
