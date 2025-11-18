@@ -48,7 +48,10 @@
       "add_custom_questions": "Add custom questions",
       "edit_questions": "Edit questions",
       "support_service_24_7": "24/7 Support Service"
-    }
+    },
+    "all_rights_reserved": "All rights reserved.",
+    "privacy_policy": "Privacy Policy",
+    "terms_of_use": "Terms of Use"
   },
   "home_page": {
     "speaking_platform": "Speaking Platform",

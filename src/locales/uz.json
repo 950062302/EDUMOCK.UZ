@@ -48,7 +48,10 @@
       "add_custom_questions": "Maxsus savollar qo'shish",
       "edit_questions": "Savollarni tahrirlash",
       "support_service_24_7": "24/7 yordam ko'rsatish"
-    }
+    },
+    "all_rights_reserved": "Barcha huquqlar himoyalangan.",
+    "privacy_policy": "Maxfiylik siyosati",
+    "terms_of_use": "Foydalanish shartlari"
   },
   "home_page": {
     "speaking_platform": "Speaking Platform",

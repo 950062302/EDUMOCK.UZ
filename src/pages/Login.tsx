@@ -7,6 +7,7 @@ import ContactSection from "@/components/ContactSection";
 import PricingCard from "@/components/PricingCard";
 import FixedLoginButton from "@/components/FixedLoginButton";
 import LoginDialog from "@/components/LoginDialog";
+import LandingPageFooter from "@/components/LandingPageFooter"; // Yangi komponentni import qilish
 import { useTranslation } from 'react-i18next';
 
 const Login: React.FC = () => {
@@ -22,10 +23,10 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white flex flex-col"> {/* flex-col qo'shildi */}
       <LandingPageHeader onOpenLogin={openLoginModal} />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 hero-section">
+      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 hero-section"> {/* flex-grow qo'shildi */}
         <div className="lg:flex lg:space-x-12">
           <div className="lg:w-3/5 pb-10">
             <h1 className="text-5xl lg:text-6xl font-extrabold text-gray-900 mb-4 leading-tight">
@@ -37,8 +38,6 @@ const Login: React.FC = () => {
 
             <ProcessSteps />
             <ContactSection />
-
-            {/* Bu yerdagi takrorlanuvchi tavsif matni olib tashlandi */}
           </div>
 
           <div className="lg:w-2/5 mt-10 lg:mt-0">
@@ -49,6 +48,7 @@ const Login: React.FC = () => {
 
       <FixedLoginButton onOpenLogin={openLoginModal} />
       <LoginDialog isOpen={isLoginDialogOpen} onClose={closeLoginModal} />
+      <LandingPageFooter /> {/* Yangi komponentni qo'shish */}
     </div>
   );
 };
