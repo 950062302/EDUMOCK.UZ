@@ -16,7 +16,7 @@ import Questions from "./pages/Questions";
 import Records from "./pages/Records";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthProvider";
-import NetworkStatusFooter from "./components/NetworkStatusFooter";
+// import NetworkStatusFooter from "./components/NetworkStatusFooter"; // NetworkStatusFooter importini olib tashladim
 
 const queryClient = new QueryClient();
 
@@ -49,7 +49,7 @@ const App = () => {
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </div>
-            <NetworkStatusFooter />
+            {/* <NetworkStatusFooter /> */} {/* NetworkStatusFooter komponentini olib tashladim */}
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

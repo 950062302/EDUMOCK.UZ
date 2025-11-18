@@ -3,6 +3,7 @@
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/context/AuthProvider";
+import NetworkStatusFooter from "./NetworkStatusFooter"; // NetworkStatusFooter importini qo'shdim
 
 const ProtectedRoute: React.FC = () => {
   const { session, loading } = useAuth();
@@ -17,7 +18,12 @@ const ProtectedRoute: React.FC = () => {
   }
 
   if (session || isGuestMode) {
-    return <Outlet />;
+    return (
+      <>
+        <Outlet />
+        <NetworkStatusFooter />
+      </>
+    );
   }
 
   return <Navigate to="/login" replace />;
