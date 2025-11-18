@@ -10,9 +10,7 @@ const ContactSection: React.FC = () => {
   return (
     <div className="space-y-6 mt-12 max-w-[600px]">
       <div className="p-5 rounded-xl shadow-lg bg-lime-50 border border-lime-300 animated-card" style={{ animationDelay: '1.1s' }}>
-        <p className="text-lg text-gray-700 leading-relaxed">
-          {t("landing_page.description")}
-        </p>
+        <p className="text-lg text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: t("landing_page.description") }} />
       </div>
 
       <div className="bg-white p-5 rounded-xl shadow-xl border border-gray-200 animated-card" style={{ animationDelay: '1.3s' }}>
@@ -33,7 +31,7 @@ const ContactSection: React.FC = () => {
             <span className="text-lime-500 mr-2">
               <Upload className="h-5 w-5" />
             </span>
-            <a href="https://t.me/aero_one" target="_blank" rel="noopener noreferrer" className="text-gray-900 font-semibold font-mono">Telegram</a>
+            <a href="https://tme/aero_one" target="_blank" rel="noopener noreferrer" className="text-gray-900 font-semibold font-mono">Telegram</a>
           </p>
         </div>
       </div>
