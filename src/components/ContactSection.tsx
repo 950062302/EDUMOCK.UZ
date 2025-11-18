@@ -9,7 +9,7 @@ const ContactSection: React.FC = () => {
 
   return (
     <div className="space-y-6 mt-12 max-w-[600px]">
-      <div className="p-5 rounded-xl shadow-lg bg-lime-50 border border-lime-300 animated-card" style={{ animationDelay: '1.1s' }}>
+      <div className="p-5 rounded-xl shadow-lg bg-primary/5 border border-primary/30 animated-card" style={{ animationDelay: '1.1s' }}>
         <p className="text-lg text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: t("landing_page.description") }} />
       </div>
 
