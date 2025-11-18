@@ -1,82 +1,54 @@
 "use client";
 
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { showSuccess, showError } from "@/utils/toast";
-// import { CefrCentreFooter } from "@/components/CefrCentreFooter"; // Olib tashlandi
-import { supabase } from "@/integrations/supabase/client";
+import LandingPageHeader from "@/components/LandingPageHeader";
+import ProcessSteps from "@/components/ProcessSteps";
+import ContactSection from "@/components/ContactSection";
+import PricingCard from "@/components/PricingCard";
+import FixedLoginButton from "@/components/FixedLoginButton";
+import LoginDialog from "@/components/LoginDialog";
 
 const Login: React.FC = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      showError(error.message);
-    } else {
-      showSuccess("Tizimga muvaffaqiyatli kirdingiz!");
-      navigate("/home");
-    }
-    setLoading(false);
+  const openLoginModal = () => {
+    setIsLoginDialogOpen(true);
+  };
+
+  const closeLoginModal = () => {
+    setIsLoginDialogOpen(false);
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold">Welcome</CardTitle>
-          <CardDescription>Tizimga kiring.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-1">
-              <TabsTrigger value="login">Faqat admin uchun</TabsTrigger>
-            </TabsList>
-            <TabsContent value="login" className="mt-4">
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Emailingizni kiriting"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    disabled={loading}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="password">Parol</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Parolni kiriting"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    disabled={loading}
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Kirilmoqda..." : "Login"}
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-      {/* <CefrCentreFooter /> */} {/* Olib tashlandi */}
+    <div className="min-h-screen bg-white">
+      <LandingPageHeader onOpenLogin={openLoginModal} />
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 hero-section">
+        <div className="lg:flex lg:space-x-12">
+          <div className="lg:w-3/5 pb-10">
+            <h1 className="text-5xl lg:text-6xl font-extrabold text-gray-900 mb-4 leading-tight">
+              Edumock Plus – <span className="text-lime-500">Individual ta'lim.</span>
+            </h1>
+            <p className="text-3xl font-semibold text-gray-500 mb-8">
+              Haqiqiy natija.
+            </p>
+
+            <ProcessSteps />
+            <ContactSection />
+
+            <p className="text-gray-600 max-w-[600px] mt-8">
+              Edumock - bu O'zbekistonda tez rivojlanayotgan ta'lim platformasi bo'lib, o'quvchilarga maqsadlariga erishish uchun individual yondashuv va aniq natijalarga asoslangan dasturlarni taklif etadi.
+            </p>
+          </div>
+
+          <div className="lg:w-2/5 mt-10 lg:mt-0">
+            <PricingCard />
+          </div>
+        </div>
+      </main>
+
+      <FixedLoginButton onOpenLogin={openLoginModal} />
+      <LoginDialog isOpen={isLoginDialogOpen} onClose={closeLoginModal} />
     </div>
   );
 };

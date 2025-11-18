@@ -99,3 +99,68 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom CSS from provided HTML */
+.fixed-login-button {
+    transition: all 0.3s ease;
+    background-color: #84cc16; /* Tailwind lime-500 */
+    box-shadow: 0 10px 20px rgba(132, 204, 22, 0.4);
+}
+.fixed-login-button:hover {
+    transform: scale(1.05);
+    background-color: #65a30d; /* Tailwind lime-600 */
+    box-shadow: 0 15px 30px rgba(132, 204, 22, 0.6);
+}
+
+.price-option {
+    transition: all 0.2s;
+    cursor: pointer;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+}
+.price-option-active {
+    border: 2px solid #84cc16; /* Tailwind lime-500 */
+    background-color: #f7fee7; /* Tailwind lime-50 */
+}
+.price-option:hover {
+     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.hero-section {
+    padding-top: 5rem;
+}
+
+.process-card {
+    min-height: 100px;
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    cursor: default;
+}
+
+.process-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 10px 20px rgba(132, 204, 22, 0.2);
+    border-color: #65a30d; /* Tailwind lime-600 */
+}
+
+.process-card-icon {
+    color: #84cc16; /* Tailwind lime-500 */
+}
+
+@keyframes slideInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animated-card {
+    opacity: 0;
+    animation: slideInUp 0.7s ease-out forwards;
+}

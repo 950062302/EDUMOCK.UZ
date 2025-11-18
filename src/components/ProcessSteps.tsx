@@ -1,0 +1,57 @@
+"use client";
+
+import React from "react";
+import { Building, User, TrendingUp, LayoutGrid } from "lucide-react"; // LayoutGrid for Edumock.uz icon
+
+const ProcessSteps: React.FC = () => {
+  const steps = [
+    {
+      icon: <LayoutGrid className="h-8 w-8 process-card-icon mx-auto mb-2" />,
+      text: "1. Edumock.uz",
+      delay: "0s",
+      active: true,
+    },
+    {
+      icon: <Building className="h-8 w-8 process-card-icon mx-auto mb-2" />,
+      text: "2. O'quv Markazi",
+      delay: "0.3s",
+      active: false,
+    },
+    {
+      icon: <User className="h-8 w-8 process-card-icon mx-auto mb-2" />,
+      text: "3. Student",
+      delay: "0.6s",
+      active: false,
+    },
+    {
+      icon: <TrendingUp className="h-8 w-8 process-card-icon mx-auto mb-2" />,
+      text: "4. Natija",
+      delay: "0.9s",
+      active: false,
+    },
+  ];
+
+  return (
+    <div id="process-steps" className="mb-10 mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-[800px]">
+      {steps.map((step, index) => (
+        <React.Fragment key={index}>
+          <div
+            className={`process-card p-4 rounded-xl text-center shadow-lg ${step.active ? 'border-lime-500 border-2' : ''} animated-card`}
+            style={{ animationDelay: step.delay }}
+          >
+            {step.icon}
+            <p className="text-sm font-semibold text-gray-800">{step.text}</p>
+          </div>
+          {index < steps.length - 1 && (
+            <div className="hidden md:flex items-center justify-center relative animated-card" style={{ animationDelay: `${parseFloat(step.delay) + 0.15}s` }}>
+              <span className="absolute w-full h-1 bg-gray-300 top-1/2 -translate-y-1/2"></span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-lime-500 bg-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </div>
+          )}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+};
+
+export default ProcessSteps;
