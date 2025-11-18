@@ -38,9 +38,7 @@ const Login: React.FC = () => {
             <ProcessSteps />
             <ContactSection />
 
-            <p className="text-gray-600 max-w-[600px] mt-8">
-              {t("landing_page.description")}
-            </p>
+            {/* Bu yerdagi takrorlanuvchi tavsif matni olib tashlandi */}
           </div>
 
           <div className="lg:w-2/5 mt-10 lg:mt-0">
