@@ -20,12 +20,13 @@ interface LoginDialogProps {
 const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [promoCode, setPromoCode] = useState(""); // Yangi promokod holati
+  const [adminEmail, setAdminEmail] = useState(""); // Admin uchun email
+  const [adminPassword, setAdminPassword] = useState(""); // Admin uchun parol
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleTeacherLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
@@ -44,21 +45,41 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const handlePromoCodeSubmit = async (e: React.FormEvent) => {
+  const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      if (promoCode === "AEROSX") {
-        localStorage.setItem("isSuperAdmin", "true");
-        localStorage.setItem("isGuestMode", "true"); // Super admin ham guest mode orqali kiradi
-        showSuccess(t("common.super_admin_access_granted"));
-        onClose();
-        navigate("/home");
+      const { data, error } = await supabase.auth.signInWithPassword({ email: adminEmail, password: adminPassword });
+      if (error) {
+        showError(error.message);
+      } else if (data.user) {
+        // Foydalanuvchi profilini tekshirish
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', data.user.id)
+          .single();
+
+        if (profileError) {
+          showError(profileError.message);
+          await supabase.auth.signOut(); // Xato bo'lsa, tizimdan chiqaramiz
+          return;
+        }
+
+        if (profileData.role === 'developer') { // 'developer' rolini super admin deb hisoblaymiz
+          localStorage.setItem("isSuperAdmin", "true");
+          showSuccess(t("common.super_admin_access_granted"));
+          onClose();
+          navigate("/admin-dashboard"); // Admin paneliga yo'naltiramiz
+        } else {
+          showError(t("common.error_not_authorized_as_admin"));
+          await supabase.auth.signOut(); // Admin bo'lmasa, tizimdan chiqaramiz
+        }
       } else {
-        showError(t("common.error_invalid_promo_code"));
+        showError(t("common.admin_login_error"));
       }
     } catch (err: any) {
-      showError(err.message || t("common.promo_code_error"));
+      showError(err.message || t("common.admin_login_error"));
     } finally {
       setLoading(false);
     }
@@ -70,16 +91,16 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
         <DialogHeader>
           <DialogTitle>{t("common.login")}</DialogTitle>
           <DialogDescription>
-            {t("common.enter_admin_credentials")}
+            {t("common.enter_credentials")}
           </DialogDescription>
         </DialogHeader>
-        <Tabs defaultValue="login" className="w-full">
+        <Tabs defaultValue="teacher" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">{t("common.teacher_only")}</TabsTrigger> {/* 'Admin Only' -> 'Teacher Only' */}
-            <TabsTrigger value="promocode">{t("common.promo_code_admin_only")}</TabsTrigger> {/* 'Promokod' -> 'Promokod (Admin Only)' */}
+            <TabsTrigger value="teacher">{t("common.teacher_only")}</TabsTrigger>
+            <TabsTrigger value="admin">{t("common.admin_login")}</TabsTrigger>
           </TabsList>
-          <TabsContent value="login" className="mt-4">
-            <form onSubmit={handleLogin} className="space-y-4">
+          <TabsContent value="teacher" className="mt-4">
+            <form onSubmit={handleTeacherLogin} className="space-y-4">
               <div>
                 <Label htmlFor="email">{t("common.email")}</Label>
                 <Input
@@ -109,22 +130,34 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
               </Button>
             </form>
           </TabsContent>
-          <TabsContent value="promocode" className="mt-4">
-            <form onSubmit={handlePromoCodeSubmit} className="space-y-4">
+          <TabsContent value="admin" className="mt-4">
+            <form onSubmit={handleAdminLogin} className="space-y-4">
               <div>
-                <Label htmlFor="promo-code">{t("common.promo_code_tab")}</Label>
+                <Label htmlFor="admin-email">{t("common.admin_email")}</Label>
                 <Input
-                  id="promo-code"
-                  type="text"
-                  placeholder={t("common.enter_promo_code")}
-                  value={promoCode}
-                  onChange={(e) => setPromoCode(e.target.value)}
+                  id="admin-email"
+                  type="email"
+                  placeholder={t("common.enter_admin_email")}
+                  value={adminEmail}
+                  onChange={(e) => setAdminEmail(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <Label htmlFor="admin-password">{t("common.admin_password")}</Label>
+                <Input
+                  id="admin-password"
+                  type="password"
+                  placeholder={t("common.enter_admin_password")}
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
                   required
                   disabled={loading}
                 />
               </div>
               <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={loading}>
-                {loading ? t("common.activating_promo_code") : t("common.activate_promo_code")}
+                {loading ? t("common.logging_in_as_admin") : t("common.admin_login_button")}
               </Button>
             </form>
           </TabsContent>
