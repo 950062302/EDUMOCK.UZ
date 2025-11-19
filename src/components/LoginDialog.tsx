@@ -74,9 +74,9 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
           </DialogDescription>
         </DialogHeader>
         <Tabs defaultValue="login" className="w-full">
-          <TabsList className="grid w-full grid-cols-2"> {/* Tablar soni 2 ga o'zgartirildi */}
-            <TabsTrigger value="login">{t("common.admin_only")}</TabsTrigger>
-            <TabsTrigger value="promocode">{t("common.promo_code_tab")}</TabsTrigger> {/* Yangi promokod tabi */}
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="login">{t("common.teacher_only")}</TabsTrigger> {/* 'Admin Only' -> 'Teacher Only' */}
+            <TabsTrigger value="promocode">{t("common.promo_code_admin_only")}</TabsTrigger> {/* 'Promokod' -> 'Promokod (Admin Only)' */}
           </TabsList>
           <TabsContent value="login" className="mt-4">
             <form onSubmit={handleLogin} className="space-y-4">
@@ -109,7 +109,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
               </Button>
             </form>
           </TabsContent>
-          <TabsContent value="promocode" className="mt-4"> {/* Promokod tabining kontenti */}
+          <TabsContent value="promocode" className="mt-4">
             <form onSubmit={handlePromoCodeSubmit} className="space-y-4">
               <div>
                 <Label htmlFor="promo-code">{t("common.promo_code_tab")}</Label>
