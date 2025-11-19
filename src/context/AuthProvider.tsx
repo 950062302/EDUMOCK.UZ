@@ -29,69 +29,79 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isSuperAdmin, setIsSuperAdmin] = useState<boolean>(false); // Yangi: Super admin holati
   const [loading, setLoading] = useState(true);
 
-  const fetchUserProfile = async (userId: string) => {
+  const fetchUserProfile = async (userId: string): Promise<Profile | null> => {
+    console.log("AuthProvider: Fetching user profile for ID:", userId);
     const { data, error } = await supabase
       .from('profiles')
       .select('is_blocked, role') // Rolni ham tanlab olamiz
       .eq('id', userId)
-      .maybeSingle();
+      .single(); // maybeSingle o'rniga single ishlatamiz
 
     if (error) {
-      console.error("Error fetching user profile:", error.message);
+      console.error("AuthProvider: Error fetching user profile:", error.message);
       showError(i18n.t("common.error_fetching_profile", { message: error.message }));
       return null;
     }
-    return data ? (data as Profile) : { id: userId, is_blocked: false, role: 'user' };
+    console.log("AuthProvider: User profile fetched:", data);
+    return data ? (data as Profile) : null;
   };
 
   useEffect(() => {
     const getSessionAndProfile = async () => {
       setLoading(true);
+      console.log("AuthProvider: Initial session check started.");
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
       const currentUser = session?.user ?? null;
       setUser(currentUser);
 
       if (currentUser) {
+        console.log("AuthProvider: User found in initial session, fetching profile.");
         const profile = await fetchUserProfile(currentUser.id);
         setIsBlocked(profile?.is_blocked ?? false);
-        setIsSuperAdmin(profile?.role === 'developer'); // Faqat profildagi rolga qarab belgilaymiz
+        setIsSuperAdmin(profile?.role === 'developer');
       } else {
+        console.log("AuthProvider: No user found in initial session.");
         setIsBlocked(null);
-        setIsSuperAdmin(false); // Foydalanuvchi bo'lmasa, super admin emas
+        setIsSuperAdmin(false);
       }
       setLoading(false);
+      console.log("AuthProvider: Initial session check finished. isSuperAdmin:", isSuperAdmin);
     };
 
     getSessionAndProfile();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setLoading(true);
+      console.log("AuthProvider: Auth state changed. Event:", _event, "Session:", session);
       setSession(session);
       const currentUser = session?.user ?? null;
       setUser(currentUser);
 
       if (currentUser) {
+        console.log("AuthProvider: User found in auth state change, fetching profile.");
         const profile = await fetchUserProfile(currentUser.id);
         setIsBlocked(profile?.is_blocked ?? false);
-        setIsSuperAdmin(profile?.role === 'developer'); // Faqat profildagi rolga qarab belgilaymiz
+        setIsSuperAdmin(profile?.role === 'developer');
       } else {
+        console.log("AuthProvider: No user found in auth state change.");
         setIsBlocked(null);
         setIsSuperAdmin(false);
       }
       setLoading(false);
+      console.log("AuthProvider: Auth state change processed. isSuperAdmin:", isSuperAdmin);
     });
 
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, []);
+  }, [isSuperAdmin]); // isSuperAdmin ni dependency sifatida qo'shdik, shunda u o'zgarganda useEffect qayta ishga tushadi
 
   const value = {
     session,
     user,
     isBlocked,
-    isSuperAdmin, // Yangi: Super admin holati
+    isSuperAdmin,
     loading,
   };
 
