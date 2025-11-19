@@ -31,14 +31,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .from('profiles')
       .select('is_blocked')
       .eq('id', userId)
-      .maybeSingle(); // .single() o'rniga .maybeSingle() ishlatildi
+      .maybeSingle();
 
     if (error) {
       console.error("Error fetching user profile:", error.message);
       showError(i18n.t("common.error_fetching_profile", { message: error.message }));
       return null;
     }
-    // Agar profil topilmasa (data null bo'lsa), is_blocked ni false deb qabul qilamiz
     return data ? (data as Profile) : { id: userId, is_blocked: false };
   };
 
@@ -52,7 +51,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (currentUser) {
         const profile = await fetchUserProfile(currentUser.id);
-        // Agar profil topilmasa ham isBlocked ni o'rnatishni ta'minlaymiz
         setIsBlocked(profile?.is_blocked ?? false);
       } else {
         setIsBlocked(null);
@@ -69,11 +67,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (currentUser) {
         const profile = await fetchUserProfile(currentUser.id);
-        // Agar profil topilmasa ham isBlocked ni o'rnatishni ta'minlaymiz
         setIsBlocked(profile?.is_blocked ?? false);
       } else {
         setIsBlocked(null);
       }
+      setLoading(false); // Bu qator qo'shildi
     });
 
     return () => {
