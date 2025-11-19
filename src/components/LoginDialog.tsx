@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { showSuccess, showError } from "@/utils/toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useTranslation } = 'react-i18next';
+import { useTranslation } from 'react-i18next'; // Xato to'g'rilandi
 
 interface LoginDialogProps {
   isOpen: boolean;
@@ -33,7 +33,6 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
         showError(error.message);
       } else {
         showSuccess(t("common.success_logged_in"));
-        // setLoading(false) ni finally blokiga o'tkazdik, shuning uchun bu yerda kerak emas
         onClose();
         navigate("/home");
       }
