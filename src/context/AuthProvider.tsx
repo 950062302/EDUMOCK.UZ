@@ -55,9 +55,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (currentUser) {
         const profile = await fetchUserProfile(currentUser.id);
         setIsBlocked(profile?.is_blocked ?? false);
-        // isSuperAdmin ni localStorage va profildagi rolga qarab belgilaymiz
-        const storedIsSuperAdmin = localStorage.getItem("isSuperAdmin") === "true";
-        setIsSuperAdmin(storedIsSuperAdmin || (profile?.role === 'developer')); // 'developer' roli ham super admin hisoblanadi
+        setIsSuperAdmin(profile?.role === 'developer'); // Faqat profildagi rolga qarab belgilaymiz
       } else {
         setIsBlocked(null);
         setIsSuperAdmin(false); // Foydalanuvchi bo'lmasa, super admin emas
@@ -76,8 +74,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (currentUser) {
         const profile = await fetchUserProfile(currentUser.id);
         setIsBlocked(profile?.is_blocked ?? false);
-        const storedIsSuperAdmin = localStorage.getItem("isSuperAdmin") === "true";
-        setIsSuperAdmin(storedIsSuperAdmin || (profile?.role === 'developer'));
+        setIsSuperAdmin(profile?.role === 'developer'); // Faqat profildagi rolga qarab belgilaymiz
       } else {
         setIsBlocked(null);
         setIsSuperAdmin(false);

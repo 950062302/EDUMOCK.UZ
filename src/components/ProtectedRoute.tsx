@@ -8,7 +8,7 @@ import { showError } from "@/utils/toast";
 import i18n from '@/i18n';
 
 const ProtectedRoute: React.FC = () => {
-  const { session, loading, isBlocked } = useAuth();
+  const { session, loading, isBlocked, isSuperAdmin } = useAuth();
   const isGuestMode = localStorage.getItem("isGuestMode") === "true";
 
   useEffect(() => {
@@ -23,6 +23,12 @@ const ProtectedRoute: React.FC = () => {
         <p className="text-xl text-muted-foreground">Yuklanmoqda...</p>
       </div>
     );
+  }
+
+  // Agar foydalanuvchi admin dashboardga kirmoqchi bo'lsa va super admin bo'lmasa, uni qaytarish
+  if (location.pathname === "/admin-dashboard" && !isSuperAdmin) {
+    showError(i18n.t("admin_dashboard.error_access_denied"));
+    return <Navigate to="/home" replace />;
   }
 
   if ((session && !isBlocked) || isGuestMode) {
