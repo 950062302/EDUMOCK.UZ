@@ -26,7 +26,15 @@
     "exit_guest_mode": "Mehmon rejimdan chiqish",
     "guide": "Qo'llanma",
     "error_fetching_profile": "Profil ma'lumotlarini yuklashda xatolik: {{message}}",
-    "error_account_blocked": "Sizning hisobingiz bloklangan. Iltimos, administrator bilan bog'laning."
+    "error_account_blocked": "Sizning hisobingiz bloklangan. Iltimos, administrator bilan bog'laning.",
+    "promo_code_tab": "Promokod",
+    "enter_promo_code": "Promokodni kiriting",
+    "activate_promo_code": "Promokodni faollashtirish",
+    "activating_promo_code": "Faollashtirilmoqda...",
+    "success_promo_code_activated": "Promokod muvaffaqiyatli faollashtirildi!",
+    "error_invalid_promo_code": "Noto'g'ri promokod.",
+    "super_admin_access_granted": "Super admin huquqlari berildi!",
+    "promo_code_error": "Promokodni faollashtirishda xatolik yuz berdi."
   },
   "landing_page": {
     "title_part1": "Edumock Plus –",

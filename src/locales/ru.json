@@ -26,7 +26,15 @@
     "exit_guest_mode": "Выйти из гостевого режима",
     "guide": "Руководство",
     "error_fetching_profile": "Ошибка загрузки данных профиля: {{message}}",
-    "error_account_blocked": "Ваша учетная запись заблокирована. Пожалуйста, свяжитесь с администратором."
+    "error_account_blocked": "Ваша учетная запись заблокирована. Пожалуйста, свяжитесь с администратором.",
+    "promo_code_tab": "Промокод",
+    "enter_promo_code": "Введите промокод",
+    "activate_promo_code": "Активировать промокод",
+    "activating_promo_code": "Активация...",
+    "success_promo_code_activated": "Промокод успешно активирован!",
+    "error_invalid_promo_code": "Неверный промокод.",
+    "super_admin_access_granted": "Доступ суперадминистратора предоставлен!",
+    "promo_code_error": "Ошибка при активации промокода."
   },
   "landing_page": {
     "title_part1": "Edumock Plus –",

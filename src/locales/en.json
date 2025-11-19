@@ -26,7 +26,15 @@
     "exit_guest_mode": "Exit Guest Mode",
     "guide": "Guide",
     "error_fetching_profile": "Error fetching profile data: {{message}}",
-    "error_account_blocked": "Your account is blocked. Please contact the administrator."
+    "error_account_blocked": "Your account is blocked. Please contact the administrator.",
+    "promo_code_tab": "Promo Code",
+    "enter_promo_code": "Enter promo code",
+    "activate_promo_code": "Activate Promo Code",
+    "activating_promo_code": "Activating...",
+    "success_promo_code_activated": "Promo code activated successfully!",
+    "error_invalid_promo_code": "Invalid promo code.",
+    "super_admin_access_granted": "Super admin access granted!",
+    "promo_code_error": "Error activating promo code."
   },
   "landing_page": {
     "title_part1": "Edumock Plus –",
