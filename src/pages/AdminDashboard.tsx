@@ -48,7 +48,7 @@ interface Profile {
 }
 
 const AdminDashboard: React.FC = () => {
-  const { isSuperAdmin, loading: authLoading } = useAuth();
+  const { isSuperAdmin, loading: authLoading, session } = useAuth(); // session ni ham olamiz
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -74,6 +74,8 @@ const AdminDashboard: React.FC = () => {
 
   const fetchProfiles = useCallback(async () => {
     setIsLoading(true);
+    
+    // Fetch profiles data from the 'profiles' table
     const { data: profilesData, error: profilesError } = await supabase
       .from('profiles')
       .select('*');
@@ -84,16 +86,29 @@ const AdminDashboard: React.FC = () => {
       return;
     }
 
-    // auth.users dan email ma'lumotlarini olish
-    const { data: usersData, error: usersError } = await supabase.auth.admin.listUsers();
+    // Fetch user emails using the Edge Function
+    let usersMap = new Map<string, string>();
+    if (session?.access_token) {
+      const { data: usersEdgeData, error: usersEdgeError } = await supabase.functions.invoke('list-users', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
 
-    if (usersError) {
-      showError(t("admin_dashboard.error_fetching_users", { message: usersError.message }));
-      setIsLoading(false);
-      return;
+      if (usersEdgeError) {
+        showError(t("admin_dashboard.error_fetching_users", { message: usersEdgeError.message }));
+        setIsLoading(false);
+        return;
+      }
+      
+      if (usersEdgeData && Array.isArray(usersEdgeData)) {
+        usersEdgeData.forEach((user: any) => {
+          usersMap.set(user.id, user.email);
+        });
+      }
+    } else {
+      showError(t("admin_dashboard.error_no_session_for_users"));
     }
-
-    const usersMap = new Map(usersData.users.map(user => [user.id, user.email]));
 
     const combinedProfiles = profilesData.map(profile => ({
       ...profile,
@@ -102,7 +117,7 @@ const AdminDashboard: React.FC = () => {
 
     setProfiles(combinedProfiles);
     setIsLoading(false);
-  }, [t]);
+  }, [t, session]);
 
   useEffect(() => {
     if (!authLoading) {

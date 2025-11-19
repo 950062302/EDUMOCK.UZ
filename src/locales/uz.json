@@ -279,6 +279,7 @@
     "bio": "Bio",
     "purchase_date": "Sotib olingan sana",
     "expiry_date": "Amal qilish muddati",
-    "income": "Daromad"
+    "income": "Daromad",
+    "error_no_session_for_users": "Foydalanuvchi ma'lumotlarini olish uchun sessiya mavjud emas."
   }
 }

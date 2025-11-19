@@ -283,6 +283,7 @@
     "bio": "Bio",
     "purchase_date": "Purchase Date",
     "expiry_date": "Expiry Date",
-    "income": "Income"
+    "income": "Income",
+    "error_no_session_for_users": "No session available to fetch user data."
   }
 }
