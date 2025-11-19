@@ -9,12 +9,14 @@ import i18n from '@/i18n';
 interface Profile {
   id: string;
   is_blocked: boolean;
+  role: string; // Rolni ham qo'shdik
 }
 
 interface AuthContextType {
   session: Session | null;
   user: User | null;
   isBlocked: boolean | null;
+  isSuperAdmin: boolean; // Yangi: Super admin holati
   loading: boolean;
 }
 
@@ -24,12 +26,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isBlocked, setIsBlocked] = useState<boolean | null>(null);
+  const [isSuperAdmin, setIsSuperAdmin] = useState<boolean>(false); // Yangi: Super admin holati
   const [loading, setLoading] = useState(true);
 
   const fetchUserProfile = async (userId: string) => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('is_blocked')
+      .select('is_blocked, role') // Rolni ham tanlab olamiz
       .eq('id', userId)
       .maybeSingle();
 
@@ -38,7 +41,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       showError(i18n.t("common.error_fetching_profile", { message: error.message }));
       return null;
     }
-    return data ? (data as Profile) : { id: userId, is_blocked: false };
+    return data ? (data as Profile) : { id: userId, is_blocked: false, role: 'user' };
   };
 
   useEffect(() => {
@@ -52,8 +55,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (currentUser) {
         const profile = await fetchUserProfile(currentUser.id);
         setIsBlocked(profile?.is_blocked ?? false);
+        // isSuperAdmin ni localStorage va profildagi rolga qarab belgilaymiz
+        const storedIsSuperAdmin = localStorage.getItem("isSuperAdmin") === "true";
+        setIsSuperAdmin(storedIsSuperAdmin || (profile?.role === 'developer')); // 'developer' roli ham super admin hisoblanadi
       } else {
         setIsBlocked(null);
+        setIsSuperAdmin(false); // Foydalanuvchi bo'lmasa, super admin emas
       }
       setLoading(false);
     };
@@ -61,7 +68,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     getSessionAndProfile();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setLoading(true); // Auth holati o'zgarganda ham yuklanishni boshlash
+      setLoading(true);
       setSession(session);
       const currentUser = session?.user ?? null;
       setUser(currentUser);
@@ -69,8 +76,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (currentUser) {
         const profile = await fetchUserProfile(currentUser.id);
         setIsBlocked(profile?.is_blocked ?? false);
+        const storedIsSuperAdmin = localStorage.getItem("isSuperAdmin") === "true";
+        setIsSuperAdmin(storedIsSuperAdmin || (profile?.role === 'developer'));
       } else {
         setIsBlocked(null);
+        setIsSuperAdmin(false);
       }
       setLoading(false);
     });
@@ -84,6 +94,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     session,
     user,
     isBlocked,
+    isSuperAdmin, // Yangi: Super admin holati
     loading,
   };
 
