@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"; // DialogDescription import qilindi
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { showSuccess, showError } from "@/utils/toast";
@@ -212,24 +212,29 @@ const AdminDashboard: React.FC = () => {
     }
 
     try {
-      const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
-        email: newUserData.email,
-        password: newUserData.password,
-        email_confirm: true, // Auto-confirm email for admin-created users
-        user_metadata: {
+      if (!session?.access_token) {
+        showError(t("admin_dashboard.error_no_session_for_users"));
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('create-user', {
+        body: JSON.stringify({
+          email: newUserData.email,
+          password: newUserData.password,
           username: newUserData.username,
           role: newUserData.role,
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
         },
       });
 
-      if (authError) {
-        throw authError;
+      if (error) {
+        throw error;
       }
 
-      if (authUser.user) {
-        // The handle_new_user trigger should automatically create a profile.
-        // We can optionally update it here if more specific fields are needed immediately.
-        // For now, we rely on the trigger.
+      if (data) {
         showSuccess(t("admin_dashboard.success_user_added", { email: newUserData.email }));
         setIsAddUserDialogOpen(false);
         setNewUserData({ email: "", password: "", username: "", role: "user" }); // Reset form
