@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react"; // Import useEffect
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { showSuccess, showError } from "@/utils/toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from 'react-i18next';
-import { useAuth } from "@/context/AuthProvider"; // Import useAuth
+import { useAuth } from "@/context/AuthProvider";
 
 interface LoginDialogProps {
   isOpen: boolean;
@@ -26,16 +26,15 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { isSuperAdmin, loading: authLoading } = useAuth(); // Get auth loading and isSuperAdmin from context
+  const { isSuperAdmin, loading: authLoading } = useAuth();
 
-  // Reset form fields when dialog opens/closes
   useEffect(() => {
     if (!isOpen) {
       setEmail("");
       setPassword("");
       setAdminEmail("");
       setAdminPassword("");
-      setLoading(false); // Also reset local loading state
+      setLoading(false);
     }
   }, [isOpen]);
 
@@ -48,7 +47,8 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
         showError(error.message);
       } else {
         showSuccess(t("common.success_logged_in"));
-        onClose(); // Close dialog, ProtectedRoute will handle navigation
+        onClose();
+        navigate("/home"); // Oddiy foydalanuvchilar uchun /home ga yo'naltirish
       }
     } catch (err: any) {
       showError(err.message || t("common.login_error"));
@@ -70,10 +70,30 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
         return;
       }
 
-      // If no error, the AuthProvider will detect the session change
-      // and update isSuperAdmin. ProtectedRoute will then handle navigation.
-      showSuccess(t("common.logging_in_as_admin_success")); // More generic success message
-      onClose(); // Close dialog, ProtectedRoute will handle navigation
+      showSuccess(t("common.logging_in_as_admin_success"));
+      onClose();
+      
+      // Foydalanuvchi rolini tekshirib, to'g'ri sahifaga yo'naltirish
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (profileError) {
+          console.error("Error fetching profile after admin login:", profileError.message);
+          showError(t("common.error_fetching_profile", { message: profileError.message }));
+          navigate("/home"); // Xatolik bo'lsa, /home ga yo'naltirish
+        } else if (profileData?.role === 'developer') {
+          navigate("/admin-dashboard");
+        } else {
+          navigate("/home");
+        }
+      } else {
+        navigate("/home"); // Foydalanuvchi topilmasa, /home ga yo'naltirish
+      }
       
     } catch (err: any) {
       console.error("Admin login jarayonida kutilmagan xatolik:", err.message);

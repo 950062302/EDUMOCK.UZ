@@ -9,14 +9,14 @@ import i18n from '@/i18n';
 interface Profile {
   id: string;
   is_blocked: boolean;
-  role: string; // Rolni ham qo'shdik
+  role: string;
 }
 
 interface AuthContextType {
   session: Session | null;
   user: User | null;
   isBlocked: boolean | null;
-  isSuperAdmin: boolean; // Yangi: Super admin holati
+  isSuperAdmin: boolean;
   loading: boolean;
 }
 
@@ -26,16 +26,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isBlocked, setIsBlocked] = useState<boolean | null>(null);
-  const [isSuperAdmin, setIsSuperAdmin] = useState<boolean>(false); // Yangi: Super admin holati
+  const [isSuperAdmin, setIsSuperAdmin] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
 
   const fetchUserProfile = async (userId: string): Promise<Profile | null> => {
     console.log("AuthProvider: Fetching user profile for ID:", userId);
     const { data, error } = await supabase
       .from('profiles')
-      .select('is_blocked, role') // Rolni ham tanlab olamiz
+      .select('is_blocked, role')
       .eq('id', userId)
-      .maybeSingle(); // single() o'rniga maybeSingle() ishlatamiz
+      .maybeSingle();
 
     if (error) {
       console.error("AuthProvider: Error fetching user profile:", error.message);
@@ -95,7 +95,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, []); // isSuperAdmin ni dependency sifatida qo'shdik, shunda u o'zgarganda useEffect qayta ishga tushadi
+  }, []);
 
   const value = {
     session,
