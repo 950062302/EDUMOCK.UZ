@@ -35,7 +35,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .from('profiles')
       .select('is_blocked, role') // Rolni ham tanlab olamiz
       .eq('id', userId)
-      .single(); // maybeSingle o'rniga single ishlatamiz
+      .maybeSingle(); // single() o'rniga maybeSingle() ishlatamiz
 
     if (error) {
       console.error("AuthProvider: Error fetching user profile:", error.message);
