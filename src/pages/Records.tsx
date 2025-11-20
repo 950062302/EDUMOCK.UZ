@@ -240,9 +240,9 @@ const Records: React.FC = () => {
                             </p>
                           )}
                         </div>
-                        <div className="flex gap-2 mt-2 sm:mt-0">
+                        <div className="flex flex-wrap justify-end gap-2 mt-2 sm:mt-0 w-full sm:w-auto">
                           {/* Play button */}
-                          <Button asChild size="sm" className="flex items-center gap-1">
+                          <Button asChild size="sm" className="flex items-center gap-1 w-full sm:w-auto">
                             <a href={recording.video_url} target="_blank" rel="noopener noreferrer">
                               <PlayCircle className="h-4 w-4" /> {t("records_page.play")}
                             </a>
@@ -250,18 +250,18 @@ const Records: React.FC = () => {
 
                           {/* Local Download button (conditional) */}
                           {recording.isLocalBlobAvailable && (
-                            <Button onClick={() => handleDownload({ ...recording, supabase_url: undefined })} variant="outline" size="sm" className="flex items-center gap-1" disabled={isDownloading || isUploading}>
+                            <Button onClick={() => handleDownload({ ...recording, supabase_url: undefined })} variant="outline" size="sm" className="flex items-center gap-1 w-full sm:w-auto" disabled={isDownloading || isUploading}>
                               <Download className="h-4 w-4" /> {t("records_page.download_local")}
                             </Button>
                           )}
                           
                           {/* Conditional Upload / Uploading / Cloud Download button */}
                           {!recording.supabase_url && user?.id && !isUploading && !uploadError ? (
-                            <Button onClick={() => handleUploadToSupabase(recording)} variant="outline" size="sm" className="flex items-center gap-1" disabled={isDownloading}>
+                            <Button onClick={() => handleUploadToSupabase(recording)} variant="outline" size="sm" className="flex items-center gap-1 w-full sm:w-auto" disabled={isDownloading}>
                               <Cloud className="h-4 w-4" /> {t("records_page.upload")}
                             </Button>
                           ) : isUploading ? (
-                            <Button variant="outline" size="sm" className="flex items-center gap-1 relative overflow-hidden" disabled>
+                            <Button variant="outline" size="sm" className="flex items-center gap-1 relative overflow-hidden w-full sm:w-auto" disabled>
                               <div 
                                 className="absolute inset-0 bg-blue-500 opacity-30" 
                                 style={{ width: `${currentUploadProgress}%` }}
@@ -269,7 +269,7 @@ const Records: React.FC = () => {
                               <span className="relative z-10">{t("records_page.uploading_to_cloud")} {currentUploadProgress?.toFixed(0)}%</span>
                             </Button>
                           ) : recording.supabase_url && (
-                            <Button onClick={() => handleDownload(recording)} variant="default" size="sm" className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600" disabled={isDownloading || isUploading}>
+                            <Button onClick={() => handleDownload(recording)} variant="default" size="sm" className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 w-full sm:w-auto" disabled={isDownloading || isUploading}>
                               {isDownloading ? (
                                 <>
                                   <Zap className="h-4 w-4 animate-pulse" /> {t("records_page.downloading")}
@@ -285,7 +285,7 @@ const Records: React.FC = () => {
                           {/* Delete button */}
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="destructive" size="sm" className="flex items-center gap-1" disabled={isDownloading || isUploading}>
+                              <Button variant="destructive" size="sm" className="flex items-center gap-1 w-full sm:w-auto" disabled={isDownloading || isUploading}>
                                 <Trash2 className="h-4 w-4" /> {t("records_page.delete")}
                               </Button>
                             </AlertDialogTrigger>
