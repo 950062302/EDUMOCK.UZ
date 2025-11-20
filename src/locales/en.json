@@ -173,7 +173,8 @@
     "image": "Image",
     "question": "Question",
     "speak_text": "Please speak",
-    "error_duplicate_question": "This question already exists in the system."
+    "error_duplicate_question": "This question already exists in the system.",
+    "error_recording_not_supported_mobile": "Screen recording is not supported on mobile devices. Please use a desktop browser."
   },
   "mock_test_page": {
     "mock_speaking_test": "Mock Speaking Test",
@@ -188,7 +189,8 @@
     "student_id_placeholder": "Student ID number",
     "student_name_placeholder": "Student name",
     "student_phone_placeholder": "Phone number",
-    "start_test": "Start Test"
+    "start_test": "Start Test",
+    "recording_not_supported_mobile_info": "Screen recording is not supported on mobile devices. Please use a desktop browser to record the test."
   },
   "records_page": {
     "your_recordings": "Your Recordings",

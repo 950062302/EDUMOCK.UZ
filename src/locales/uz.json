@@ -173,7 +173,8 @@
     "image": "Rasm",
     "question": "Savol",
     "speak_text": "Iltimos, gapiring",
-    "error_duplicate_question": "Bu savol tizimda allaqachon mavjud."
+    "error_duplicate_question": "Bu savol tizimda allaqachon mavjud.",
+    "error_recording_not_supported_mobile": "Ekran yozib olish mobil qurilmalarda qo'llab-quvvatlanmaydi. Iltimos, kompyuter brauzeridan foydalaning."
   },
   "mock_test_page": {
     "mock_speaking_test": "Mock Speaking Test",
@@ -188,7 +189,8 @@
     "student_id_placeholder": "O'quvchi ID raqami",
     "student_name_placeholder": "O'quvchi ismi",
     "student_phone_placeholder": "Telefon raqami",
-    "start_test": "Testni boshlash"
+    "start_test": "Testni boshlash",
+    "recording_not_supported_mobile_info": "Ekran yozib olish mobil qurilmalarda qo'llab-quvvatlanmaydi. Testni yozib olish uchun kompyuter brauzeridan foydalaning."
   },
   "records_page": {
     "your_recordings": "Sizning yozuvlaringiz",

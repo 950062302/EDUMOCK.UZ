@@ -13,7 +13,7 @@ import TestControls from "@/components/TestControls";
 import { useTranslation } from 'react-i18next';
 
 const MockTest: React.FC = () => {
-  const { isRecording, startRecording, stopAllStreams, webcamStream } = useRecorder();
+  const { isRecording, startRecording, stopAllStreams, webcamStream, isRecordingSupported } = useRecorder(); // Get isRecordingSupported
   const webcamVideoRef = useRef<HTMLVideoElement>(null);
   const { t } = useTranslation();
 
@@ -54,7 +54,7 @@ const MockTest: React.FC = () => {
       {!isTestStarted && <Navbar />}
       <main className="flex-grow container mx-auto p-4 flex items-center justify-center relative">
         {(webcamStream || (isTestStarted && studentInfo)) && (
-          <div className="fixed top-20 left-4 z-20 flex flex-col items-start space-y-2"> {/* Joylashuv o'zgartirildi: top-20 left-4 */}
+          <div className="fixed top-20 left-4 z-20 flex flex-col items-start space-y-2">
             {webcamStream && (
               <video
                 ref={webcamVideoRef}
@@ -104,6 +104,7 @@ const MockTest: React.FC = () => {
               handleStartTestClick={handleStartTestClick}
               handleEndTest={handleEndTest}
               handleResetTest={handleResetTest}
+              isRecordingSupported={isRecordingSupported} // Pass the new prop
             />
           </CardContent>
         </Card>

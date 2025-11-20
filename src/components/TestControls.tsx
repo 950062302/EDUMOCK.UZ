@@ -11,6 +11,7 @@ interface TestControlsProps {
   handleStartTestClick: () => void;
   handleEndTest: () => void;
   handleResetTest: () => void;
+  isRecordingSupported: boolean; // New prop
 }
 
 const TestControls: React.FC<TestControlsProps> = ({
@@ -19,15 +20,28 @@ const TestControls: React.FC<TestControlsProps> = ({
   handleStartTestClick,
   handleEndTest,
   handleResetTest,
+  isRecordingSupported, // Use new prop
 }) => {
   const { t } = useTranslation();
 
   return (
     <div className="space-y-6">
       {!isTestStarted && currentPhase === "idle" && (
-        <Button onClick={handleStartTestClick} size="lg" className="text-lg px-8 py-4">
-          {t("mock_test_page.start_test_with_recording")}
-        </Button>
+        <>
+          {!isRecordingSupported && (
+            <p className="text-red-500 text-sm mb-4">
+              {t("mock_test_page.recording_not_supported_mobile_info")} {/* New translation key */}
+            </p>
+          )}
+          <Button 
+            onClick={handleStartTestClick} 
+            size="lg" 
+            className="text-lg px-8 py-4"
+            disabled={!isRecordingSupported} // Disable if recording is not supported
+          >
+            {t("mock_test_page.start_test_with_recording")}
+          </Button>
+        </>
       )}
 
       {isTestStarted && currentPhase !== "finished" && (

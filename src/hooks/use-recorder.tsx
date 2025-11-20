@@ -6,7 +6,6 @@ import { StudentInfo } from "@/lib/types";
 import { addLocalRecording, updateLocalRecordingSupabaseUrl, upsertRecordingMetadataToSupabase } from "@/lib/local-db";
 import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/context/AuthProvider";
 import { v4 as uuidv4 } from 'uuid';
 import { setUploadProgress, removeUploadProgress } from "@/utils/uploadProgress";
 
@@ -16,6 +15,7 @@ const MIME_TYPE = "video/webm; codecs=vp8,opus";
 export const useRecorder = () => {
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [webcamStream, setWebcamStream] = useState<MediaStream | null>(null);
+  const [isRecordingSupported, setIsRecordingSupported] = useState<boolean>(false); // New state
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
@@ -25,7 +25,7 @@ export const useRecorder = () => {
   const startTimeRef = useRef<number>(0);
   const recordingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { t } = useTranslation();
-  const { user } = useAuth();
+  // const { user } = useAuth(); // user is not used directly in useRecorder, only in local-db for upload
 
   const clearRecordingTimeout = useCallback(() => {
     if (recordingTimeoutRef.current) {
@@ -56,19 +56,35 @@ export const useRecorder = () => {
   }, [stopRecordingProcess]);
 
   useEffect(() => {
+    // Check if getDisplayMedia is supported
+    setIsRecordingSupported(!!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia));
+
     const getWebcamPreview = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
         webcamStreamRef.current = stream;
         setWebcamStream(stream);
       } catch (err) {
-        showError(t("add_question_page.error_webcam_stream"));
+        console.warn("Webcam stream error:", err);
+        // showError(t("add_question_page.error_webcam_stream")); // Don't show error if webcam is just not available
       }
     };
     getWebcamPreview();
-  }, [t]);
+
+    return () => {
+      // Cleanup webcam stream on unmount
+      if (webcamStreamRef.current) {
+        webcamStreamRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []); // Empty dependency array to run once on mount
 
   const startRecording = useCallback(async (studentInfo?: StudentInfo): Promise<boolean> => {
+    if (!isRecordingSupported) {
+      showError(t("add_question_page.error_recording_not_supported_mobile")); // New translation key
+      return false;
+    }
+
     recordedChunksRef.current = [];
     if (!MediaRecorder.isTypeSupported(MIME_TYPE)) {
       showError(t("add_question_page.error_recording_format_not_supported", { mimeType: MIME_TYPE }));
@@ -120,7 +136,6 @@ export const useRecorder = () => {
         showSuccess(t("add_question_page.success_video_saving"));
 
         try {
-          // 1. Avval mahalliy (IndexedDB) saqlaymiz
           const recordingId = await addLocalRecording({
             duration,
             student_id: studentInfo?.id,
@@ -129,9 +144,6 @@ export const useRecorder = () => {
             videoBlob: blob,
           });
           showSuccess(t("add_question_page.success_video_saved"));
-
-          // Supabase'ga avtomatik yuklash logikasini olib tashladim.
-          // Endi yuklash faqat "Upload to Cloud" tugmasi bosilganda amalga oshiriladi.
 
         } catch (dbError: any) {
           showError(`${t("add_question_page.error_saving_record_data")} ${dbError.message}`);
@@ -159,12 +171,13 @@ export const useRecorder = () => {
 
       return true;
     } catch (err) {
+      console.error("Error during recording setup:", err); // Log the actual error
       showError(t("add_question_page.error_recording_failed"));
       setIsRecording(false);
       stopRecordingProcess();
       return false;
     }
-  }, [stopRecordingProcess, clearRecordingTimeout, t, user]);
+  }, [isRecordingSupported, stopRecordingProcess, clearRecordingTimeout, t]);
 
   useEffect(() => {
     return () => {
@@ -174,5 +187,5 @@ export const useRecorder = () => {
     };
   }, [clearRecordingTimeout, stopAllStreams]);
 
-  return { isRecording, startRecording, stopRecording: stopRecordingProcess, stopAllStreams, webcamStream };
+  return { isRecording, startRecording, stopRecording: stopRecordingProcess, stopAllStreams, webcamStream, isRecordingSupported };
 };

@@ -173,7 +173,8 @@
     "image": "Изображение",
     "question": "Вопрос",
     "speak_text": "Пожалуйста, говорите",
-    "error_duplicate_question": "Этот вопрос уже существует в системе."
+    "error_duplicate_question": "Этот вопрос уже существует в системе.",
+    "error_recording_not_supported_mobile": "Запись экрана не поддерживается на мобильных устройствах. Пожалуйста, используйте настольный браузер."
   },
   "mock_test_page": {
     "mock_speaking_test": "Пробный разговорный тест",
@@ -188,7 +189,8 @@
     "student_id_placeholder": "ID ученика",
     "student_name_placeholder": "Имя ученика",
     "student_phone_placeholder": "Номер телефона",
-    "start_test": "Начать тест"
+    "start_test": "Начать тест",
+    "recording_not_supported_mobile_info": "Запись экрана не поддерживается на мобильных устройствах. Пожалуйста, используйте настольный браузер для записи теста."
   },
   "records_page": {
     "your_recordings": "Ваши записи",
@@ -228,7 +230,7 @@
     "mood_journal_tracker": "Дневник настроения и трекер",
     "how_are_you_feeling": "Как вы себя чувствуете сегодня?",
     "journal_entry": "Запись в дневнике",
-    "write_about_your_day": "Напишите о своем дне...",
+    "write_about_свой_день": "Напишите о своем дне...",
     "add_entry": "Добавить запись",
     "your_past_entries": "Ваши прошлые записи",
     "filter_by_mood": "Фильтровать по настроению",
