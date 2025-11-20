@@ -69,24 +69,24 @@ export default function Home() {
       <header className="flex flex-col sm:flex-row sm:justify-between items-center mb-8">
         <h1 className="text-xl sm:text-3xl font-bold">Edumock.uz</h1>
         <nav className="flex flex-col gap-2 sm:flex-row sm:gap-6 text-sm sm:text-lg items-center mt-4 sm:mt-0">
-          <Link to="/home" className="hover:text-indigo-300 flex items-center justify-center gap-1 w-full sm:w-auto py-2 px-4 rounded-md hover:bg-white/10">
+          <Link to="/home" className="hover:text-indigo-300 flex items-center justify-center gap-1 w-full sm:w-auto py-2 px-4 rounded-md hover:bg-white/10 border border-white/30">
             <HomeIcon className="h-4 w-4" /> {t("common.home")}
           </Link>
-          <Link to="/settings" className="hover:text-indigo-300 flex items-center justify-center gap-1 w-full sm:w-auto py-2 px-4 rounded-md hover:bg-white/10">
+          <Link to="/settings" className="hover:text-indigo-300 flex items-center justify-center gap-1 w-full sm:w-auto py-2 px-4 rounded-md hover:bg-white/10 border border-white/30">
             <SettingsIcon className="h-4 w-4" /> {t("common.settings")}
           </Link>
-          <Link to="/user-profile" className="hover:text-indigo-300 flex items-center justify-center gap-1 w-full sm:w-auto py-2 px-4 rounded-md hover:bg-white/10">
+          <Link to="/user-profile" className="hover:text-indigo-300 flex items-center justify-center gap-1 w-full sm:w-auto py-2 px-4 rounded-md hover:bg-white/10 border border-white/30">
             <UserIcon className="h-4 w-4" /> {t("common.profile")}
           </Link>
           <Button 
             variant="ghost" 
-            className="hover:text-indigo-300 flex items-center justify-center gap-1 text-white w-full sm:w-auto py-2 px-4 rounded-md hover:bg-white/10" 
+            className="hover:text-indigo-300 flex items-center justify-center gap-1 text-white w-full sm:w-auto py-2 px-4 rounded-md hover:bg-white/10 border border-white/30" 
             onClick={() => setIsGuideDialogOpen(true)}
           >
             <Info className="h-4 w-4" /> {t("common.guide")}
           </Button>
           {(session || isGuestMode) && (
-            <Link to="/login" onClick={handleLogout} className="hover:text-red-300 flex items-center justify-center gap-1 w-full sm:w-auto py-2 px-4 rounded-md hover:bg-white/10">
+            <Link to="/login" onClick={handleLogout} className="hover:text-red-300 flex items-center justify-center gap-1 w-full sm:w-auto py-2 px-4 rounded-md hover:bg-white/10 border border-white/30">
               <LogOut className="h-4 w-4" /> {isGuestMode && !session ? t("common.guest_mode_exit") : t("common.logout")}
             </Link>
           )}
