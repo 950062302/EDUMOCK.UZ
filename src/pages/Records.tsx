@@ -127,51 +127,66 @@ const Records: React.FC = () => {
   }, [user, t]);
 
   const handleDownload = useCallback(async (recording: RecordedSession) => {
-    setDownloadingRecordId(recording.id); // Set downloading status
-    try {
-      let urlToDownload = recording.video_url;
-      let filename = `recording_${recording.id}.webm`;
+    let urlToDownload: string;
+    let filename = `recording_${recording.id}.webm`;
 
-      // If local blob is available, prioritize downloading from local
-      if (recording.isLocalBlobAvailable && recording.video_url.startsWith('blob:')) {
-        urlToDownload = recording.video_url;
-        filename = `local_recording_${recording.id}.webm`;
-      } else if (recording.supabase_url) {
+    // Generate filename based on student info
+    if (recording.student_name && recording.student_phone) {
+      const cleanName = recording.student_name.replace(/[^a-zA-Z0-9]/g, '_');
+      const cleanPhone = recording.student_phone.replace(/[^0-9]/g, '');
+      filename = `${cleanName}_${cleanPhone}.webm`;
+    } else if (recording.student_name) {
+      const cleanName = recording.student_name.replace(/[^a-zA-Z0-9]/g, '_');
+      filename = `${cleanName}.webm`;
+    } else if (recording.student_phone) {
+      const cleanPhone = recording.student_phone.replace(/[^0-9]/g, '');
+      filename = `${cleanPhone}.webm`;
+    }
+    
+    if (recording.isLocalBlobAvailable) {
+      // Local download: fetch blob from IndexedDB and create object URL
+      setDownloadingRecordId(recording.id); // Show downloading state for local downloads
+      try {
+        const blob = await getRecordingBlob(recording.id);
+        if (!blob) {
+          showError(t("records_page.error_no_video_data"));
+          return;
+        }
+        urlToDownload = URL.createObjectURL(blob);
+        filename = `local_${filename}`; // Prefix for local downloads
+        
+        const a = document.createElement("a");
+        a.href = urlToDownload;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(urlToDownload);
+        showSuccess(t("records_page.success_downloaded"));
+      } catch (error: any) {
+        showError(`${t("records_page.error_downloading_video")} ${error.message}`);
+      } finally {
+        setDownloadingRecordId(null);
+      }
+    } else if (recording.supabase_url) {
+      // Cloud download: directly link to Supabase URL
+      try {
         urlToDownload = recording.supabase_url;
-        filename = `cloud_recording_${recording.id}.webm`;
-      } else {
-        showError(t("records_page.error_no_video_data"));
-        return;
-      }
+        filename = `cloud_${filename}`; // Prefix for cloud downloads
 
-      if (recording.student_name && recording.student_phone) {
-        const cleanName = recording.student_name.replace(/[^a-zA-Z0-9]/g, '_');
-        const cleanPhone = recording.student_phone.replace(/[^0-9]/g, '');
-        filename = `${cleanName}_${cleanPhone}.webm`;
-      } else if (recording.student_name) {
-        const cleanName = recording.student_name.replace(/[^a-zA-Z0-9]/g, '_');
-        filename = `${cleanName}.webm`;
-      } else if (recording.student_phone) {
-        const cleanPhone = recording.student_phone.replace(/[^0-9]/g, '');
-        filename = `${cleanPhone}.webm`;
+        const a = document.createElement("a");
+        a.href = urlToDownload;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        // No URL.revokeObjectURL needed for direct links
+        showSuccess(t("records_page.success_download_initiated")); // New translation for initiated download
+      } catch (error: any) {
+        showError(`${t("records_page.error_downloading_video")} ${error.message}`);
       }
-      
-      const response = await fetch(urlToDownload);
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      showSuccess(t("records_page.success_downloaded")); // New translation key needed
-    } catch (error: any) {
-      showError(`${t("records_page.error_downloading_video")} ${error.message}`);
-    } finally {
-      setDownloadingRecordId(null); // Clear downloading status
+    } else {
+      showError(t("records_page.error_no_video_data"));
     }
   }, [t]);
 
@@ -214,7 +229,7 @@ const Records: React.FC = () => {
                   const currentUploadProgress = uploadProgress.get(recording.id);
                   const isUploading = currentUploadProgress !== undefined && currentUploadProgress < 100 && currentUploadProgress >= 0;
                   const uploadError = currentUploadProgress === -1;
-                  const isDownloading = downloadingRecordId === recording.id;
+                  const isDownloadingLocal = downloadingRecordId === recording.id; // Only for local downloads
 
                   return (
                     <Card key={recording.id} className="p-4">
@@ -250,14 +265,14 @@ const Records: React.FC = () => {
 
                           {/* Local Download button (conditional) */}
                           {recording.isLocalBlobAvailable && (
-                            <Button onClick={() => handleDownload({ ...recording, supabase_url: undefined })} variant="outline" size="sm" className="flex items-center gap-1 w-full sm:w-auto" disabled={isDownloading || isUploading}>
+                            <Button onClick={() => handleDownload({ ...recording, supabase_url: undefined })} variant="outline" size="sm" className="flex items-center gap-1 w-full sm:w-auto" disabled={isDownloadingLocal || isUploading}>
                               <Download className="h-4 w-4" /> {t("records_page.download_local")}
                             </Button>
                           )}
                           
                           {/* Conditional Upload / Uploading / Cloud Download button */}
                           {!recording.supabase_url && user?.id && !isUploading && !uploadError ? (
-                            <Button onClick={() => handleUploadToSupabase(recording)} variant="outline" size="sm" className="flex items-center gap-1 w-full sm:w-auto" disabled={isDownloading}>
+                            <Button onClick={() => handleUploadToSupabase(recording)} variant="outline" size="sm" className="flex items-center gap-1 w-full sm:w-auto" disabled={isDownloadingLocal}>
                               <Cloud className="h-4 w-4" /> {t("records_page.upload")}
                             </Button>
                           ) : isUploading ? (
@@ -269,8 +284,8 @@ const Records: React.FC = () => {
                               <span className="relative z-10">{t("records_page.uploading_to_cloud")} {currentUploadProgress?.toFixed(0)}%</span>
                             </Button>
                           ) : recording.supabase_url && (
-                            <Button onClick={() => handleDownload(recording)} variant="default" size="sm" className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 w-full sm:w-auto" disabled={isDownloading || isUploading}>
-                              {isDownloading ? (
+                            <Button onClick={() => handleDownload(recording)} variant="default" size="sm" className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 w-full sm:w-auto" disabled={isDownloadingLocal || isUploading}>
+                              {isDownloadingLocal ? ( // isDownloadingLocal is not used for cloud downloads, but keeping it for consistency if needed
                                 <>
                                   <Zap className="h-4 w-4 animate-pulse" /> {t("records_page.downloading")}
                                 </>
@@ -285,7 +300,7 @@ const Records: React.FC = () => {
                           {/* Delete button */}
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="destructive" size="sm" className="flex items-center gap-1 w-full sm:w-auto" disabled={isDownloading || isUploading}>
+                              <Button variant="destructive" size="sm" className="flex items-center gap-1 w-full sm:w-auto" disabled={isDownloadingLocal || isUploading}>
                                 <Trash2 className="h-4 w-4" /> {t("records_page.delete")}
                               </Button>
                             </AlertDialogTrigger>
