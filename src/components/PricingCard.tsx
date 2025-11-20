@@ -179,10 +179,7 @@ const PricingCard: React.FC = () => {
         })}
       </Accordion>
 
-      <div className="mb-6 p-3 border border-border rounded-xl flex justify-between items-center bg-input">
-        <Input type="text" placeholder={t("landing_page.enter_promo_code")} className="w-full outline-none text-sm bg-transparent border-none focus-visible:ring-0" />
-        <Button variant="ghost" className="text-primary font-semibold text-sm hover:text-primary/90 p-0 h-auto">{t("landing_page.promo_code")}</Button>
-      </div>
+      {/* Promo kod kiritish qismi olib tashlandi */}
 
       <Button asChild className="w-full mt-4 py-4 bg-primary text-white font-bold text-lg rounded-xl hover:bg-primary/90 transition duration-150 shadow-md">
         <a href="https://t.me/aero_one" target="_blank" rel="noopener noreferrer">
