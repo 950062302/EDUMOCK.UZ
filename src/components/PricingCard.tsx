@@ -22,8 +22,8 @@ interface PriceOption {
 
 const prices: { [key: string]: PriceOption } = {
   "1": { 
-    price: 299000, 
-    display: "299,000 so'm",
+    price: 499000, 
+    display: "499,000 so'm",
     features: [
       "unlimited_attempts", 
       "unlimited_downloads", 
@@ -34,10 +34,10 @@ const prices: { [key: string]: PriceOption } = {
     ]
   },
   "3": { 
-    price: 749000, 
-    display: "749,000 so'm", 
-    originalPrice: 900000, 
-    discount: "-16.7%",
+    price: 1199000, 
+    display: "1,199,000 so'm", 
+    originalPrice: 1497000, // 3 * 499,000
+    discount: "-20%",
     features: [
       "unlimited_attempts", 
       "unlimited_downloads", 
@@ -48,10 +48,10 @@ const prices: { [key: string]: PriceOption } = {
     ]
   },
   "6": { 
-    price: 1299000, 
-    display: "1,299,000 so'm", 
-    originalPrice: 1800000, 
-    discount: "-27.8%",
+    price: 2599000, 
+    display: "2,599,000 so'm", 
+    originalPrice: 2994000, // 6 * 499,000
+    discount: "-13%",
     features: [
       "unlimited_attempts", 
       "unlimited_downloads", 
@@ -62,10 +62,10 @@ const prices: { [key: string]: PriceOption } = {
     ]
   },
   "12": { 
-    price: 2499000, 
-    display: "2,499,000 so'm", 
-    originalPrice: 3600000, 
-    discount: "-30.6%",
+    price: 4999000, 
+    display: "4,999,000 so'm", 
+    originalPrice: 5988000, // 12 * 499,000
+    discount: "-16.5%",
     features: [
       "unlimited_attempts", 
       "unlimited_downloads", 
@@ -77,8 +77,8 @@ const prices: { [key: string]: PriceOption } = {
     ]
   },
   "lifetime": { 
-    price: 5999000, 
-    display: "5,999,000 so'm",
+    price: 6599000, 
+    display: "6,599,000 so'm",
     features: [
       "unlimited_attempts", 
       "unlimited_downloads", 
