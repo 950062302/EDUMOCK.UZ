@@ -203,6 +203,7 @@ interface StoredRecording {
   student_name?: string;
   student_phone?: string;
   videoBlob: Blob;
+  supabase_url?: string; // Supabase URL for the video
 }
 
 export const getLocalRecordings = async (): Promise<RecordedSession[]> => {
@@ -215,21 +216,56 @@ export const getLocalRecordings = async (): Promise<RecordedSession[]> => {
   }));
 };
 
+export const getRecordingBlob = async (id: string): Promise<Blob | undefined> => {
+  const db = await initDB();
+  const recording = await db.get(STORE_RECORDINGS, id);
+  return recording?.videoBlob;
+};
+
 export const addLocalRecording = async (
-  recording: Omit<RecordedSession, 'id' | 'timestamp' | 'user_id' | 'video_url'> & { videoBlob: Blob }
-): Promise<void> => {
+  recording: Omit<RecordedSession, 'id' | 'timestamp' | 'user_id' | 'video_url'> & { videoBlob: Blob, supabase_url?: string }
+): Promise<string> => {
   const db = await initDB();
   const newRecording: StoredRecording = {
     ...recording,
     id: uuidv4(),
     timestamp: new Date().toISOString(),
-    user_id: 'local_user',
+    user_id: await getUserId() || 'local_user', // Use actual user ID if available
     videoBlob: recording.videoBlob,
+    supabase_url: recording.supabase_url,
   };
   await db.add(STORE_RECORDINGS, newRecording);
+  return newRecording.id;
+};
+
+export const updateLocalRecordingSupabaseUrl = async (id: string, supabaseUrl: string): Promise<void> => {
+  const db = await initDB();
+  const tx = db.transaction(STORE_RECORDINGS, 'readwrite');
+  const store = tx.objectStore(STORE_RECORDINGS);
+  const recording = await store.get(id);
+  if (recording) {
+    recording.supabase_url = supabaseUrl;
+    await store.put(recording);
+  }
+  await tx.done;
 };
 
 export const deleteLocalRecording = async (id: string) => {
   const db = await initDB();
+  const recording = await db.get(STORE_RECORDINGS, id);
+
+  if (recording?.supabase_url) {
+    const userId = await getUserId();
+    if (userId) {
+      const filePath = `${userId}/${id}.webm`; // Assuming .webm format and user_id/recording_id.webm path
+      const { error: deleteError } = await supabase.storage
+        .from('recordings')
+        .remove([filePath]);
+
+      if (deleteError) {
+        showError(i18n.t("records_page.error_deleting_from_cloud", { message: deleteError.message }));
+      }
+    }
+  }
   await db.delete(STORE_RECORDINGS, id);
 };

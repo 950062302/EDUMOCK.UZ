@@ -3,8 +3,11 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { showSuccess, showError } from "@/utils/toast";
 import { StudentInfo } from "@/lib/types";
-import { addLocalRecording } from "@/lib/local-db";
+import { addLocalRecording, updateLocalRecordingSupabaseUrl } from "@/lib/local-db";
 import { useTranslation } from 'react-i18next';
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthProvider";
+import { v4 as uuidv4 } from 'uuid';
 
 const MAX_RECORDING_DURATION_MS = 60 * 60 * 1000;
 const MIME_TYPE = "video/webm; codecs=vp8,opus";
@@ -21,6 +24,7 @@ export const useRecorder = () => {
   const startTimeRef = useRef<number>(0);
   const recordingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { t } = useTranslation();
+  const { user } = useAuth(); // Foydalanuvchi ma'lumotlarini olish
 
   const clearRecordingTimeout = useCallback(() => {
     if (recordingTimeoutRef.current) {
@@ -115,7 +119,7 @@ export const useRecorder = () => {
         showSuccess(t("add_question_page.success_video_saving"));
 
         try {
-          await addLocalRecording({
+          const recordingId = await addLocalRecording({
             duration,
             student_id: studentInfo?.id,
             student_name: studentInfo?.name,
@@ -123,6 +127,33 @@ export const useRecorder = () => {
             videoBlob: blob,
           });
           showSuccess(t("add_question_page.success_video_saved"));
+
+          // Supabase'ga yuklash
+          if (user?.id) {
+            const filePath = `${user.id}/${recordingId}.webm`;
+            const { data, error: uploadError } = await supabase.storage
+              .from('recordings')
+              .upload(filePath, blob, {
+                cacheControl: '3600',
+                upsert: false,
+              });
+
+            if (uploadError) {
+              showError(`${t("records_page.error_uploading_to_cloud")} ${uploadError.message}`);
+            } else {
+              const { data: publicUrlData } = supabase.storage
+                .from('recordings')
+                .getPublicUrl(filePath);
+              
+              if (publicUrlData.publicUrl) {
+                await updateLocalRecordingSupabaseUrl(recordingId, publicUrlData.publicUrl);
+                showSuccess(t("records_page.success_uploaded_to_cloud"));
+              } else {
+                showError(t("records_page.error_getting_public_url"));
+              }
+            }
+          }
+
         } catch (dbError: any) {
           showError(`${t("add_question_page.error_saving_record_data")} ${dbError.message}`);
         }
@@ -154,7 +185,7 @@ export const useRecorder = () => {
       stopRecordingProcess();
       return false;
     }
-  }, [stopRecordingProcess, clearRecordingTimeout, t]);
+  }, [stopRecordingProcess, clearRecordingTimeout, t, user]);
 
   useEffect(() => {
     return () => {
