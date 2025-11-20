@@ -65,8 +65,8 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-sky-500 to-slate-900 text-white p-6">
-      <header className="flex justify-between items-center mb-16">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-sky-500 to-slate-900 text-white p-4"> {/* p-6 dan p-4 ga o'zgartirildi */}
+      <header className="flex justify-between items-center mb-8"> {/* mb-16 dan mb-8 ga o'zgartirildi */}
         <h1 className="text-xl sm:text-3xl font-bold">Edumock.uz</h1>
         <nav className="flex gap-3 sm:gap-6 text-sm sm:text-lg items-center">
           <Link to="/home" className="hover:text-indigo-300 flex items-center gap-1">
@@ -98,11 +98,11 @@ export default function Home() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
       >
-        <h2 className="text-3xl sm:text-5xl font-bold text-center mb-2 drop-shadow-md">{t("home_page.speaking_platform")}</h2>
-        <p className="text-sm sm:text-base text-center text-slate-200 mb-8">{t("home_page.welcome_dashboard")}</p>
+        <h2 className="text-3xl sm:text-5xl font-bold text-center mb-1 drop-shadow-md">{t("home_page.speaking_platform")}</h2> {/* mb-2 dan mb-1 ga o'zgartirildi */}
+        <p className="text-sm sm:text-base text-center text-slate-200 mb-4">{t("home_page.welcome_dashboard")}</p> {/* mb-8 dan mb-4 ga o'zgartirildi */}
       </motion.div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8 max-w-6xl mx-auto">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8 max-w-6xl mx-auto mt-8 sm:mt-16"> {/* mt-10 sm:mt-20 dan mt-8 sm:mt-16 ga o'zgartirildi */}
         {items.map((item, index) => (
           <motion.div
             key={index}
