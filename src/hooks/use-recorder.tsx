@@ -162,7 +162,7 @@ export const useRecorder = () => {
                 // 4. Supabase metadata jadvaliga ma'lumotlarni kiritamiz/yangilaymiz
                 await upsertRecordingMetadataToSupabase({
                   id: recordingId,
-                  user_id: userId, // userId is guaranteed to be user.id here
+                  user_id: user.id, // Bu yerda user.id ni to'g'ridan-to'g'ri ishlatamiz
                   timestamp: currentTimestamp,
                   duration,
                   student_id: studentInfo?.id,
