@@ -123,7 +123,7 @@ export default function Home() {
                 <CardContent className="flex flex-col items-center text-center p-4 sm:p-8">
                   <div className="mb-4 text-indigo-300 transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_10px_rgba(99,102,241,0.8)]">{item.icon}</div>
                   <h3 className="text-lg sm:text-2xl font-bold mb-2">{item.title}</h3>
-                  <p className="text-xs sm:text-sm text-gray-700 mb-4">{item.subtitle}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-4">{item.subtitle}</p>
                   <Button className="mt-2 bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-1 sm:px-6 sm:py-2 rounded-xl shadow-lg shadow-indigo-500/30 transition-all duration-300 hover:scale-105">{t("common.open")}</Button>
                 </CardContent>
               </Card>
