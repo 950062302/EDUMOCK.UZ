@@ -31,7 +31,7 @@ const ContactSection: React.FC = () => {
             <span className="text-primary mr-2">
               <Upload className="h-5 w-5" />
             </span>
-            <a href="https://tme/aero_one" target="_blank" rel="noopener noreferrer" className="text-gray-900 font-semibold font-mono">Telegram</a>
+            <a href="https://t.me/aero_one" target="_blank" rel="noopener noreferrer" className="text-gray-900 font-semibold font-mono">Telegram</a>
           </p>
         </div>
       </div>
