@@ -128,6 +128,7 @@ const PricingCard: React.FC = () => {
           const option = key;
           const priceData = prices[option];
           const isHotSaleCard = option === "3"; // Hot Sale kartasini aniqlash
+          const isBusinessCard = option === "lifetime"; // Business kartasini aniqlash
 
           return (
             <AccordionItem 
@@ -138,6 +139,11 @@ const PricingCard: React.FC = () => {
               {isHotSaleCard && (
                 <div className="hot-sale-badge absolute -top-3 -right-3 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md z-10 animate-pulse-hot-sale">
                   {t("landing_page.hot_sale")}
+                </div>
+              )}
+              {isBusinessCard && (
+                <div className="business-badge absolute -top-3 -right-3 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md z-10 animate-pulse-hot-sale">
+                  {t("landing_page.business")}
                 </div>
               )}
               <AccordionTrigger className="flex justify-between items-center mb-2 p-0 hover:no-underline">
@@ -177,8 +183,6 @@ const PricingCard: React.FC = () => {
         <Input type="text" placeholder={t("landing_page.enter_promo_code")} className="w-full outline-none text-sm bg-transparent border-none focus-visible:ring-0" />
         <Button variant="ghost" className="text-primary font-semibold text-sm hover:text-primary/90 p-0 h-auto">{t("landing_page.promo_code")}</Button>
       </div>
-
-      {/* "Jami" summani ko'rsatuvchi qism olib tashlandi */}
 
       <Button asChild className="w-full mt-4 py-4 bg-primary text-white font-bold text-lg rounded-xl hover:bg-primary/90 transition duration-150 shadow-md">
         <a href="https://t.me/aero_one" target="_blank" rel="noopener noreferrer">
