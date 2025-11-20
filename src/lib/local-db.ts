@@ -334,7 +334,7 @@ export const getLocalRecordings = async (): Promise<RecordedSession[]> => {
           student_id: rec.student_id || undefined,
           student_name: rec.student_name || undefined,
           student_phone: rec.student_phone || undefined,
-          video_url: rec.supabase_url,
+          video_url: localVersion ? URL.createObjectURL(localVersion.videoBlob) : rec.supabase_url, // Use local blob URL if available, otherwise Supabase URL
           supabase_url: rec.supabase_url,
           isLocalBlobAvailable: !!localVersion,
         });
