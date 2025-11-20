@@ -7,15 +7,14 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/com
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch"; // Switch komponentini import qildim
-import { useTheme } from "next-themes"; // useTheme importini qayta qo'shdim
+import { Switch } from "@/components/ui/switch";
+import { useTheme } from "next-themes";
 import { useTranslation } from 'react-i18next';
 
 const Settings: React.FC = () => {
-  const { theme, setTheme } = useTheme(); // useTheme hookini qayta faollashtirdim
+  const { theme, setTheme } = useTheme();
   const { t } = useTranslation();
 
-  // handleThemeChange funksiyasini qayta qo'shdim
   const handleThemeChange = (checked: boolean) => {
     const newTheme = checked ? "dark" : "light";
     console.log("Attempting to set theme to:", newTheme);
@@ -26,13 +25,12 @@ const Settings: React.FC = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow container mx-auto p-4 flex items-center justify-center">
-        <Card className="w-full max-w-2xl">
+        <Card className="w-full max-w-2xl shadow-xl"> {/* shadow-xl qo'shildi */}
           <CardHeader className="text-center">
             <CardTitle className="text-3xl font-bold">{t("settings_page.settings")}</CardTitle>
             <CardDescription>{t("settings_page.manage_preferences")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Tungi rejim sozlamasi qayta qo'shildi */}
             <div className="flex items-center justify-between">
               <Label htmlFor="dark-mode" className="text-base">{t("settings_page.dark_mode")}</Label>
               <Switch 

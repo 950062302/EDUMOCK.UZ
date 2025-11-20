@@ -18,7 +18,7 @@ const UserProfile: React.FC = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow container mx-auto p-4 flex items-center justify-center">
-        <Card className="w-full max-w-2xl">
+        <Card className="w-full max-w-2xl shadow-xl"> {/* shadow-xl qo'shildi */}
           <CardHeader className="text-center">
             <CardTitle className="text-3xl font-bold">{t("user_profile_page.user_profile")}</CardTitle>
             <CardDescription>{t("user_profile_page.view_update_profile")}</CardDescription>
