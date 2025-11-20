@@ -7,7 +7,7 @@ import LandingPageHeader from "@/components/LandingPageHeader";
 import ProcessSteps from "@/components/ProcessSteps";
 import ContactSection from "@/components/ContactSection";
 import PricingCard from "@/components/PricingCard";
-import LoginDialog from "@/components/LoginDialog"; // FixedLoginButton importini olib tashladim
+import LoginDialog from "@/components/LoginDialog";
 import LandingPageFooter from "@/components/LandingPageFooter";
 import { useTranslation } from 'react-i18next';
 
@@ -50,10 +50,9 @@ const Login: React.FC = () => {
               >
                 {t("landing_page.try_me_button")}
               </Button>
-              {/* FixedLoginButton dizaynini saqlab qolgan holda, uni bu yerga o'tkazdim */}
               <Button
                 onClick={openLoginModal}
-                className="fixed-login-button text-white focus:outline-none focus:ring-4 focus:ring-primary focus:ring-opacity-50"
+                className="fixed-login-button text-white focus:outline-none focus:ring-4 focus:ring-primary focus:ring-opacity-50 rounded-xl"
               >
                 {t("common.login")}
               </Button>
@@ -69,7 +68,6 @@ const Login: React.FC = () => {
         </div>
       </main>
 
-      {/* FixedLoginButton komponentini olib tashladim */}
       <LoginDialog isOpen={isLoginDialogOpen} onClose={closeLoginModal} />
       <LandingPageFooter />
     </div>
