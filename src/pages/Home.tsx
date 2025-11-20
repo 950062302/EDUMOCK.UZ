@@ -102,7 +102,7 @@ export default function Home() {
         <p className="text-center text-slate-200 mb-16">{t("home_page.welcome_dashboard")}</p>
       </motion.div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
         {items.map((item, index) => (
           <motion.div
             key={index}
