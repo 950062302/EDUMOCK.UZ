@@ -261,7 +261,9 @@
     "error_password_mismatch": "Yangi parollar mos kelmadi. Iltimos, qaytadan kiriting.",
     "error_update_credentials": "Kirish ma'lumotlarini yangilashda xatolik yuz berdi:",
     "error_no_changes_to_save": "Saqlash uchun hech qanday o'zgarish kiritilmadi.",
-    "error_password_length": "Parol kamida 6 ta belgidan iborat bo'lishi kerak."
+    "error_password_length": "Parol kamida 6 ta belgidan iborat bo'lishi kerak.",
+    "error_recovery_login_failed": "Parolni tiklash orqali kirishda xatolik yuz berdi.",
+    "success_recovery_login": "Parolni tiklash orqali muvaffaqiyatli kirdingiz!"
   },
   "guide_dialog": {
     "title": "Qo'llanma",

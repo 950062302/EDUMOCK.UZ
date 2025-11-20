@@ -261,7 +261,9 @@
     "error_password_mismatch": "New passwords do not match. Please try again.",
     "error_update_credentials": "Error updating login credentials:",
     "error_no_changes_to_save": "No changes were made to save.",
-    "error_password_length": "Password must be at least 6 characters long."
+    "error_password_length": "Password must be at least 6 characters long.",
+    "error_recovery_login_failed": "Error logging in via recovery.",
+    "success_recovery_login": "Successfully logged in via recovery!"
   },
   "guide_dialog": {
     "title": "Guide",

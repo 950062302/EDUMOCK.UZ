@@ -261,7 +261,9 @@
     "error_password_mismatch": "Новые пароли не совпадают. Пожалуйста, попробуйте еще раз.",
     "error_update_credentials": "Ошибка при обновлении учетных данных:",
     "error_no_changes_to_save": "Изменения для сохранения не были внесены.",
-    "error_password_length": "Пароль должен содержать не менее 6 символов."
+    "error_password_length": "Пароль должен содержать не менее 6 символов.",
+    "error_recovery_login_failed": "Ошибка при входе через восстановление.",
+    "success_recovery_login": "Успешный вход через восстановление!"
   },
   "guide_dialog": {
     "title": "Руководство",
