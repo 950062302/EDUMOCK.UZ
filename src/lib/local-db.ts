@@ -51,7 +51,9 @@ export const getSupabaseQuestions = async (): Promise<SpeakingQuestion[]> => {
 };
 
 export const addSupabaseQuestion = async (question: Omit<SpeakingQuestion, 'id' | 'date' | 'user_id'>): Promise<SpeakingQuestion | null> => {
-  const userId = await getUserId();
+  const { data: { user } } = await supabase.auth.getUser();
+  const userId = user?.id;
+
   if (!userId) {
     showError(i18n.t("add_question_page.error_saving_entry", { message: "Foydalanuvchi ID topilmadi. Mehmon rejimida savol qo'shib bo'lmaydi." }));
     return null;
@@ -78,19 +80,23 @@ export const addSupabaseQuestion = async (question: Omit<SpeakingQuestion, 'id' 
 };
 
 export const updateSupabaseQuestion = async (updatedQuestion: SpeakingQuestion): Promise<SpeakingQuestion | null> => {
-  const userId = await getUserId();
-  if (!userId) {
-    showError(i18n.t("add_question_page.error_saving_entry", { message: "Foydalanuvchi ID topilmadi. Mehmon rejimida savolni tahrirlab bo'lmaydi." }));
-    return null;
-  }
+  const { data: { user } } = await supabase.auth.getUser();
+  const userId = user?.id;
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('questions')
     .update(updatedQuestion)
-    .eq('id', updatedQuestion.id)
-    .eq('user_id', userId) // Faqat o'z savollarini tahrirlashga ruxsat berish
-    .select()
-    .single();
+    .eq('id', updatedQuestion.id);
+
+  if (userId) {
+    // Authenticated user can only update their own questions
+    query = query.eq('user_id', userId);
+  } else {
+    // Guest user can only update public sample questions (user_id is NULL)
+    query = query.eq('user_id', null);
+  }
+
+  const { data, error } = await query.select().single();
 
   if (error) {
     showError(i18n.t("add_question_page.error_saving_entry", { message: error.message }));
@@ -100,17 +106,24 @@ export const updateSupabaseQuestion = async (updatedQuestion: SpeakingQuestion):
 };
 
 export const deleteSupabaseQuestion = async (id: string): Promise<boolean> => {
-  const userId = await getUserId();
-  if (!userId) {
-    showError(i18n.t("add_question_page.error_deleting_entry", { message: "Foydalanuvchi ID topilmadi. Mehmon rejimida savolni o'chirib bo'lmaydi." }));
+  const { data: { user } } = await supabase.auth.getUser();
+  const userId = user?.id;
+
+  let query = supabase
+    .from('questions')
+    .delete()
+    .eq('id', id);
+
+  if (userId) {
+    query = query.eq('user_id', userId);
+  } else {
+    // Guest users cannot delete any questions, even public ones.
+    // This prevents guests from modifying the sample data.
+    showError(i18n.t("add_question_page.error_deleting_entry", { message: "Mehmon rejimida savolni o'chirib bo'lmaydi." }));
     return false;
   }
 
-  const { error } = await supabase
-    .from('questions')
-    .delete()
-    .eq('id', id)
-    .eq('user_id', userId); // Faqat o'z savollarini o'chirishga ruxsat berish
+  const { error } = await query;
 
   if (error) {
     showError(i18n.t("add_question_page.error_deleting_entry", { message: error.message }));
@@ -120,16 +133,21 @@ export const deleteSupabaseQuestion = async (id: string): Promise<boolean> => {
 };
 
 export const resetSupabaseQuestionCooldowns = async (): Promise<boolean> => {
-  const userId = await getUserId();
-  if (!userId) {
-    showError(i18n.t("add_question_page.error_saving_entry", { message: "Foydalanuvchi ID topilmadi. Mehmon rejimida cooldown'larni tiklab bo'lmaydi." }));
-    return false;
+  const { data: { user } } = await supabase.auth.getUser();
+  const userId = user?.id;
+
+  let query = supabase
+    .from('questions')
+    .update({ last_used: null });
+
+  if (userId) {
+    query = query.eq('user_id', userId);
+  } else {
+    // Guest user can reset cooldowns for public sample questions
+    query = query.eq('user_id', null);
   }
 
-  const { error } = await supabase
-    .from('questions')
-    .update({ last_used: null })
-    .eq('user_id', userId); // Faqat o'z savollarini tiklashga ruxsat berish
+  const { error } = await query;
 
   if (error) {
     showError(i18n.t("add_question_page.error_saving_entry", { message: error.message }));
