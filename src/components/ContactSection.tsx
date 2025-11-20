@@ -31,7 +31,7 @@ const ContactSection: React.FC = () => {
             <span className="text-primary mr-2">
               <Phone className="h-5 w-5" />
             </span>
-            <a href="tel:+998931273300" className="text-foreground font-semibold font-mono">+998 93 127 3300</a>
+            <a href="tel:+998931273300" className="text-foreground font-semibold font-mono">+998 93 127 33 00</a>
           </p>
           <p className="flex items-center text-lg">
             <span className="text-primary mr-2">
