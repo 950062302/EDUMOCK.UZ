@@ -44,12 +44,21 @@ const Login: React.FC = () => {
               {t("landing_page.subtitle")}
             </p>
 
-            <Button
-              onClick={handleTryMe}
-              className="bg-gradient-purple text-white text-base px-6 py-4 rounded-full shadow-lg mb-10 transition-all duration-300 animate-button-pulse btn-hover-glow"
-            >
-              {t("landing_page.try_me_button")}
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4 mb-10"> {/* Tugmalarni yonma-yon joylashtirish uchun div qo'shildi */}
+              <Button
+                onClick={handleTryMe}
+                className="bg-gradient-purple text-white text-base px-6 py-4 rounded-full shadow-lg transition-all duration-300 animate-button-pulse btn-hover-glow"
+              >
+                {t("landing_page.try_me_button")}
+              </Button>
+              <Button
+                onClick={openLoginModal}
+                variant="outline"
+                className="text-primary border-primary text-base px-6 py-4 rounded-full shadow-lg transition-all duration-300 hover:bg-primary hover:text-white"
+              >
+                {t("common.login")}
+              </Button>
+            </div>
 
             <ProcessSteps />
             <ContactSection />
