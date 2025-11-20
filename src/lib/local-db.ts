@@ -409,46 +409,70 @@ export const updateLocalRecordingSupabaseUrl = async (id: string, supabaseUrl: s
 
 export const deleteLocalRecording = async (id: string): Promise<boolean> => {
   const db = await initDB();
-  const recording = await db.get(STORE_RECORDINGS, id);
+  const userId = await getUserId();
+  let localRecording = await db.get(STORE_RECORDINGS, id);
+  let supabaseMetadataExists = false;
+  let supabaseDeletionSuccessful = true; // Assume true if no cloud interaction needed or successful
 
-  let supabaseDeletionSuccessful = true; // Assume success if not uploaded to Supabase
-  let localDeletionPerformed = false;
+  console.log(`[Delete] Starting deletion for recording ID: ${id}.`);
 
-  console.log(`[Delete] Starting deletion for recording ID: ${id}. Supabase URL present in IndexedDB: ${!!recording?.supabase_url}`);
-
-  if (!recording) {
-    console.warn(`[Delete] Recording with ID ${id} not found in IndexedDB. Nothing to delete.`);
-    return false; // Agar mahalliy topilmasa, o'chirishga urinmaymiz
-  }
-
-  // Agar yozuv Supabase'ga yuklangan bo'lsa, avval Supabase'dan o'chiramiz
-  if (recording.supabase_url) {
-    const userId = await getUserId();
-    if (!userId) {
-      console.error(`[Delete] User not authenticated for cloud deletion of ID: ${id}.`);
+  if (!userId) {
+    // If not authenticated, we can only delete local-only recordings.
+    // If localRecording has a supabase_url, we cannot delete it from cloud.
+    if (localRecording && !localRecording.supabase_url) {
+      await db.delete(STORE_RECORDINGS, id);
+      console.log(`[Delete] Successfully deleted local-only recording from IndexedDB for ID: ${id} (unauthenticated user).`);
+      return true;
+    } else if (localRecording && localRecording.supabase_url) {
       showError(i18n.t("records_page.error_deleting_from_cloud", { message: "Foydalanuvchi ID topilmadi. Bulutdan o'chirib bo'lmaydi." }));
-      supabaseDeletionSuccessful = false;
+      console.error(`[Delete] Cannot delete cloud-linked recording ${id} without authentication.`);
+      return false;
     } else {
-      console.log(`[Delete] Authenticated user ID for deletion attempt: ${userId}`);
-      supabaseDeletionSuccessful = await deleteCloudRecording(id, userId);
+      console.warn(`[Delete] Recording with ID ${id} not found locally and user not authenticated for cloud check.`);
+      return false;
     }
   }
 
-  console.log(`[Delete] Supabase deletion successful status: ${supabaseDeletionSuccessful}`);
+  // User is authenticated.
+  // First, check if it exists in Supabase metadata.
+  const { data: metadata, error: metadataError } = await supabase
+    .from('recordings_metadata')
+    .select('id, supabase_url')
+    .eq('id', id)
+    .eq('user_id', userId)
+    .single();
 
-  // Mahalliy o'chirish qarori:
-  // Faqatgina Supabase'dan o'chirish muvaffaqiyatli bo'lsa (bulutli yozuv uchun)
-  // YOKI u hech qachon bulutli yozuv bo'lmagan bo'lsa (faqat mahalliy)
-  if (supabaseDeletionSuccessful || !recording.supabase_url) {
-    console.log(`[Delete] Proceeding with local deletion for ID: ${id}.`);
-    await db.delete(STORE_RECORDINGS, id);
-    localDeletionPerformed = true;
-    console.log(`[Delete] Successfully deleted local recording for ID: ${id}`);
-  } else {
-    // Agar u bulutli yozuv bo'lsa VA Supabase'dan o'chirish muvaffaqiyatsiz tugagan bo'lsa.
-    showError(i18n.t("records_page.error_cloud_delete_failed_local_kept"));
-    console.warn(`[Delete] Supabase deletion failed for recording ID ${id}. Local copy kept in IndexedDB.`);
+  if (metadataError && metadataError.code !== 'PGRST116') { // PGRST116 means no rows found
+    console.error(`[Delete] Error fetching metadata for ID ${id} from Supabase:`, metadataError.message);
+    showError(i18n.t("records_page.error_deleting_from_cloud", { message: metadataError.message }));
+    return false; // Failed to even check Supabase
   }
 
-  return localDeletionPerformed;
+  if (metadata && metadata.supabase_url) {
+    supabaseMetadataExists = true;
+    console.log(`[Delete] Recording ID ${id} found in Supabase metadata. Attempting cloud deletion.`);
+    supabaseDeletionSuccessful = await deleteCloudRecording(id, userId);
+  } else {
+    console.log(`[Delete] Recording ID ${id} not found in Supabase metadata or has no supabase_url.`);
+    supabaseDeletionSuccessful = true; // No cloud resource to delete, so consider it successful for cloud part
+  }
+
+  let localDeletionPerformed = false;
+  if (localRecording) {
+    if (supabaseDeletionSuccessful) {
+      console.log(`[Delete] Proceeding with local deletion for ID: ${id}.`);
+      await db.delete(STORE_RECORDINGS, id);
+      localDeletionPerformed = true;
+      console.log(`[Delete] Successfully deleted local recording for ID: ${id}`);
+    } else {
+      // Supabase deletion failed, keep local copy
+      showError(i18n.t("records_page.error_cloud_delete_failed_local_kept"));
+      console.warn(`[Delete] Supabase deletion failed for recording ID ${id}. Local copy kept in IndexedDB.`);
+    }
+  } else {
+    console.log(`[Delete] Recording ID ${id} not found in local IndexedDB.`);
+  }
+
+  // Return true if either local deletion happened, or it was a cloud-only recording and cloud deletion succeeded.
+  return localDeletionPerformed || (supabaseMetadataExists && supabaseDeletionSuccessful);
 };
