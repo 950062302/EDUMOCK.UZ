@@ -246,7 +246,22 @@
     "your_full_name": "Ваше имя пользователя",
     "email_address": "Адрес электронной почты",
     "bio": "Биография",
-    "tell_about_yourself": "Расскажите о себе"
+    "tell_about_yourself": "Расскажите о себе",
+    "update_login_credentials": "Обновить учетные данные",
+    "new_email": "Новый адрес электронной почты",
+    "enter_new_email": "Введите новый адрес электронной почты",
+    "new_password": "Новый пароль",
+    "enter_new_password": "Введите новый пароль",
+    "confirm_new_password": "Подтвердите новый пароль",
+    "confirm_password": "Подтвердите пароль",
+    "update_credentials": "Обновить учетные данные",
+    "success_email_update_check_inbox": "Ваш адрес электронной почты обновлен. Пожалуйста, проверьте свою почту для подтверждения.",
+    "success_password_updated": "Ваш пароль успешно обновлен!",
+    "success_credentials_updated": "Ваши учетные данные успешно обновлены!",
+    "error_password_mismatch": "Новые пароли не совпадают. Пожалуйста, попробуйте еще раз.",
+    "error_update_credentials": "Ошибка при обновлении учетных данных:",
+    "error_no_changes_to_save": "Изменения для сохранения не были внесены.",
+    "error_password_length": "Пароль должен содержать не менее 6 символов."
   },
   "guide_dialog": {
     "title": "Руководство",

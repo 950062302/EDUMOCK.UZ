@@ -246,7 +246,22 @@
     "your_full_name": "To'liq ismingiz",
     "email_address": "Elektron pochta manzili",
     "bio": "Bio",
-    "tell_about_yourself": "O'zingiz haqingizda gapirib bering"
+    "tell_about_yourself": "O'zingiz haqingizda gapirib bering",
+    "update_login_credentials": "Kirish ma'lumotlarini yangilash",
+    "new_email": "Yangi elektron pochta",
+    "enter_new_email": "Yangi elektron pochtani kiriting",
+    "new_password": "Yangi parol",
+    "enter_new_password": "Yangi parolni kiriting",
+    "confirm_new_password": "Yangi parolni tasdiqlash",
+    "confirm_password": "Parolni tasdiqlang",
+    "update_credentials": "Credentialsni yangilash",
+    "success_email_update_check_inbox": "Elektron pochta manzilingiz yangilandi. Iltimos, tasdiqlash uchun pochtangizni tekshiring.",
+    "success_password_updated": "Parolingiz muvaffaqiyatli yangilandi!",
+    "success_credentials_updated": "Kirish ma'lumotlaringiz muvaffaqiyatli yangilandi!",
+    "error_password_mismatch": "Yangi parollar mos kelmadi. Iltimos, qaytadan kiriting.",
+    "error_update_credentials": "Kirish ma'lumotlarini yangilashda xatolik yuz berdi:",
+    "error_no_changes_to_save": "Saqlash uchun hech qanday o'zgarish kiritilmadi.",
+    "error_password_length": "Parol kamida 6 ta belgidan iborat bo'lishi kerak."
   },
   "guide_dialog": {
     "title": "Qo'llanma",

@@ -246,7 +246,22 @@
     "your_full_name": "Your full name",
     "email_address": "Email Address",
     "bio": "Bio",
-    "tell_about_yourself": "Tell us about yourself"
+    "tell_about_yourself": "Tell us about yourself",
+    "update_login_credentials": "Update Login Credentials",
+    "new_email": "New Email",
+    "enter_new_email": "Enter new email",
+    "new_password": "New Password",
+    "enter_new_password": "Enter new password",
+    "confirm_new_password": "Confirm New Password",
+    "confirm_password": "Confirm password",
+    "update_credentials": "Update Credentials",
+    "success_email_update_check_inbox": "Your email address has been updated. Please check your inbox for confirmation.",
+    "success_password_updated": "Your password has been successfully updated!",
+    "success_credentials_updated": "Your login credentials have been successfully updated!",
+    "error_password_mismatch": "New passwords do not match. Please try again.",
+    "error_update_credentials": "Error updating login credentials:",
+    "error_no_changes_to_save": "No changes were made to save.",
+    "error_password_length": "Password must be at least 6 characters long."
   },
   "guide_dialog": {
     "title": "Guide",

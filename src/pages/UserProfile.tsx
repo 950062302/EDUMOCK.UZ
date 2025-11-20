@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Navbar from "@/components/Navbar";
 import { CefrCentreFooter } from "@/components/CefrCentreFooter";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
@@ -10,15 +10,76 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User } from "lucide-react";
 import { useTranslation } from 'react-i18next';
+import { useAuth } from "@/context/AuthProvider";
+import { supabase } from "@/integrations/supabase/client";
+import { showSuccess, showError } from "@/utils/toast";
 
 const UserProfile: React.FC = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
+
+  const [newEmail, setNewEmail] = useState<string>("");
+  const [newPassword, setNewPassword] = useState<string>("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState<string>("");
+  const [isUpdatingCredentials, setIsUpdatingCredentials] = useState<boolean>(false);
+
+  const handleUpdateCredentials = async () => {
+    setIsUpdatingCredentials(true);
+    let hasError = false;
+
+    if (newPassword && newPassword !== confirmNewPassword) {
+      showError(t("user_profile_page.error_password_mismatch"));
+      hasError = true;
+    }
+
+    if (newPassword && newPassword.length < 6) {
+      showError(t("user_profile_page.error_password_length"));
+      hasError = true;
+    }
+
+    if (hasError) {
+      setIsUpdatingCredentials(false);
+      return;
+    }
+
+    try {
+      if (newEmail) {
+        const { error: emailError } = await supabase.auth.updateUser({ email: newEmail });
+        if (emailError) {
+          throw emailError;
+        }
+        showSuccess(t("user_profile_page.success_email_update_check_inbox"));
+        setNewEmail("");
+      }
+
+      if (newPassword) {
+        const { error: passwordError } = await supabase.auth.updateUser({ password: newPassword });
+        if (passwordError) {
+          throw passwordError;
+        }
+        showSuccess(t("user_profile_page.success_password_updated"));
+        setNewPassword("");
+        setConfirmNewPassword("");
+      }
+
+      if (!newEmail && !newPassword) {
+        showError(t("user_profile_page.error_no_changes_to_save"));
+      } else if (!newEmail || !newPassword) {
+        showSuccess(t("user_profile_page.success_credentials_updated"));
+      }
+
+    } catch (error: any) {
+      showError(`${t("user_profile_page.error_update_credentials")} ${error.message}`);
+    } finally {
+      setIsUpdatingCredentials(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow container mx-auto p-4 flex items-center justify-center">
-        <Card className="w-full max-w-2xl shadow-xl"> {/* shadow-xl qo'shildi */}
+        <Card className="w-full max-w-2xl shadow-xl">
           <CardHeader className="text-center">
             <CardTitle className="text-3xl font-bold">{t("user_profile_page.user_profile")}</CardTitle>
             <CardDescription>{t("user_profile_page.view_update_profile")}</CardDescription>
@@ -31,25 +92,61 @@ const UserProfile: React.FC = () => {
                   <User className="h-12 w-12 text-muted-foreground" />
                 </AvatarFallback>
               </Avatar>
-              <h3 className="text-xl font-semibold">John Doe</h3>
-              <p className="text-muted-foreground">john.doe@example.com</p>
+              <h3 className="text-xl font-semibold">{user?.user_metadata?.full_name || user?.email || "Guest User"}</h3>
+              <p className="text-muted-foreground">{user?.email || "guest@example.com"}</p>
             </div>
 
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="full-name" className="text-base">{t("user_profile_page.full_name")}</Label>
-                <Input id="full-name" type="text" placeholder={t("user_profile_page.your_full_name")} defaultValue="John Doe" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email-profile" className="text-base">{t("user_profile_page.email_address")}</Label>
-                <Input id="email-profile" type="email" placeholder={t("settings_page.your_email")} defaultValue="john.doe@example.com" />
+                <Input id="full-name" type="text" placeholder={t("user_profile_page.your_full_name")} defaultValue={user?.user_metadata?.full_name || ""} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="bio" className="text-base">{t("user_profile_page.bio")}</Label>
-                <Input id="bio" type="text" placeholder={t("user_profile_page.tell_about_yourself")} defaultValue="A passionate learner." />
+                <Input id="bio" type="text" placeholder={t("user_profile_page.tell_about_yourself")} defaultValue="" />
               </div>
             </div>
             <Button className="w-full">{t("settings_page.save_profile")}</Button>
+
+            <div className="space-y-4 border-t pt-6 mt-6">
+              <h3 className="text-xl font-semibold">{t("user_profile_page.update_login_credentials")}</h3>
+              <div className="space-y-2">
+                <Label htmlFor="new-email" className="text-base">{t("user_profile_page.new_email")}</Label>
+                <Input
+                  id="new-email"
+                  type="email"
+                  placeholder={t("user_profile_page.enter_new_email")}
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  disabled={isUpdatingCredentials}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="new-password" className="text-base">{t("user_profile_page.new_password")}</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  placeholder={t("user_profile_page.enter_new_password")}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  disabled={isUpdatingCredentials}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm-new-password" className="text-base">{t("user_profile_page.confirm_new_password")}</Label>
+                <Input
+                  id="confirm-new-password"
+                  type="password"
+                  placeholder={t("user_profile_page.confirm_password")}
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  disabled={isUpdatingCredentials}
+                />
+              </div>
+              <Button onClick={handleUpdateCredentials} className="w-full" disabled={isUpdatingCredentials}>
+                {isUpdatingCredentials ? t("common.save_changes") : t("user_profile_page.update_credentials")}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </main>
