@@ -180,6 +180,7 @@
     "duration": "Davomiyligi:",
     "play": "O'ynatish",
     "download": "Yuklab olish",
+    "download_local": "Yuklab olish (Lokal)",
     "delete": "O'chirish",
     "delete_recording_confirm_title": "Yozuvni o'chirishga ishonchingiz komilmi?",
     "delete_recording_confirm_description": "Bu harakatni qaytarib bo'lmaydi. Ushbu yozuv butunlay o'chiriladi.",

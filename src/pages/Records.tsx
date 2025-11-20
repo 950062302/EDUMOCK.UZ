@@ -25,14 +25,14 @@ import {
 import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthProvider";
-import { useUploadProgress, setUploadProgress } from "@/utils/uploadProgress"; // Yangi import
+import { useUploadProgress, setUploadProgress } from "@/utils/uploadProgress";
 
 const Records: React.FC = () => {
   const [recordings, setRecordings] = useState<RecordedSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { t } = useTranslation();
   const { user } = useAuth();
-  const uploadProgress = useUploadProgress(); // Yuklash progressini kuzatish uchun hook
+  const uploadProgress = useUploadProgress();
 
   const fetchRecordings = useCallback(async () => {
     setIsLoading(true);
@@ -52,7 +52,6 @@ const Records: React.FC = () => {
     fetchRecordings();
 
     return () => {
-      // Clean up blob URLs when component unmounts
       recordings.forEach(rec => URL.revokeObjectURL(rec.video_url));
     };
   }, [fetchRecordings]);
@@ -75,21 +74,21 @@ const Records: React.FC = () => {
       return;
     }
 
-    const filePath = `${user.id}/${recording.id}.webm`; // Assuming .webm format
-    setUploadProgress(recording.id, 0); // Yuklash boshlanganini belgilash
+    const filePath = `${user.id}/${recording.id}.webm`;
+    setUploadProgress(recording.id, 0);
     const { data, error: uploadError } = await supabase.storage
       .from('recordings')
       .upload(filePath, blob, {
         cacheControl: '3600',
         upsert: false,
       }, (event) => {
-        setUploadProgress(recording.id, event.percent || 0); // Progressni yangilash
+        setUploadProgress(recording.id, event.percent || 0);
       });
 
     if (uploadError) {
       showError(`${t("records_page.error_uploading_to_cloud")} ${uploadError.message}`);
-      setUploadProgress(recording.id, -1); // Xato holatini belgilash
-      setTimeout(() => setUploadProgress(recording.id, 0), 3000); // 3 soniyadan keyin progressni qayta tiklash
+      setUploadProgress(recording.id, -1);
+      setTimeout(() => setUploadProgress(recording.id, 0), 3000);
     } else {
       const { data: publicUrlData } = supabase.storage
         .from('recordings')
@@ -99,12 +98,12 @@ const Records: React.FC = () => {
         await updateLocalRecordingSupabaseUrl(recording.id, publicUrlData.publicUrl);
         setRecordings(prev => prev.map(rec => rec.id === recording.id ? { ...rec, supabase_url: publicUrlData.publicUrl } : rec));
         showSuccess(t("records_page.success_uploaded_to_cloud"));
-        setUploadProgress(recording.id, 100); // Muvaffaqiyatli yuklanganini belgilash
-        setTimeout(() => setUploadProgress(recording.id, 0), 2000); // 2 soniyadan keyin progressni o'chirish
+        setUploadProgress(recording.id, 100);
+        setTimeout(() => setUploadProgress(recording.id, 0), 2000);
       } else {
         showError(t("records_page.error_getting_public_url"));
-        setUploadProgress(recording.id, -1); // Xato holatini belgilash
-        setTimeout(() => setUploadProgress(recording.id, 0), 3000); // 3 soniyadan keyin progressni qayta tiklash
+        setUploadProgress(recording.id, -1);
+        setTimeout(() => setUploadProgress(recording.id, 0), 3000);
       }
     }
   }, [user, t]);
@@ -150,7 +149,7 @@ const Records: React.FC = () => {
   const handleDelete = useCallback(async (recording: RecordedSession) => {
     try {
       URL.revokeObjectURL(recording.video_url);
-      await deleteLocalRecording(recording.id); // This now handles Supabase deletion too
+      await deleteLocalRecording(recording.id);
       setRecordings(prev => prev.filter(rec => rec.id !== recording.id));
       showSuccess(t("records_page.success_recording_deleted"));
     } catch (error: any) {
@@ -181,7 +180,7 @@ const Records: React.FC = () => {
                 {recordings.map((recording, index) => {
                   const currentUploadProgress = uploadProgress.get(recording.id);
                   const isUploading = currentUploadProgress !== undefined && currentUploadProgress < 100 && currentUploadProgress >= 0;
-                  const isUploaded = recording.supabase_url && currentUploadProgress === 0; // currentUploadProgress 0 bo'lsa, yuklash tugagan va holat normal
+                  const isUploaded = recording.supabase_url && currentUploadProgress === 0;
                   const uploadError = currentUploadProgress === -1;
 
                   return (
@@ -209,12 +208,19 @@ const Records: React.FC = () => {
                           )}
                         </div>
                         <div className="flex gap-2 mt-2 sm:mt-0">
+                          {/* Play button */}
                           <Button asChild size="sm" className="flex items-center gap-1">
                             <a href={recording.video_url} target="_blank" rel="noopener noreferrer">
                               <PlayCircle className="h-4 w-4" /> {t("records_page.play")}
                             </a>
                           </Button>
+
+                          {/* Local Download button */}
+                          <Button onClick={() => handleDownload({ ...recording, supabase_url: undefined })} variant="outline" size="sm" className="flex items-center gap-1">
+                            <Download className="h-4 w-4" /> {t("records_page.download_local")}
+                          </Button>
                           
+                          {/* Conditional Upload / Uploading / Cloud Download button */}
                           {!recording.supabase_url && user?.id && !isUploading && !uploadError ? (
                             <Button onClick={() => handleUploadToSupabase(recording)} variant="outline" size="sm" className="flex items-center gap-1">
                               <Cloud className="h-4 w-4" /> {t("records_page.upload")}
@@ -228,17 +234,13 @@ const Records: React.FC = () => {
                               <Cloud className="h-4 w-4 z-10" /> 
                               <span className="z-10">{t("records_page.uploading")} {currentUploadProgress?.toFixed(0)}%</span>
                             </Button>
-                          ) : null}
-
-                          {recording.supabase_url ? (
+                          ) : recording.supabase_url && (
                             <Button onClick={() => handleDownload(recording)} variant="default" size="sm" className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600">
                               <Zap className="h-4 w-4" /> {t("records_page.download_from_cloud")}
                             </Button>
-                          ) : (
-                            <Button onClick={() => handleDownload(recording)} variant="outline" size="sm" className="flex items-center gap-1">
-                              <Download className="h-4 w-4" /> {t("records_page.download")}
-                            </Button>
                           )}
+
+                          {/* Delete button */}
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button variant="destructive" size="sm" className="flex items-center gap-1">

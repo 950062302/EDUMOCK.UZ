@@ -180,6 +180,7 @@
     "duration": "Продолжительность:",
     "play": "Воспроизвести",
     "download": "Скачать",
+    "download_local": "Скачать (Локально)",
     "delete": "Удалить",
     "delete_recording_confirm_title": "Вы уверены, что хотите удалить эту запись?",
     "delete_recording_confirm_description": "Это действие необратимо. Эта запись будет удалена навсегда.",

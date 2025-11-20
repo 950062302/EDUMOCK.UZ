@@ -180,6 +180,7 @@
     "duration": "Duration:",
     "play": "Play",
     "download": "Download",
+    "download_local": "Download (Local)",
     "delete": "Delete",
     "delete_recording_confirm_title": "Are you sure you want to delete this recording?",
     "delete_recording_confirm_description": "This action cannot be undone. This recording will be permanently deleted.",
