@@ -15,6 +15,7 @@ import {
 import { allSpeakingParts } from "@/lib/constants";
 import { getSupabaseQuestions, updateSupabaseQuestion } from "@/lib/local-db";
 import { useTranslation } from 'react-i18next';
+import { useAuth } from "@/context/AuthProvider"; // useAuth import qilindi
 
 const TIMINGS = {
   PRE_TEST_COUNTDOWN: 5,
@@ -67,6 +68,7 @@ export const useMockTestLogic = ({
   const countdownIntervalRef = useRef<number | null>(null);
   const activeCountdownPhaseRef = useRef<TestPhase | null>(null);
   const { t } = useTranslation();
+  const { user } = useAuth(); // useAuth hookidan user olindi
 
   const getCurrentQuestion = useCallback(() => {
     const currentPartName = allSpeakingParts[currentPartIndex];
@@ -308,14 +310,24 @@ export const useMockTestLogic = ({
     const twoHoursInMs = 2 * 60 * 60 * 1000;
     let hasEnoughQuestions = true;
     let missingParts: string[] = [];
+    const isGuestMode = localStorage.getItem("isGuestMode") === "true"; // Mehmon rejimini tekshirish
 
     allSpeakingParts.forEach(part => {
-      const eligibleQuestions = allAvailableQuestionsRef.current[part].filter(q =>
+      let eligibleQuestions = allAvailableQuestionsRef.current[part].filter(q =>
         !q.last_used || (now.getTime() - new Date(q.last_used!).getTime() > twoHoursInMs)
       );
 
+      // Foydalanuvchi turiga qarab savollarni filtrlash
+      if (isGuestMode) {
+        eligibleQuestions = eligibleQuestions.filter(q => q.user_id === null); // Faqat ommaviy savollar
+      } else if (user?.id) {
+        eligibleQuestions = eligibleQuestions.filter(q => q.user_id === user.id); // Faqat foydalanuvchining o'z savollari
+      } else {
+        // Agar na mehmon, na tizimga kirgan bo'lsa, savollar yo'q
+        eligibleQuestions = [];
+      }
+
       if (part === "Part 1.1") {
-        // Part 1.1 uchun barcha kichik savollarni yig'amiz
         const allPart1_1SubQuestions: { questionId: string; subQuestion: string; originalQuestion: Part1_1Question }[] = [];
         eligibleQuestions.forEach(q => {
           const part1_1Q = q as Part1_1Question;
@@ -330,12 +342,11 @@ export const useMockTestLogic = ({
           hasEnoughQuestions = false;
           missingParts.push(`${part} (kerak: ${minQuestions[part]}, mavjud: ${allPart1_1SubQuestions.length})`);
         } else {
-          // Tasodifiy 3 ta kichik savolni tanlaymiz
           const selectedSubQuestions = getRandomElements(allPart1_1SubQuestions, minQuestions[part]);
           const finalPart1_1Questions: Part1_1Question[] = selectedSubQuestions.map(item => ({
             ...item.originalQuestion,
-            id: item.questionId, // Asl ID ni saqlab qolamiz
-            sub_questions: [item.subQuestion], // Faqat tanlangan kichik savolni qo'shamiz
+            id: item.questionId,
+            sub_questions: [item.subQuestion],
           }));
           selectedQuestionsForTest[part] = finalPart1_1Questions;
         }
@@ -354,7 +365,13 @@ export const useMockTestLogic = ({
 
     const questionsToUpdate = Object.values(selectedQuestionsForTest).flat();
     for (const q of questionsToUpdate) {
-      await updateSupabaseQuestion({ ...q, last_used: now.toISOString() });
+      // Faqatgina foydalanuvchi o'zining savollarini yoki mehmon rejimida ommaviy savollarni yangilash
+      if (isGuestMode && q.user_id === null) {
+        await updateSupabaseQuestion({ ...q, last_used: now.toISOString() });
+      } else if (user?.id && q.user_id === user.id) {
+        await updateSupabaseQuestion({ ...q, last_used: now.toISOString() });
+      }
+      // Boshqa holatlarda (masalan, mehmon rejimida shaxsiy savollarni yangilashga urinish) xato berilmaydi
     }
 
     setQuestions(selectedQuestionsForTest);
