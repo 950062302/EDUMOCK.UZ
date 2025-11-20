@@ -18,7 +18,6 @@ interface PriceOption {
   originalPrice?: number;
   discount?: string;
   features: string[];
-  isHotSale?: boolean; // Yangi xususiyat
 }
 
 const prices: { [key: string]: PriceOption } = {
@@ -46,8 +45,7 @@ const prices: { [key: string]: PriceOption } = {
       "add_custom_questions", 
       "edit_questions", 
       "priority_support"
-    ],
-    isHotSale: true // "3-Month Plan" uchun Hot Sale
+    ]
   },
   "6": { 
     price: 1299000, 
@@ -107,6 +105,15 @@ const PricingCard: React.FC = () => {
 
   const totalPrice = prices[selectedPriceKey];
 
+  // Har bir karta uchun fon klasslarini belgilash
+  const cardBackgrounds: { [key: string]: string } = {
+    "1": "bg-gradient-to-br from-gray-50 to-white",
+    "3": "bg-gradient-to-br from-red-50 to-white", // Hot Sale kartasi uchun
+    "6": "bg-gradient-to-br from-blue-50 to-white",
+    "12": "bg-gradient-to-br from-purple-50 to-white",
+    "lifetime": "bg-gradient-to-br from-green-50 to-white",
+  };
+
   return (
     <div className="bg-white p-6 border border-gray-200 rounded-xl shadow-2xl sticky top-20 animated-card" style={{ animationDelay: '1.5s' }}>
       <h2 className="text-xl font-bold text-gray-800 mb-6">{t("landing_page.select_tariff")}</h2>
@@ -120,13 +127,15 @@ const PricingCard: React.FC = () => {
         {Object.keys(prices).map((key) => {
           const option = key;
           const priceData = prices[option];
+          const isHotSaleCard = option === "3"; // Hot Sale kartasini aniqlash
+
           return (
             <AccordionItem 
               key={option} 
               value={option} 
-              className={`price-option p-4 flex flex-col border-b-0 relative ${selectedPriceKey === option ? 'price-option-active' : ''}`}
+              className={`price-option p-4 flex flex-col border border-gray-200 rounded-xl relative mb-3 last:mb-0 ${cardBackgrounds[option]} ${selectedPriceKey === option ? 'price-option-active' : ''}`}
             >
-              {priceData.isHotSale && (
+              {isHotSaleCard && (
                 <div className="hot-sale-badge absolute -top-3 -right-3 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md z-10 animate-pulse-hot-sale">
                   {t("landing_page.hot_sale")}
                 </div>

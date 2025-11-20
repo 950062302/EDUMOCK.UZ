@@ -113,17 +113,20 @@
 }
 
 .price-option {
-    transition: all 0.2s;
+    transition: all 0.2s ease-in-out; /* Barcha o'zgarishlar uchun silliq o'tish */
     cursor: pointer;
-    border-radius: 12px;
-    border: 1px solid #e5e7eb;
-}
-.price-option-active {
-    border: 2px solid hsl(var(--primary)); /* Tailwind lime-500 */
-    background-color: hsl(var(--primary) / 0.05); /* Tailwind lime-50 */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Standart nozik soya */
 }
 .price-option:hover {
-     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    transform: translateY(-3px) scale(1.01); /* Hoverda biroz ko'tarish va kattalashtirish */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); /* Hoverda ko'proq soya */
+    border-color: hsl(var(--primary)); /* Hoverda chegarani ajratib ko'rsatish */
+}
+.price-option-active {
+    border: 2px solid hsl(var(--primary)); /* Faol holat uchun asosiy rang chegarasi */
+    background: linear-gradient(to bottom right, hsl(var(--primary) / 0.1), hsl(var(--primary) / 0.05)); /* Faol holat uchun nozik gradient */
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2); /* Faol holat uchun kuchliroq soya */
+    transform: translateY(-1px); /* Biroz ko'tarilgan holatda saqlash */
 }
 
 .hero-section {
