@@ -18,62 +18,63 @@ const UserProfile: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
 
-  const [newEmail, setNewEmail] = useState<string>("");
-  const [newPassword, setNewPassword] = useState<string>("");
-  const [confirmNewPassword, setConfirmNewPassword] = useState<string>("");
-  const [isUpdatingCredentials, setIsUpdatingCredentials] = useState<boolean>(false);
+  // Login credentialsni yangilash logikasi olib tashlanganligi sababli, bu statelarga endi ehtiyoj yo'q.
+  // const [newEmail, setNewEmail] = useState<string>("");
+  // const [newPassword, setNewPassword] = useState<string>("");
+  // const [confirmNewPassword, setConfirmNewPassword] = useState<string>("");
+  // const [isUpdatingCredentials, setIsUpdatingCredentials] = useState<boolean>(false);
 
-  const handleUpdateCredentials = async () => {
-    setIsUpdatingCredentials(true);
-    let hasError = false;
+  // const handleUpdateCredentials = async () => {
+  //   setIsUpdatingCredentials(true);
+  //   let hasError = false;
 
-    if (newPassword && newPassword !== confirmNewPassword) {
-      showError(t("user_profile_page.error_password_mismatch"));
-      hasError = true;
-    }
+  //   if (newPassword && newPassword !== confirmNewPassword) {
+  //     showError(t("user_profile_page.error_password_mismatch"));
+  //     hasError = true;
+  //   }
 
-    if (newPassword && newPassword.length < 6) {
-      showError(t("user_profile_page.error_password_length"));
-      hasError = true;
-    }
+  //   if (newPassword && newPassword.length < 6) {
+  //     showError(t("user_profile_page.error_password_length"));
+  //     hasError = true;
+  //   }
 
-    if (hasError) {
-      setIsUpdatingCredentials(false);
-      return;
-    }
+  //   if (hasError) {
+  //     setIsUpdatingCredentials(false);
+  //     return;
+  //   }
 
-    try {
-      if (newEmail) {
-        const { error: emailError } = await supabase.auth.updateUser({ email: newEmail });
-        if (emailError) {
-          throw emailError;
-        }
-        showSuccess(t("user_profile_page.success_email_update_check_inbox"));
-        setNewEmail("");
-      }
+  //   try {
+  //     if (newEmail) {
+  //       const { error: emailError } = await supabase.auth.updateUser({ email: newEmail });
+  //       if (emailError) {
+  //         throw emailError;
+  //       }
+  //       showSuccess(t("user_profile_page.success_email_update_check_inbox"));
+  //       setNewEmail("");
+  //     }
 
-      if (newPassword) {
-        const { error: passwordError } = await supabase.auth.updateUser({ password: newPassword });
-        if (passwordError) {
-          throw passwordError;
-        }
-        showSuccess(t("user_profile_page.success_password_updated"));
-        setNewPassword("");
-        setConfirmNewPassword("");
-      }
+  //     if (newPassword) {
+  //       const { error: passwordError } = await supabase.auth.updateUser({ password: newPassword });
+  //       if (passwordError) {
+  //         throw passwordError;
+  //       }
+  //       showSuccess(t("user_profile_page.success_password_updated"));
+  //       setNewPassword("");
+  //       setConfirmNewPassword("");
+  //     }
 
-      if (!newEmail && !newPassword) {
-        showError(t("user_profile_page.error_no_changes_to_save"));
-      } else if (!newEmail || !newPassword) {
-        showSuccess(t("user_profile_page.success_credentials_updated"));
-      }
+  //     if (!newEmail && !newPassword) {
+  //       showError(t("user_profile_page.error_no_changes_to_save"));
+  //     } else if (!newEmail || !newPassword) {
+  //       showSuccess(t("user_profile_page.success_credentials_updated"));
+  //     }
 
-    } catch (error: any) {
-      showError(`${t("user_profile_page.error_update_credentials")} ${error.message}`);
-    } finally {
-      setIsUpdatingCredentials(false);
-    }
-  };
+  //   } catch (error: any) {
+  //     showError(`${t("user_profile_page.error_update_credentials")} ${error.message}`);
+  //   } finally {
+  //     setIsUpdatingCredentials(false);
+  //   }
+  // };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -108,45 +109,7 @@ const UserProfile: React.FC = () => {
             </div>
             <Button className="w-full">{t("settings_page.save_profile")}</Button>
 
-            <div className="space-y-4 border-t pt-6 mt-6">
-              <h3 className="text-xl font-semibold">{t("user_profile_page.update_login_credentials")}</h3>
-              <div className="space-y-2">
-                <Label htmlFor="new-email" className="text-base">{t("user_profile_page.new_email")}</Label>
-                <Input
-                  id="new-email"
-                  type="email"
-                  placeholder={t("user_profile_page.enter_new_email")}
-                  value={newEmail}
-                  onChange={(e) => setNewEmail(e.target.value)}
-                  disabled={isUpdatingCredentials}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="new-password" className="text-base">{t("user_profile_page.new_password")}</Label>
-                <Input
-                  id="new-password"
-                  type="password"
-                  placeholder={t("user_profile_page.enter_new_password")}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  disabled={isUpdatingCredentials}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirm-new-password" className="text-base">{t("user_profile_page.confirm_new_password")}</Label>
-                <Input
-                  id="confirm-new-password"
-                  type="password"
-                  placeholder={t("user_profile_page.confirm_password")}
-                  value={confirmNewPassword}
-                  onChange={(e) => setConfirmNewPassword(e.target.value)}
-                  disabled={isUpdatingCredentials}
-                />
-              </div>
-              <Button onClick={handleUpdateCredentials} className="w-full" disabled={isUpdatingCredentials}>
-                {isUpdatingCredentials ? t("common.save_changes") : t("user_profile_page.update_credentials")}
-              </Button>
-            </div>
+            {/* "Update Login Credentials" bo'limi olib tashlandi */}
           </CardContent>
         </Card>
       </main>
