@@ -166,7 +166,8 @@
     "unknown_question_type": "Unknown question type.",
     "image": "Image",
     "question": "Question",
-    "speak_text": "Please speak"
+    "speak_text": "Please speak",
+    "error_duplicate_question": "This question already exists in the system."
   },
   "mock_test_page": {
     "mock_speaking_test": "Mock Speaking Test",

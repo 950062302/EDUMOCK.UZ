@@ -202,15 +202,21 @@ const SpeakingQuestionManager: React.FC = () => {
               showError(t("add_question_page.error_unknown_question_type"));
               return;
           }
-          await updateSupabaseQuestion(updatedQuestion);
-          showSuccess(t("add_question_page.success_question_updated"));
+          const result = await updateSupabaseQuestion(updatedQuestion);
+          if (result) {
+            showSuccess(t("add_question_page.success_question_updated"));
+            await loadQuestions();
+            resetForm();
+          }
         }
       } else {
-        await addSupabaseQuestion(questionData);
-        showSuccess(t("add_question_page.success_question_added_to_part", { part }));
+        const result = await addSupabaseQuestion(questionData);
+        if (result) {
+          showSuccess(t("add_question_page.success_question_added_to_part", { part }));
+          await loadQuestions();
+          resetForm();
+        }
       }
-      await loadQuestions();
-      resetForm();
     }
   };
 

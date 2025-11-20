@@ -166,7 +166,8 @@
     "unknown_question_type": "Неизвестный тип вопроса.",
     "image": "Изображение",
     "question": "Вопрос",
-    "speak_text": "Пожалуйста, говорите"
+    "speak_text": "Пожалуйста, говорите",
+    "error_duplicate_question": "Этот вопрос уже существует в системе."
   },
   "mock_test_page": {
     "mock_speaking_test": "Пробный разговорный тест",

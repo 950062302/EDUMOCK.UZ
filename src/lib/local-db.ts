@@ -1,6 +1,6 @@
 import { openDB, IDBPDatabase } from 'idb';
 import { v4 as uuidv4 } from 'uuid';
-import { SpeakingQuestion, MoodEntry, RecordedSession } from './types';
+import { SpeakingQuestion, MoodEntry, RecordedSession, Part1_1Question, Part1_2Question, Part2Question, Part3Question } from './types';
 import { supabase } from '@/integrations/supabase/client';
 import { showError } from '@/utils/toast';
 import i18n from '@/i18n';
@@ -32,6 +32,65 @@ const getUserId = async (): Promise<string | null> => {
   const { data: { user } } = await supabase.auth.getUser();
   console.log("[getUserId] Current authenticated user ID:", user?.id || "null");
   return user?.id || null;
+};
+
+// Helper to normalize sub_questions for comparison
+const normalizeSubQuestions = (subQuestions: string[] | undefined): string => {
+  if (!subQuestions) return '';
+  return subQuestions.map(q => q.trim()).filter(Boolean).sort().join('|||');
+};
+
+// Duplicate check function
+export const checkDuplicateQuestion = async (
+  questionData: Omit<SpeakingQuestion, 'id' | 'date' | 'user_id'>,
+  userId: string | null,
+  excludeId?: string // Update uchun, o'zini tekshirmaslik uchun
+): Promise<boolean> => {
+  let query = supabase.from('questions').select('id, type, question_text, sub_questions');
+
+  if (userId) {
+    query = query.eq('user_id', userId);
+  } else {
+    query = query.is('user_id', null); // Mehmon rejimi uchun, public savollarni tekshirish
+  }
+
+  query = query.eq('type', questionData.type);
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error("Error checking for duplicate questions:", error.message);
+    return false; // Xato bo'lsa, takrorlanish yo'q deb hisoblaymiz
+  }
+
+  if (!data || data.length === 0) {
+    return false; // Bu turdagi savollar yo'q, demak takrorlanish yo'q
+  }
+
+  // Client-side comparison based on question type
+  switch (questionData.type) {
+    case "Part 1.1":
+    case "Part 1.2": {
+      const newNormalizedSubQuestions = normalizeSubQuestions((questionData as Part1_1Question | Part1_2Question).sub_questions);
+      if (!newNormalizedSubQuestions) return false;
+      return data.some(existingQ => {
+        if (excludeId && existingQ.id === excludeId) return false; // O'zini tekshirmaslik
+        const existingNormalizedSubQuestions = normalizeSubQuestions((existingQ as Part1_1Question | Part1_2Question).sub_questions);
+        return existingNormalizedSubQuestions === newNormalizedSubQuestions;
+      });
+    }
+    case "Part 2":
+    case "Part 3": {
+      const newQuestionText = (questionData as Part2Question | Part3Question).question_text?.trim();
+      if (!newQuestionText) return false; // Yangi matn bo'sh bo'lsa, takrorlanish bo'lishi mumkin emas
+      return data.some(existingQ => {
+        if (excludeId && existingQ.id === excludeId) return false; // O'zini tekshirmaslik
+        return existingQ.question_text?.trim() === newQuestionText;
+      });
+    }
+    default:
+      return false;
+  }
 };
 
 export const getSupabaseQuestions = async (): Promise<SpeakingQuestion[]> => {
@@ -70,6 +129,13 @@ export const addSupabaseQuestion = async (question: Omit<SpeakingQuestion, 'id' 
     return null;
   }
 
+  // Check for duplicate before adding
+  const isDuplicate = await checkDuplicateQuestion(question, userId);
+  if (isDuplicate) {
+    showError(i18n.t("add_question_page.error_duplicate_question"));
+    return null;
+  }
+
   const newQuestion = {
     ...question,
     id: uuidv4(),
@@ -94,16 +160,21 @@ export const updateSupabaseQuestion = async (updatedQuestion: SpeakingQuestion):
   const { data: { user } } = await supabase.auth.getUser();
   const userId = user?.id;
 
+  // Check for duplicate before updating, excluding the current question being edited
+  const isDuplicate = await checkDuplicateQuestion(updatedQuestion, userId, updatedQuestion.id);
+  if (isDuplicate) {
+    showError(i18n.t("add_question_page.error_duplicate_question"));
+    return null;
+  }
+
   let query = supabase
     .from('questions')
     .update(updatedQuestion)
     .eq('id', updatedQuestion.id);
 
   if (userId) {
-    // Authenticated user can only update their own questions
     query = query.eq('user_id', userId);
   } else {
-    // Guest user can only update public sample questions (user_id is NULL)
     query = query.eq('user_id', null);
   }
 

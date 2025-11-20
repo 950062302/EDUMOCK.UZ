@@ -104,7 +104,7 @@
     "add_question_to_part": "Savolni {{part}} ga qo'shish",
     "cancel": "Bekor qilish",
     "questions_loading": "Savollar yuklanmoqda...",
-    "no_questions_added": "Hali savollar qo'shilmagan.",
+    "no_questions_added": "Hali savollar yo'q.",
     "questions": "Savollar:",
     "no_sub_questions": "Kichik savollar yo'q",
     "no_image": "(Rasm yo'q)",
@@ -166,7 +166,8 @@
     "unknown_question_type": "Noma'lum savol turi.",
     "image": "Rasm",
     "question": "Savol",
-    "speak_text": "Iltimos, gapiring"
+    "speak_text": "Iltimos, gapiring",
+    "error_duplicate_question": "Bu savol tizimda allaqachon mavjud."
   },
   "mock_test_page": {
     "mock_speaking_test": "Mock Speaking Test",
