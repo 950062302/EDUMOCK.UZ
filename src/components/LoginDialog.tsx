@@ -40,7 +40,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] bg-background/80 backdrop-blur-md">
         <DialogHeader>
           <DialogTitle>{t("common.login")}</DialogTitle>
           <DialogDescription>
