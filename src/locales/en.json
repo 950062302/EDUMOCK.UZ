@@ -201,7 +201,8 @@
     "delete_from_cloud_warning": "This will also delete the video from cloud storage.",
     "upload_failed": "Upload failed",
     "downloading": "Downloading...",
-    "success_downloaded": "Successfully downloaded!"
+    "success_downloaded": "Successfully downloaded!",
+    "error_cloud_delete_failed_local_kept": "Cloud deletion failed. Local recording kept."
   },
   "mood_journal_page": {
     "mood_journal_tracker": "Mood Journal & Tracker",

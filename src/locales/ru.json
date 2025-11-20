@@ -201,7 +201,8 @@
     "delete_from_cloud_warning": "Это также удалит видео из облачного хранилища.",
     "upload_failed": "Загрузка не удалась",
     "downloading": "Загрузка...",
-    "success_downloaded": "Успешно загружено!"
+    "success_downloaded": "Успешно загружено!",
+    "error_cloud_delete_failed_local_kept": "Ошибка удаления из облака. Локальная запись сохранена."
   },
   "mood_journal_page": {
     "mood_journal_tracker": "Дневник настроения и трекер",

@@ -228,9 +228,12 @@ export const upsertRecordingMetadataToSupabase = async (recording: Omit<Recorded
 };
 
 // Yangi: Supabase jadvalidan yozuv metama'lumotlarini o'chirish
-const deleteRecordingMetadataFromSupabase = async (recordingId: string): Promise<void> => {
+const deleteRecordingMetadataFromSupabase = async (recordingId: string): Promise<boolean> => {
   const userId = await getUserId();
-  if (!userId) return;
+  if (!userId) {
+    console.error("Cannot delete recording metadata from Supabase: User not authenticated.");
+    return false;
+  }
 
   const { error } = await supabase
     .from('recordings_metadata')
@@ -241,7 +244,9 @@ const deleteRecordingMetadataFromSupabase = async (recordingId: string): Promise
   if (error) {
     console.error("Error deleting recording metadata from Supabase:", error.message);
     showError(i18n.t("records_page.error_deleting_from_cloud", { message: error.message }));
+    return false;
   }
+  return true;
 };
 
 
@@ -350,21 +355,36 @@ export const deleteLocalRecording = async (id: string) => {
   const db = await initDB();
   const recording = await db.get(STORE_RECORDINGS, id);
 
+  let supabaseDeletionSuccessful = true; // Assume success if not uploaded to Supabase
+
   if (recording?.supabase_url) {
     const userId = await getUserId();
-    if (userId) {
-      const filePath = `${userId}/${id}.webm`; // Assuming .webm format and user_id/recording_id.webm path
-      const { error: deleteError } = await supabase.storage
+    if (!userId) {
+      showError(i18n.t("records_page.error_deleting_from_cloud", { message: "Foydalanuvchi ID topilmadi. Bulutdan o'chirib bo'lmaydi." }));
+      supabaseDeletionSuccessful = false; // Cannot delete from Supabase
+    } else {
+      const filePath = `${userId}/${id}.webm`;
+      const { error: deleteStorageError } = await supabase.storage
         .from('recordings')
         .remove([filePath]);
 
-      if (deleteError) {
-        showError(i18n.t("records_page.error_deleting_from_cloud", { message: deleteError.message }));
+      if (deleteStorageError) {
+        showError(i18n.t("records_page.error_deleting_from_cloud", { message: deleteStorageError.message }));
+        supabaseDeletionSuccessful = false; // Storage deletion failed
       } else {
-        // Supabase Storage'dan o'chirilgandan so'ng, metama'lumotlarni ham o'chiramiz
-        await deleteRecordingMetadataFromSupabase(id);
+        // Storage'dan o'chirilgandan so'ng, metama'lumotlarni ham o'chiramiz
+        const metadataDeleted = await deleteRecordingMetadataFromSupabase(id);
+        if (!metadataDeleted) {
+          supabaseDeletionSuccessful = false; // Metadata deletion failed
+        }
       }
     }
   }
-  await db.delete(STORE_RECORDINGS, id);
+
+  // Only delete from IndexedDB if Supabase deletion was successful or if it was never uploaded to Supabase
+  if (supabaseDeletionSuccessful || !recording?.supabase_url) {
+    await db.delete(STORE_RECORDINGS, id);
+  } else {
+    showError(i18n.t("records_page.error_cloud_delete_failed_local_kept"));
+  }
 };
