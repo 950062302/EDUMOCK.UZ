@@ -67,8 +67,8 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-sky-500 to-slate-900 text-white p-6">
       <header className="flex justify-between items-center mb-16">
-        <h1 className="text-3xl font-bold">Edumock.uz</h1>
-        <nav className="flex gap-6 text-lg items-center">
+        <h1 className="text-xl sm:text-3xl font-bold">Edumock.uz</h1>
+        <nav className="flex gap-3 sm:gap-6 text-sm sm:text-lg items-center">
           <Link to="/home" className="hover:text-indigo-300 flex items-center gap-1">
             <HomeIcon className="h-4 w-4" /> {t("common.home")}
           </Link>
@@ -98,11 +98,11 @@ export default function Home() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
       >
-        <h2 className="text-5xl font-bold text-center mb-3 drop-shadow-md">{t("home_page.speaking_platform")}</h2>
-        <p className="text-center text-slate-200 mb-16">{t("home_page.welcome_dashboard")}</p>
+        <h2 className="text-3xl sm:text-5xl font-bold text-center mb-2 drop-shadow-md">{t("home_page.speaking_platform")}</h2>
+        <p className="text-sm sm:text-base text-center text-slate-200 mb-8">{t("home_page.welcome_dashboard")}</p>
       </motion.div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8 max-w-6xl mx-auto">
         {items.map((item, index) => (
           <motion.div
             key={index}
@@ -112,11 +112,11 @@ export default function Home() {
           >
             <Link to={item.path}>
               <Card className="group bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-2xl border border-white/30 rounded-2xl shadow-xl hover:scale-105 hover:border-indigo-400/50 hover:shadow-indigo-500/40 hover:shadow-2xl transition-all duration-500 cursor-pointer">
-                <CardContent className="flex flex-col items-center text-center p-8">
+                <CardContent className="flex flex-col items-center text-center p-4 sm:p-8">
                   <div className="mb-4 text-indigo-300 transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_10px_rgba(99,102,241,0.8)]">{item.icon}</div>
-                  <h3 className="text-2xl font-bold mb-2">{item.title}</h3>
-                  <p className="text-sm text-gray-700 mb-4">{item.subtitle}</p>
-                  <Button className="mt-2 bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2 rounded-xl shadow-lg shadow-indigo-500/30 transition-all duration-300 hover:scale-105">{t("common.open")}</Button>
+                  <h3 className="text-lg sm:text-2xl font-bold mb-2">{item.title}</h3>
+                  <p className="text-xs sm:text-sm text-gray-700 mb-4">{item.subtitle}</p>
+                  <Button className="mt-2 bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-1 sm:px-6 sm:py-2 rounded-xl shadow-lg shadow-indigo-500/30 transition-all duration-300 hover:scale-105">{t("common.open")}</Button>
                 </CardContent>
               </Card>
             </Link>
@@ -124,7 +124,7 @@ export default function Home() {
         ))}
       </div>
 
-      <footer className="mt-20 text-center text-slate-200 opacity-90">
+      <footer className="mt-10 sm:mt-20 text-center text-slate-200 opacity-90">
         <a
           href="https://t.me/aero_one"
           target="_blank"
@@ -137,8 +137,8 @@ export default function Home() {
           <span className="font-medium">@aero_one</span>
         </a>
 
-        <p className="text-lg mt-4">{t("landing_page.contact_us")}: <span className="font-bold text-white">{t("landing_page.phone_number")}</span></p>
-        <p className="text-sm mt-1 text-slate-300">{t("landing_page.support_service")}</p>
+        <p className="text-base sm:text-lg mt-4">{t("landing_page.contact_us")}: <span className="font-bold text-white">{t("landing_page.phone_number")}</span></p>
+        <p className="text-xs sm:text-sm mt-1 text-slate-300">{t("landing_page.support_service")}</p>
       </footer>
 
       <GuideDialog isOpen={isGuideDialogOpen} onClose={() => setIsGuideDialogOpen(false)} />
