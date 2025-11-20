@@ -10,6 +10,7 @@ import PricingCard from "@/components/PricingCard";
 import LoginDialog from "@/components/LoginDialog";
 import LandingPageFooter from "@/components/LandingPageFooter";
 import { useTranslation } from 'react-i18next';
+import { User } from "lucide-react"; // User ikonkasini import qildim
 
 const Login: React.FC = () => {
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
@@ -52,8 +53,9 @@ const Login: React.FC = () => {
               </Button>
               <Button
                 onClick={openLoginModal}
-                className="fixed-login-button text-white focus:outline-none focus:ring-4 focus:ring-primary focus:ring-opacity-50 rounded-xl"
+                className="fixed-login-button text-white focus:outline-none focus:ring-4 focus:ring-primary focus:ring-opacity-50 rounded-xl flex items-center gap-2" // flex va gap-2 qo'shildi
               >
+                <User className="h-5 w-5" /> {/* User ikonkasini qo'shdim */}
                 {t("common.login")}
               </Button>
             </div>
