@@ -28,7 +28,9 @@
     "success_guest_mode_exited": "Mehmon rejimi muvaffaqiyatli yakunlandi.",
     "light": "Yorug'",
     "dark_mode": "Tungi rejim",
-    "system": "Tizim"
+    "system": "Tizim",
+    "forgot_password_contact_admin_message": "Parolingizni unutdingizmi? Iltimos, administrator bilan bog'laning.",
+    "admin_contact_phone": "+998 77 207 71 17"
   },
   "landing_page": {
     "title_part1": "Edumock Plus –",

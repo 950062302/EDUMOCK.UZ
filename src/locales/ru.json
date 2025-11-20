@@ -28,7 +28,9 @@
     "success_guest_mode_exited": "Гостевой режим успешно завершен.",
     "light": "Светлый",
     "dark_mode": "Темный режим",
-    "system": "Системный"
+    "system": "Системный",
+    "forgot_password_contact_admin_message": "Забыли пароль? Пожалуйста, свяжитесь с администратором.",
+    "admin_contact_phone": "+998 77 207 71 17"
   },
   "landing_page": {
     "title_part1": "Edumock Plus –",

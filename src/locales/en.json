@@ -28,7 +28,9 @@
     "success_guest_mode_exited": "Guest mode exited successfully.",
     "light": "Light",
     "dark_mode": "Dark Mode",
-    "system": "System"
+    "system": "System",
+    "forgot_password_contact_admin_message": "Forgot your password? Please contact the administrator.",
+    "admin_contact_phone": "+998 77 207 71 17"
   },
   "landing_page": {
     "title_part1": "Edumock Plus –",

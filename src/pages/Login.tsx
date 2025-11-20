@@ -9,11 +9,11 @@ import ContactSection from "@/components/ContactSection";
 import PricingCard from "@/components/PricingCard";
 import LandingPageFooter from "@/components/LandingPageFooter";
 import { useTranslation } from 'react-i18next';
-import { Dialog, DialogContent } from "@/components/ui/dialog"; // Dialog komponentini import qildim
-import { Auth } from '@supabase/auth-ui-react'; // Supabase Auth UI komponentini import qildim
-import { ThemeSupa } from '@supabase/auth-ui-shared'; // Supabase Auth UI uchun temani import qildim
-import { supabase } from "@/integrations/supabase/client"; // Supabase clientni import qildim
-import { toast } from "sonner"; // Toast xabarlari uchun
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Auth } from '@supabase/auth-ui-react';
+import { ThemeSupa } from '@supabase/auth-ui-shared';
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Login: React.FC = () => {
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
@@ -34,11 +34,9 @@ const Login: React.FC = () => {
     navigate("/home");
   };
 
-  // Supabase Auth UI komponenti uchun o'zgarishlarni kuzatish
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        // Agar foydalanuvchi tizimga kirsa yoki parolni tiklasa
         closeLoginModal();
         navigate("/home");
       }
@@ -88,55 +86,48 @@ const Login: React.FC = () => {
         </div>
       </main>
 
-      {/* LoginDialog o'rniga Supabase Auth komponentini ishlatamiz */}
       <Dialog open={isLoginDialogOpen} onOpenChange={closeLoginModal}>
-        <DialogContent className="sm:max-w-[425px] p-0"> {/* Paddingni olib tashladim, Auth komponenti o'zi padding beradi */}
-          <Auth
-            supabaseClient={supabase}
-            providers={[]} // Faqat email/password orqali kirishni qoldirdim
-            appearance={{
-              theme: ThemeSupa,
-              variables: {
-                default: {
-                  colors: {
-                    brand: 'hsl(var(--primary))', // Asosiy rangni Tailwind primary rangiga mosladim
-                    brandAccent: 'hsl(var(--primary-foreground))', // Accent rangni ham mosladim
+        <DialogContent className="sm:max-w-[425px] p-0">
+          <div className="p-6">
+            <Auth
+              supabaseClient={supabase}
+              providers={[]}
+              appearance={{
+                theme: ThemeSupa,
+                variables: {
+                  default: {
+                    colors: {
+                      brand: 'hsl(var(--primary))',
+                      brandAccent: 'hsl(var(--primary-foreground))',
+                    },
                   },
                 },
-              },
-            }}
-            theme="light" // Ilovangizning umumiy mavzusiga mos ravishda
-            view="sign_in" // Dastlabki ko'rinishni sign_in qilib belgiladim
-            localization={{
-              variables: {
-                sign_in: {
-                  email_label: t("common.email"),
-                  password_label: t("common.password"),
-                  email_input_placeholder: t("common.enter_your_email"),
-                  password_input_placeholder: t("common.enter_your_password"),
-                  button_label: t("common.login"),
-                  loading_button_label: t("common.logging_in"),
-                  link_text: t("common.admin_only"),
+              }}
+              theme="light"
+              view="sign_in"
+              localization={{
+                variables: {
+                  sign_in: {
+                    email_label: t("common.email"),
+                    password_label: t("common.password"),
+                    email_input_placeholder: t("common.enter_your_email"),
+                    password_input_placeholder: t("common.enter_your_password"),
+                    button_label: t("common.login"),
+                    loading_button_label: t("common.logging_in"),
+                    // link_text olib tashlandi, chunki faqat sign_in ko'rinishi kerak
+                  },
+                  // forgotten_password va update_password localizationlari olib tashlandi
+                  // chunki foydalanuvchi parolni o'zi tiklay olmasligi kerak
                 },
-                forgotten_password: {
-                  email_label: t("common.email"),
-                  password_label: t("common.password"),
-                  email_input_placeholder: t("common.enter_your_email"),
-                  button_label: t("user_profile_page.update_credentials"),
-                  loading_button_label: t("common.save_changes"),
-                  link_text: t("user_profile_page.update_login_credentials"),
-                  confirmation_text: t("user_profile_page.success_email_update_check_inbox"),
-                },
-                update_password: {
-                  password_label: t("user_profile_page.new_password"),
-                  password_input_placeholder: t("user_profile_page.enter_new_password"),
-                  button_label: t("user_profile_page.update_credentials"),
-                  loading_button_label: t("common.save_changes"),
-                  confirmation_text: t("user_profile_page.success_password_updated"),
-                },
-              },
-            }}
-          />
+              }}
+            />
+            <div className="mt-4 text-center text-sm text-muted-foreground">
+              <p>{t("common.forgot_password_contact_admin_message")}</p>
+              <a href="tel:+998772077117" className="text-primary hover:underline font-semibold">
+                {t("common.admin_contact_phone")}
+              </a>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
       <LandingPageFooter />
