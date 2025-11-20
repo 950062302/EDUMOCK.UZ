@@ -178,10 +178,7 @@ const PricingCard: React.FC = () => {
         <Button variant="ghost" className="text-primary font-semibold text-sm hover:text-primary/90 p-0 h-auto">{t("landing_page.promo_code")}</Button>
       </div>
 
-      <div className="flex justify-between items-center border-t pt-4">
-        <p className="text-lg font-bold text-gray-800">{t("landing_page.total")}</p>
-        <p id="total-price" className="text-2xl font-extrabold text-primary">{totalPrice.display}</p>
-      </div>
+      {/* "Jami" summani ko'rsatuvchi qism olib tashlandi */}
 
       <Button asChild className="w-full mt-4 py-4 bg-primary text-white font-bold text-lg rounded-xl hover:bg-primary/90 transition duration-150 shadow-md">
         <a href="https://t.me/aero_one" target="_blank" rel="noopener noreferrer">
