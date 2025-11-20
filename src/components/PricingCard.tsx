@@ -18,6 +18,7 @@ interface PriceOption {
   originalPrice?: number;
   discount?: string;
   features: string[];
+  isHotSale?: boolean; // Yangi xususiyat
 }
 
 const prices: { [key: string]: PriceOption } = {
@@ -45,7 +46,8 @@ const prices: { [key: string]: PriceOption } = {
       "add_custom_questions", 
       "edit_questions", 
       "priority_support"
-    ]
+    ],
+    isHotSale: true // "3-Month Plan" uchun Hot Sale
   },
   "6": { 
     price: 1299000, 
@@ -93,20 +95,16 @@ const prices: { [key: string]: PriceOption } = {
 };
 
 const PricingCard: React.FC = () => {
-  // Accordionning qaysi elementi ochiq ekanligini boshqaradi
   const [openAccordionValue, setOpenAccordionValue] = useState<string | undefined>("1");
-  // Tanlangan tarifning kalitini saqlaydi, bu totalPrice ni aniqlash uchun ishlatiladi
   const [selectedPriceKey, setSelectedPriceKey] = useState<string>("1");
   const { t } = useTranslation();
 
-  // openAccordionValue o'zgarganda selectedPriceKey ni yangilash
   useEffect(() => {
     if (openAccordionValue) {
       setSelectedPriceKey(openAccordionValue);
     }
   }, [openAccordionValue]);
 
-  // selectedPriceKey o'zgarganda totalPrice ni yangilash
   const totalPrice = prices[selectedPriceKey];
 
   return (
@@ -126,8 +124,13 @@ const PricingCard: React.FC = () => {
             <AccordionItem 
               key={option} 
               value={option} 
-              className={`price-option p-4 flex flex-col border-b-0 ${selectedPriceKey === option ? 'price-option-active' : ''}`}
+              className={`price-option p-4 flex flex-col border-b-0 relative ${selectedPriceKey === option ? 'price-option-active' : ''}`}
             >
+              {priceData.isHotSale && (
+                <div className="hot-sale-badge absolute -top-3 -right-3 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md z-10 animate-pulse-hot-sale">
+                  {t("landing_page.hot_sale")}
+                </div>
+              )}
               <AccordionTrigger className="flex justify-between items-center mb-2 p-0 hover:no-underline">
                 <div className="flex-grow text-left">
                   <p className="font-semibold text-gray-800">

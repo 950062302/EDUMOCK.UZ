@@ -191,3 +191,23 @@
 .btn-hover-glow:hover::before {
   opacity: 1;
 }
+
+/* Hot Sale Badge Styles */
+@keyframes pulse-hot-sale {
+  0% {
+    transform: scale(1) rotate(0deg);
+    box-shadow: 0 0 5px rgba(239, 68, 68, 0.7);
+  }
+  50% {
+    transform: scale(1.05) rotate(2deg);
+    box-shadow: 0 0 15px rgba(239, 68, 68, 1);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    box-shadow: 0 0 5px rgba(239, 68, 68, 0.7);
+  }
+}
+
+.animate-pulse-hot-sale {
+  animation: pulse-hot-sale 2s infinite ease-in-out;
+}
