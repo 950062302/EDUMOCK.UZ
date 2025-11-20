@@ -89,11 +89,16 @@ export default {
           "0%, 100%": { transform: "scale(1)" },
           "50%": { transform: "scale(1.05)" },
         },
+        "button-pulse": {
+          "0%, 100%": { transform: "scale(1)" },
+          "50%": { transform: "scale(1.03)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "logo-pulse": "logo-pulse 2s ease-in-out infinite",
+        "button-pulse": "button-pulse 2s ease-in-out infinite",
       },
     },
   },
