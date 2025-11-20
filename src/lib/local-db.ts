@@ -36,17 +36,22 @@ const getUserId = async (): Promise<string | null> => {
 export const getSupabaseQuestions = async (): Promise<SpeakingQuestion[]> => {
   const { data: { user } } = await supabase.auth.getUser();
   const userId = user?.id;
+  const isGuestMode = localStorage.getItem("isGuestMode") === "true"; // Mehmon rejimini tekshirish
 
-  let filterString = 'user_id.is.null'; // Har doim ommaviy savollarni qo'shish
+  let query = supabase.from('questions').select('*');
 
-  if (userId) {
-    filterString = `user_id.eq.${userId},${filterString}`; // Agar foydalanuvchi tizimga kirgan bo'lsa, uning savollarini ham qo'shish
+  if (isGuestMode) {
+    // Mehmon rejimida faqat user_id NULL bo'lgan savollarni ko'rsatish
+    query = query.is('user_id', null);
+  } else if (userId) {
+    // Tizimga kirgan foydalanuvchi uchun faqat o'zining savollarini ko'rsatish
+    query = query.eq('user_id', userId);
+  } else {
+    // Tizimga kirmagan va mehmon rejimida bo'lmagan foydalanuvchi uchun savollar yo'q
+    return [];
   }
 
-  const { data, error } = await supabase
-    .from('questions')
-    .select('*')
-    .or(filterString);
+  const { data, error } = await query;
 
   if (error) {
     showError(i18n.t("add_question_page.error_loading_entries", { message: error.message }));
