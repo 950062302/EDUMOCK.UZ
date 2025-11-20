@@ -202,7 +202,8 @@
     "upload_failed": "Yuklash amalga oshmadi",
     "downloading": "Yuklanmoqda...",
     "success_downloaded": "Muvaffaqiyatli yuklab olindi!",
-    "error_cloud_delete_failed_local_kept": "Bulutdan o'chirishda xatolik yuz berdi. Mahalliy yozuv saqlanib qoldi."
+    "error_cloud_delete_failed_local_kept": "Bulutdan o'chirishda xatolik yuz berdi. Mahalliy yozuv saqlanib qoldi.",
+    "upload_success": "Video bulutga muvaffaqiyatli yuklandi!"
   },
   "mood_journal_page": {
     "mood_journal_tracker": "Kayfiyat Jurnali va Trekeri",

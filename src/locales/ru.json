@@ -202,7 +202,8 @@
     "upload_failed": "Загрузка не удалась",
     "downloading": "Загрузка...",
     "success_downloaded": "Успешно загружено!",
-    "error_cloud_delete_failed_local_kept": "Ошибка удаления из облака. Локальная запись сохранена."
+    "error_cloud_delete_failed_local_kept": "Ошибка удаления из облака. Локальная запись сохранена.",
+    "upload_success": "Видео успешно загружено в облако!"
   },
   "mood_journal_page": {
     "mood_journal_tracker": "Дневник настроения и трекер",

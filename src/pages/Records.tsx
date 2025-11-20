@@ -115,7 +115,7 @@ const Records: React.FC = () => {
         });
 
         setRecordings(prev => prev.map(rec => rec.id === recording.id ? { ...rec, supabase_url: publicUrlData.publicUrl } : rec));
-        showSuccess(t("records_page.success_uploaded_to_cloud"));
+        showSuccess(t("records_page.upload_success"));
         setUploadProgress(recording.id, 100);
         setTimeout(() => setUploadProgress(recording.id, 0), 2000);
       } else {
