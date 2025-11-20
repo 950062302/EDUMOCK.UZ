@@ -36,7 +36,7 @@ const Records: React.FC = () => {
   const [downloadingRecordId, setDownloadingRecordId] = useState<string | null>(null); // New state for download status
 
   const fetchRecordings = useCallback(async () => {
-    setIsLoading(true);
+    setIsLoading(true); // Set to true at the start
     let loadedRecordings: RecordedSession[] = [];
     try {
       const data = await getLocalRecordings();
@@ -45,9 +45,9 @@ const Records: React.FC = () => {
     } catch (error: any) {
       showError(`${t("records_page.error_loading_recordings")} ${error.message}`);
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Set to false in finally block
     }
-  }, [t]);
+  }, [t]); // Dependency array for useCallback
 
   useEffect(() => {
     fetchRecordings();
@@ -60,7 +60,7 @@ const Records: React.FC = () => {
         }
       });
     };
-  }, [fetchRecordings, recordings]); // Added recordings to dependency array for cleanup
+  }, [fetchRecordings]); // Removed 'recordings' from here to prevent infinite loop
 
   const handleUploadToSupabase = useCallback(async (recording: RecordedSession) => {
     if (!user?.id) {
