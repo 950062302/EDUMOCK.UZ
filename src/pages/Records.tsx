@@ -9,7 +9,7 @@ import { Download, PlayCircle, Trash2, ArrowLeft, Cloud, Zap, CheckCircle2 } fro
 import { format } from "date-fns";
 import { RecordedSession } from "@/lib/types";
 import { showError, showSuccess } from "@/utils/toast";
-import { getLocalRecordings, deleteLocalRecording, getRecordingBlob, updateLocalRecordingSupabaseUrl } from "@/lib/local-db";
+import { getLocalRecordings, deleteLocalRecording, getRecordingBlob, updateLocalRecordingSupabaseUrl, upsertRecordingMetadataToSupabase } from "@/lib/local-db";
 import { Link } from "react-router-dom";
 import {
   AlertDialog,
@@ -33,6 +33,7 @@ const Records: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const uploadProgress = useUploadProgress();
+  const [downloadingRecordId, setDownloadingRecordId] = useState<string | null>(null); // New state for download status
 
   const fetchRecordings = useCallback(async () => {
     setIsLoading(true);
@@ -51,10 +52,15 @@ const Records: React.FC = () => {
   useEffect(() => {
     fetchRecordings();
 
+    // Cleanup function for object URLs
     return () => {
-      recordings.forEach(rec => URL.revokeObjectURL(rec.video_url));
+      recordings.forEach(rec => {
+        if (rec.isLocalBlobAvailable && rec.video_url.startsWith('blob:')) {
+          URL.revokeObjectURL(rec.video_url);
+        }
+      });
     };
-  }, [fetchRecordings]);
+  }, [fetchRecordings, recordings]); // Added recordings to dependency array for cleanup
 
   const handleUploadToSupabase = useCallback(async (recording: RecordedSession) => {
     if (!user?.id) {
@@ -96,6 +102,18 @@ const Records: React.FC = () => {
       
       if (publicUrlData.publicUrl) {
         await updateLocalRecordingSupabaseUrl(recording.id, publicUrlData.publicUrl);
+        // Also update metadata in Supabase DB
+        await upsertRecordingMetadataToSupabase({
+          id: recording.id,
+          user_id: user.id,
+          timestamp: recording.timestamp,
+          duration: recording.duration,
+          student_id: recording.student_id,
+          student_name: recording.student_name,
+          student_phone: recording.student_phone,
+          supabase_url: publicUrlData.publicUrl,
+        });
+
         setRecordings(prev => prev.map(rec => rec.id === recording.id ? { ...rec, supabase_url: publicUrlData.publicUrl } : rec));
         showSuccess(t("records_page.success_uploaded_to_cloud"));
         setUploadProgress(recording.id, 100);
@@ -109,6 +127,7 @@ const Records: React.FC = () => {
   }, [user, t]);
 
   const handleDownload = useCallback(async (recording: RecordedSession) => {
+    setDownloadingRecordId(recording.id); // Set downloading status
     try {
       let urlToDownload = recording.video_url;
       let filename = `recording_${recording.id}.webm`;
@@ -141,14 +160,19 @@ const Records: React.FC = () => {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      showSuccess(t("records_page.success_downloaded")); // New translation key needed
     } catch (error: any) {
       showError(`${t("records_page.error_downloading_video")} ${error.message}`);
+    } finally {
+      setDownloadingRecordId(null); // Clear downloading status
     }
   }, [t]);
 
   const handleDelete = useCallback(async (recording: RecordedSession) => {
     try {
-      URL.revokeObjectURL(recording.video_url);
+      if (recording.isLocalBlobAvailable && recording.video_url.startsWith('blob:')) {
+        URL.revokeObjectURL(recording.video_url);
+      }
       await deleteLocalRecording(recording.id);
       setRecordings(prev => prev.filter(rec => rec.id !== recording.id));
       showSuccess(t("records_page.success_recording_deleted"));
@@ -180,8 +204,8 @@ const Records: React.FC = () => {
                 {recordings.map((recording, index) => {
                   const currentUploadProgress = uploadProgress.get(recording.id);
                   const isUploading = currentUploadProgress !== undefined && currentUploadProgress < 100 && currentUploadProgress >= 0;
-                  const isUploaded = recording.supabase_url && currentUploadProgress === 0;
                   const uploadError = currentUploadProgress === -1;
+                  const isDownloading = downloadingRecordId === recording.id;
 
                   return (
                     <Card key={recording.id} className="p-4">
@@ -196,7 +220,7 @@ const Records: React.FC = () => {
                           <p className="text-sm text-muted-foreground">
                             {t("records_page.duration")}: {Math.floor(recording.duration / 60)}m {recording.duration % 60}s
                           </p>
-                          {isUploaded && (
+                          {recording.supabase_url && (
                             <p className="text-xs text-green-600 flex items-center gap-1 mt-1">
                               <CheckCircle2 className="h-3 w-3" /> {t("records_page.uploaded_to_cloud")}
                             </p>
@@ -215,14 +239,16 @@ const Records: React.FC = () => {
                             </a>
                           </Button>
 
-                          {/* Local Download button */}
-                          <Button onClick={() => handleDownload({ ...recording, supabase_url: undefined })} variant="outline" size="sm" className="flex items-center gap-1">
-                            <Download className="h-4 w-4" /> {t("records_page.download_local")}
-                          </Button>
+                          {/* Local Download button (conditional) */}
+                          {recording.isLocalBlobAvailable && (
+                            <Button onClick={() => handleDownload({ ...recording, supabase_url: undefined })} variant="outline" size="sm" className="flex items-center gap-1" disabled={isDownloading || isUploading}>
+                              <Download className="h-4 w-4" /> {t("records_page.download_local")}
+                            </Button>
+                          )}
                           
                           {/* Conditional Upload / Uploading / Cloud Download button */}
                           {!recording.supabase_url && user?.id && !isUploading && !uploadError ? (
-                            <Button onClick={() => handleUploadToSupabase(recording)} variant="outline" size="sm" className="flex items-center gap-1">
+                            <Button onClick={() => handleUploadToSupabase(recording)} variant="outline" size="sm" className="flex items-center gap-1" disabled={isDownloading}>
                               <Cloud className="h-4 w-4" /> {t("records_page.upload")}
                             </Button>
                           ) : isUploading ? (
@@ -231,19 +257,26 @@ const Records: React.FC = () => {
                                 className="absolute inset-0 bg-blue-500 opacity-30" 
                                 style={{ width: `${currentUploadProgress}%` }}
                               ></div>
-                              <Cloud className="h-4 w-4 z-10" /> 
-                              <span className="z-10">{t("records_page.uploading")} {currentUploadProgress?.toFixed(0)}%</span>
+                              <span className="relative z-10">{t("records_page.uploading")} {currentUploadProgress?.toFixed(0)}%</span>
                             </Button>
                           ) : recording.supabase_url && (
-                            <Button onClick={() => handleDownload(recording)} variant="default" size="sm" className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600">
-                              <Zap className="h-4 w-4" /> {t("records_page.download_from_cloud")}
+                            <Button onClick={() => handleDownload(recording)} variant="default" size="sm" className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600" disabled={isDownloading || isUploading}>
+                              {isDownloading ? (
+                                <>
+                                  <Zap className="h-4 w-4 animate-pulse" /> {t("records_page.downloading")}
+                                </>
+                              ) : (
+                                <>
+                                  <Zap className="h-4 w-4" /> {t("records_page.download_from_cloud")}
+                                </>
+                              )}
                             </Button>
                           )}
 
                           {/* Delete button */}
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="destructive" size="sm" className="flex items-center gap-1">
+                              <Button variant="destructive" size="sm" className="flex items-center gap-1" disabled={isDownloading || isUploading}>
                                 <Trash2 className="h-4 w-4" /> {t("records_page.delete")}
                               </Button>
                             </AlertDialogTrigger>

@@ -199,7 +199,9 @@
     "error_no_video_data": "Yuklash uchun video ma'lumotlari topilmadi.",
     "error_deleting_from_cloud": "Videoni bulutdan o'chirishda xatolik:",
     "delete_from_cloud_warning": "Bu video bulutli xotiradan ham o'chiriladi.",
-    "upload_failed": "Yuklash amalga oshmadi"
+    "upload_failed": "Yuklash amalga oshmadi",
+    "downloading": "Yuklanmoqda...",
+    "success_downloaded": "Muvaffaqiyatli yuklab olindi!"
   },
   "mood_journal_page": {
     "mood_journal_tracker": "Kayfiyat Jurnali va Trekeri",

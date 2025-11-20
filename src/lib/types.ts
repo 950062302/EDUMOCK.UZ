@@ -58,6 +58,7 @@ export interface RecordedSession {
   student_id?: string;
   student_name?: string;
   student_phone?: string;
-  video_url: string; // Blob URL from IndexedDB
+  video_url: string; // Blob URL from IndexedDB or Supabase public URL
   supabase_url?: string; // Supabase'ga yuklangan videoning ommaviy URL manzili
+  isLocalBlobAvailable?: boolean; // Yangi: video blob mahalliy IndexedDBda mavjudligini bildiradi
 }

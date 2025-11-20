@@ -199,7 +199,9 @@
     "error_no_video_data": "No video data found for upload.",
     "error_deleting_from_cloud": "Error deleting video from cloud:",
     "delete_from_cloud_warning": "This will also delete the video from cloud storage.",
-    "upload_failed": "Upload failed"
+    "upload_failed": "Upload failed",
+    "downloading": "Downloading...",
+    "success_downloaded": "Successfully downloaded!"
   },
   "mood_journal_page": {
     "mood_journal_tracker": "Mood Journal & Tracker",

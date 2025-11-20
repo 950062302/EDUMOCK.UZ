@@ -130,8 +130,6 @@ export const useRecorder = () => {
             student_name: studentInfo?.name,
             student_phone: studentInfo?.phone,
             videoBlob: blob,
-            timestamp: currentTimestamp, // add timestamp here
-            user_id: userId, // add user_id here
           });
           showSuccess(t("add_question_page.success_video_saved"));
 
@@ -164,7 +162,7 @@ export const useRecorder = () => {
                 // 4. Supabase metadata jadvaliga ma'lumotlarni kiritamiz/yangilaymiz
                 await upsertRecordingMetadataToSupabase({
                   id: recordingId,
-                  user_id: userId,
+                  user_id: userId, // userId is guaranteed to be user.id here
                   timestamp: currentTimestamp,
                   duration,
                   student_id: studentInfo?.id,

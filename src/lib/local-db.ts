@@ -143,7 +143,7 @@ export const deleteSupabaseQuestion = async (id: string): Promise<boolean> => {
 };
 
 export const resetSupabaseQuestionCooldowns = async (): Promise<boolean> => {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } = {} } = await supabase.auth.getUser();
   const userId = user?.id;
 
   let query = supabase
@@ -202,12 +202,12 @@ interface StoredRecording {
   student_id?: string;
   student_name?: string;
   student_phone?: string;
-  videoBlob: Blob;
+  videoBlob: Blob; // This is the actual blob stored in IndexedDB
   supabase_url?: string; // Supabase'ga yuklangan videoning ommaviy URL manzili
 }
 
 // Yangi: Supabase jadvaliga yozuv metama'lumotlarini kiritish yoki yangilash
-export const upsertRecordingMetadataToSupabase = async (recording: Omit<RecordedSession, 'video_url'>): Promise<void> => {
+export const upsertRecordingMetadataToSupabase = async (recording: Omit<RecordedSession, 'video_url' | 'isLocalBlobAvailable'>): Promise<void> => {
   const { error } = await supabase
     .from('recordings_metadata')
     .upsert({
@@ -262,28 +262,34 @@ export const getLocalRecordings = async (): Promise<RecordedSession[]> => {
     if (error) {
       showError(i18n.t("records_page.error_loading_recordings", { message: error.message }));
     } else if (data) {
-      allRecordings = data.map(rec => ({
-        id: rec.id,
-        user_id: rec.user_id,
-        timestamp: rec.timestamp,
-        duration: rec.duration,
-        student_id: rec.student_id || undefined,
-        student_name: rec.student_name || undefined,
-        student_phone: rec.student_phone || undefined,
-        video_url: rec.supabase_url, // Supabase URL'ni video_url sifatida ishlatamiz
-        supabase_url: rec.supabase_url,
-      }));
+      allRecordings = data.map(rec => {
+        // Check if this recording also exists locally in IndexedDB
+        const localVersion = storedRecordings.find(sRec => sRec.id === rec.id);
+        return {
+          id: rec.id,
+          user_id: rec.user_id,
+          timestamp: rec.timestamp,
+          duration: rec.duration,
+          student_id: rec.student_id || undefined,
+          student_name: rec.student_name || undefined,
+          student_phone: rec.student_phone || undefined,
+          video_url: rec.supabase_url, // Supabase URL'ni video_url sifatida ishlatamiz
+          supabase_url: rec.supabase_url,
+          isLocalBlobAvailable: !!localVersion, // If localVersion exists, then local blob is available
+        };
+      });
     }
 
-    // Filter out local recordings that are already uploaded to Supabase
+    // Add unuploaded local recordings to the list
+    // These are recordings that are in IndexedDB but NOT in Supabase metadata
     const uploadedSupabaseIds = new Set(allRecordings.map(r => r.id));
     const unuploadedLocalRecordings = storedRecordings.filter(rec => !uploadedSupabaseIds.has(rec.id));
 
-    // Add unuploaded local recordings to the list
     unuploadedLocalRecordings.forEach(rec => {
       allRecordings.push({
         ...rec,
         video_url: URL.createObjectURL(rec.videoBlob),
+        isLocalBlobAvailable: true, // It's a local recording, so blob is available
       });
     });
 
@@ -293,6 +299,7 @@ export const getLocalRecordings = async (): Promise<RecordedSession[]> => {
       allRecordings.push({
         ...rec,
         video_url: URL.createObjectURL(rec.videoBlob),
+        isLocalBlobAvailable: true, // It's a local recording, so blob is available
       });
     });
   }
@@ -307,7 +314,7 @@ export const getRecordingBlob = async (id: string): Promise<Blob | undefined> =>
 };
 
 export const addLocalRecording = async (
-  recording: Omit<RecordedSession, 'id' | 'timestamp' | 'user_id' | 'video_url'> & { videoBlob: Blob, supabase_url?: string }
+  recording: Omit<RecordedSession, 'id' | 'timestamp' | 'user_id' | 'video_url' | 'isLocalBlobAvailable'> & { videoBlob: Blob }
 ): Promise<string> => {
   const db = await initDB();
   const newRecordingId = uuidv4();
@@ -320,12 +327,9 @@ export const addLocalRecording = async (
     timestamp: currentTimestamp,
     user_id: userId,
     videoBlob: recording.videoBlob,
-    supabase_url: recording.supabase_url,
+    supabase_url: undefined, // Initially, no supabase_url
   };
   await db.add(STORE_RECORDINGS, newRecording);
-
-  // Supabase metadata insertion is now handled by upsertRecordingMetadataToSupabase in use-recorder.tsx
-  // This function only adds to IndexedDB.
 
   return newRecordingId;
 };
@@ -338,7 +342,6 @@ export const updateLocalRecordingSupabaseUrl = async (id: string, supabaseUrl: s
   if (recording) {
     recording.supabase_url = supabaseUrl;
     await store.put(recording);
-    // Supabase metadata update is now handled by upsertRecordingMetadataToSupabase in use-recorder.tsx
   }
   await tx.done;
 };
