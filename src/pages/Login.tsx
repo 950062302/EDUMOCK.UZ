@@ -37,16 +37,16 @@ const Login: React.FC = () => {
       <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 hero-section">
         <div className="lg:flex lg:space-x-12">
           <div className="lg:w-3/5 pb-10">
-            <h1 className="text-5xl lg:text-6xl font-extrabold text-gray-900 mb-4 leading-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 mb-4 leading-tight">
               {t("landing_page.title_part1")} <span className="text-primary">{t("landing_page.title_part2")}</span>
             </h1>
-            <p className="text-3xl font-semibold text-gray-500 mb-8">
+            <p className="text-xl sm:text-3xl font-semibold text-gray-500 mb-8">
               {t("landing_page.subtitle")}
             </p>
 
             <Button
               onClick={handleTryMe}
-              className="bg-gradient-purple text-white text-lg px-8 py-6 rounded-full shadow-lg mb-10 transition-all duration-300 animate-button-pulse btn-hover-glow"
+              className="bg-gradient-purple text-white text-base px-6 py-4 rounded-full shadow-lg mb-10 transition-all duration-300 animate-button-pulse btn-hover-glow"
             >
               {t("landing_page.try_me_button")}
             </Button>
