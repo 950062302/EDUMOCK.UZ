@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showSuccess, showError } from "@/utils/toast";
-import { Trash2, Pencil, X, ArrowLeft } from "lucide-react";
+import { Trash2, Pencil, X, ArrowLeft, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { SpeakingQuestion, SpeakingPart, Part1_1Question, Part1_2Question, Part2Question, Part3Question } from "@/lib/types";
 import { allSpeakingParts } from "@/lib/constants";
@@ -38,6 +38,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useTranslation } from 'react-i18next';
 import { normalizeText } from "@/lib/utils"; // normalizeText funksiyasini import qilish
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const SpeakingQuestionManager: React.FC = () => {
   const { session } = useAuth();
@@ -407,13 +412,21 @@ const SpeakingQuestionManager: React.FC = () => {
                 </Button>
               </Link>
               <CardTitle className="text-3xl font-bold">{t("add_question_page.question_management")}</CardTitle>
-              <Button 
-                onClick={handleResetAllCooldowns} 
-                variant="link" 
-                className="absolute right-0 top-0 text-primary"
-              >
-                {t("add_question_page.reset_all_cooldowns")}
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    onClick={handleResetAllCooldowns} 
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 text-primary"
+                  >
+                    <RefreshCw className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{t("add_question_page.reset_all_cooldowns")}</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </CardHeader>
           <CardContent>
