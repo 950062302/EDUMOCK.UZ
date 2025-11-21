@@ -29,10 +29,13 @@ function getUserIdFromPath(path: string): string | null {
 
 // Foydalanuvchining barcha fayllari umumiy hajmini hisoblash
 async function calculateTotalStorageUsed(userId: string): Promise<number> {
-  console.log(`[Storage] Listing files for user: ${userId}`);
+  console.log(`[Storage] Starting file listing for user: ${userId}`);
+  
+  // Storage list chaqiruvi. Prefix sifatida userId ni ishlatamiz.
   const { data, error } = await supabaseAdmin.storage.from('recordings').list(userId, {
     limit: 1000, 
     offset: 0,
+    // Fayl nomlari user_id/file_name formatida bo'lgani uchun prefix to'g'ri ishlaydi.
   });
 
   if (error) {
@@ -40,11 +43,13 @@ async function calculateTotalStorageUsed(userId: string): Promise<number> {
     return 0;
   }
   
-  console.log(`[Storage] Found ${data.length} files.`);
+  console.log(`[Storage] Found ${data.length} files in the recordings bucket under prefix ${userId}.`);
 
   // Fayl hajmini metadata.size dan olish
   const totalSize = data.reduce((sum, file) => {
-    const size = file.metadata?.size || 0;
+    // Supabase Storage list API'si metadata.size ni qaytarmaydi, faqat size ni qaytaradi.
+    // Lekin bizning triggerimizda metadata.size mavjud. Storage list chaqiruvida esa faqat `size` ustuni mavjud.
+    const size = file.size || 0; 
     console.log(`[Storage] File: ${file.name}, Size: ${size}`);
     return sum + size;
   }, 0);
@@ -63,22 +68,26 @@ serve(async (req) => {
     const eventType = payload.event_type;
     
     let path: string | undefined;
-    let userId: string | null = null;
-
-    // Qaysi qatordan (new yoki old) path ni olishni aniqlash
+    
+    // Storage trigger payloadida path 'buckets/recordings/objects/user_id/file_name' formatida keladi.
+    // Bizning notify_storage_change funksiyamiz faqat 'user_id/file_name' qismini yuboradi.
+    // Lekin bizning notify_storage_change funksiyamizda `path` ustuni ishlatilgan.
+    // Keling, payload.new/old dan `path` ni emas, balki `name` ni olishga harakat qilamiz, chunki `name` ustuni `user_id/file_name` ni o'z ichiga oladi.
+    
     if (eventType === 'INSERT' || eventType === 'UPDATE') {
-        path = payload.new?.path;
+        path = payload.new?.name; // Storage object name (e.g., "user_id/file.webm")
     } else if (eventType === 'DELETE') {
-        path = payload.old?.path;
+        path = payload.old?.name;
     }
 
-    console.log(`[Trigger] Received event: ${eventType}, Path: ${path}`);
+    console.log(`[Trigger] Received event: ${eventType}, Object Name (Path): ${path}`);
 
     if (!path) {
-        console.warn(`[Trigger] Missing path in payload for event type: ${eventType}`);
-        return new Response('Missing path in payload', { status: 400, headers: corsHeaders });
+        console.warn(`[Trigger] Missing object name in payload for event type: ${eventType}`);
+        return new Response('Missing object name in payload', { status: 400, headers: corsHeaders });
     }
 
+    // Path formatini to'g'rilash: agar u "user_id/file_name" bo'lsa, bizga faqat "user_id" kerak.
     userId = getUserIdFromPath(path);
 
     if (!userId) {
