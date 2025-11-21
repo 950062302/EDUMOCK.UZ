@@ -29,20 +29,27 @@ function getUserIdFromPath(path: string): string | null {
 
 // Foydalanuvchining barcha fayllari umumiy hajmini hisoblash
 async function calculateTotalStorageUsed(userId: string): Promise<number> {
-  // Storage API faqat 1000 tagacha faylni qaytaradi. Agar foydalanuvchida 1000 dan ortiq fayl bo'lsa, bu noto'g'ri hisoblaydi.
-  // Lekin hozircha bu yetarli.
+  console.log(`[Storage] Listing files for user: ${userId}`);
   const { data, error } = await supabaseAdmin.storage.from('recordings').list(userId, {
     limit: 1000, 
     offset: 0,
   });
 
   if (error) {
-    console.error(`Error listing storage files for user ${userId}:`, error.message);
+    console.error(`[Storage] Error listing storage files for user ${userId}:`, error.message);
     return 0;
   }
+  
+  console.log(`[Storage] Found ${data.length} files.`);
 
   // Fayl hajmini metadata.size dan olish
-  const totalSize = data.reduce((sum, file) => sum + (file.metadata?.size || 0), 0);
+  const totalSize = data.reduce((sum, file) => {
+    const size = file.metadata?.size || 0;
+    console.log(`[Storage] File: ${file.name}, Size: ${size}`);
+    return sum + size;
+  }, 0);
+  
+  console.log(`[Storage] Calculated total size: ${totalSize} bytes.`);
   return totalSize;
 }
 
@@ -65,15 +72,17 @@ serve(async (req) => {
         path = payload.old?.path;
     }
 
+    console.log(`[Trigger] Received event: ${eventType}, Path: ${path}`);
+
     if (!path) {
-        console.warn(`Missing path in payload for event type: ${eventType}`);
+        console.warn(`[Trigger] Missing path in payload for event type: ${eventType}`);
         return new Response('Missing path in payload', { status: 400, headers: corsHeaders });
     }
 
     userId = getUserIdFromPath(path);
 
     if (!userId) {
-      console.warn(`Could not extract user ID from path: ${path}`);
+      console.warn(`[Trigger] Could not extract user ID from path: ${path}`);
       return new Response('User ID not found', { status: 200, headers: corsHeaders });
     }
 
@@ -87,21 +96,21 @@ serve(async (req) => {
       .eq('id', userId);
 
     if (updateError) {
-      console.error("Error updating profile storage usage:", updateError.message);
+      console.error("[DB Update] Error updating profile storage usage:", updateError.message);
       return new Response(JSON.stringify({ error: updateError.message }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    console.log(`Storage usage updated for user ${userId}: ${totalUsedBytes} bytes.`);
+    console.log(`[Success] Storage usage updated for user ${userId}: ${totalUsedBytes} bytes.`);
     
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error("Edge Function error:", error);
+    console.error("[Fatal] Edge Function error:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
