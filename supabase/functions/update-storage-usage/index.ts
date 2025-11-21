@@ -29,16 +29,19 @@ function getUserIdFromPath(path: string): string | null {
 
 // Foydalanuvchining barcha fayllari umumiy hajmini hisoblash
 async function calculateTotalStorageUsed(userId: string): Promise<number> {
+  // Storage API faqat 1000 tagacha faylni qaytaradi. Agar foydalanuvchida 1000 dan ortiq fayl bo'lsa, bu noto'g'ri hisoblaydi.
+  // Lekin hozircha bu yetarli.
   const { data, error } = await supabaseAdmin.storage.from('recordings').list(userId, {
-    limit: 1000, // Agar 1000 dan ortiq fayl bo'lsa, pagination kerak bo'ladi, lekin hozircha 1000 yetarli
+    limit: 1000, 
     offset: 0,
   });
 
   if (error) {
-    console.error("Error listing storage files:", error.message);
+    console.error(`Error listing storage files for user ${userId}:`, error.message);
     return 0;
   }
 
+  // Fayl hajmini metadata.size dan olish
   const totalSize = data.reduce((sum, file) => sum + (file.metadata?.size || 0), 0);
   return totalSize;
 }
@@ -51,20 +54,30 @@ serve(async (req) => {
   try {
     const payload = await req.json();
     const eventType = payload.event_type;
-    const path = payload.new.path; // Faylning Storage ichidagi yo'li (masalan, recordings/user_id/video.webm)
     
+    let path: string | undefined;
+    let userId: string | null = null;
+
+    // Qaysi qatordan (new yoki old) path ni olishni aniqlash
+    if (eventType === 'INSERT' || eventType === 'UPDATE') {
+        path = payload.new?.path;
+    } else if (eventType === 'DELETE') {
+        path = payload.old?.path;
+    }
+
     if (!path) {
+        console.warn(`Missing path in payload for event type: ${eventType}`);
         return new Response('Missing path in payload', { status: 400, headers: corsHeaders });
     }
 
-    const userId = getUserIdFromPath(path);
+    userId = getUserIdFromPath(path);
 
     if (!userId) {
       console.warn(`Could not extract user ID from path: ${path}`);
       return new Response('User ID not found', { status: 200, headers: corsHeaders });
     }
 
-    // Fayl yaratilgan, yangilangan yoki o'chirilganidan qat'i nazar, umumiy hajmni qayta hisoblaymiz
+    // Umumiy hajmni qayta hisoblash
     const totalUsedBytes = await calculateTotalStorageUsed(userId);
 
     // Profiles jadvalini yangilash
