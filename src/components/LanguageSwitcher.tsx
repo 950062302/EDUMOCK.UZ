@@ -28,9 +28,6 @@ const LanguageSwitcher: React.FC = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => changeLanguage('uz')}>
-          O'zbekcha
-        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => changeLanguage('ru')}>
           Русский
         </DropdownMenuItem>
