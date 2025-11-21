@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import { CefrCentreFooter } from "@/components/CefrCentreFooter";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, PlayCircle, Trash2, ArrowLeft, Cloud, Zap, CheckCircle2 } from "lucide-react";
+import { Download, PlayCircle, Trash2, ArrowLeft, Cloud, Zap, CheckCircle2, Lock } from "lucide-react";
 import { format } from "date-fns";
 import { RecordedSession } from "@/lib/types";
 import { showError, showSuccess } from "@/utils/toast";
@@ -324,7 +324,27 @@ const Records: React.FC = () => {
             <CardDescription className="text-center mt-2">{t("records_page.review_past_sessions")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {!isGuestMode && <StorageUsageCard />} {/* Xotira ishlatilishini ko'rsatish */}
+            {isGuestMode ? (
+              <Card className="p-4 mb-6 bg-card border border-border/80 shadow-sm rounded-lg text-center">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Cloud className="h-5 w-5 text-primary" />
+                  <h4 className="text-base font-semibold text-foreground">{t("user_profile_page.cloud_storage")}</h4>
+                </div>
+                <div className="relative w-full bg-secondary rounded-full h-2.5 overflow-hidden my-2">
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Lock className="h-3 w-3 text-muted-foreground" />
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground mt-2 mb-4">
+                  {t("records_page.guest_storage_description")}
+                </p>
+                <Button onClick={() => setIsPricingDialogOpen(true)} size="sm">
+                  {t("records_page.view_plans")}
+                </Button>
+              </Card>
+            ) : (
+              <StorageUsageCard />
+            )}
             
             {isLoading ? <p className="text-center">{t("common.loading")}</p> : recordings.length === 0 ? (
               <p className="text-muted-foreground text-center">{t("records_page.no_recordings_available")}</p>
