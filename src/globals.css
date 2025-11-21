@@ -237,7 +237,22 @@
   background: linear-gradient(to right, #9333ea, #6d28d9); /* Slightly darker on hover */
 }
 
-/* Toast text animation */
+/* Toast animations */
+@keyframes toast-icon-intro {
+  0% {
+    transform: scale(0) rotate(-180deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.2) rotate(10deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
 @keyframes toast-text-intro {
   from {
     opacity: 0;
@@ -249,12 +264,17 @@
   }
 }
 
-/* Apply animation to sonner toast title and description when it's opening */
+/* Apply animations to sonner toast elements when it's opening */
+[data-sonner-toast][data-state="opening"] [data-icon] {
+  animation: toast-icon-intro 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
 [data-sonner-toast][data-state="opening"] [data-title] {
   animation: toast-text-intro 0.4s ease-out;
+  animation-delay: 0.2s;
 }
 
 [data-sonner-toast][data-state="opening"] [data-description] {
   animation: toast-text-intro 0.4s ease-out;
-  animation-delay: 0.1s; /* Stagger the description animation slightly */
+  animation-delay: 0.3s;
 }
