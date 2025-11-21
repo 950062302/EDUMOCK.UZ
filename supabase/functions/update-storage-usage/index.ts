@@ -75,6 +75,7 @@ serve(async (req) => {
     console.log(`[Trigger] Received event: ${eventType}, Object Name: ${objectName}`);
 
     if (!objectName) {
+        // Bu ogohlantirish endi 'Missing object name' deb chiqadi
         console.warn(`[Trigger] Missing object name in payload for event type: ${eventType}`);
         return new Response('Missing object name in payload', { status: 400, headers: corsHeaders });
     }
