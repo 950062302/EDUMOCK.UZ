@@ -104,14 +104,18 @@ const Questions: React.FC = () => {
       <main className="flex-grow container mx-auto p-4">
         <Card className="max-w-4xl mx-auto">
           <CardHeader>
-            <div className="relative flex justify-center items-center">
-              <Link to="/home" className="absolute left-0">
-                <Button variant="default">
+            <div className="flex justify-between items-center">
+              <Link to="/home">
+                <Button variant="default" className="bg-primary hover:bg-primary/90">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   {t("common.back")}
                 </Button>
               </Link>
-              <CardTitle className="text-3xl font-bold">{t("home_page.questions")}</CardTitle>
+              <CardTitle className="text-xl sm:text-3xl font-bold text-center flex-grow">
+                {t("home_page.questions")}
+              </CardTitle>
+              {/* Joyni to'ldirish uchun bo'sh div */}
+              <div className="w-[80px] h-4"></div> 
             </div>
           </CardHeader>
           <CardContent>

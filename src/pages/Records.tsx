@@ -169,17 +169,6 @@ const Records: React.FC = () => {
       let urlToDownload = recording.video_url;
       let filename = `recording_${recording.id}.webm`;
 
-      if (recording.isLocalBlobAvailable && recording.video_url.startsWith('blob:')) {
-        urlToDownload = recording.video_url;
-        filename = `local_recording_${recording.id}.webm`;
-      } else if (recording.supabase_url) {
-        urlToDownload = recording.supabase_url;
-        filename = `cloud_recording_${recording.id}.webm`;
-      } else {
-        showError(t("records_page.error_no_video_data"));
-        return;
-      }
-
       if (recording.student_name && recording.student_phone) {
         const cleanName = recording.student_name.replace(/[^a-zA-Z0-9]/g, '_');
         const cleanPhone = recording.student_phone.replace(/[^0-9]/g, '');
@@ -234,12 +223,16 @@ const Records: React.FC = () => {
           <CardHeader className="pt-8 text-center">
             <div className="relative flex justify-center items-center mb-2">
               <Link to="/home" className="absolute left-0">
-                <Button variant="default">
+                <Button variant="default" className="bg-primary hover:bg-primary/90">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   {t("common.back")}
                 </Button>
               </Link>
-              <CardTitle className="text-3xl font-bold">{t("records_page.your_recordings")}</CardTitle>
+              <CardTitle className="text-xl sm:text-3xl font-bold text-center flex-grow">
+                {t("records_page.your_recordings")}
+              </CardTitle>
+              {/* Joyni to'ldirish uchun bo'sh div */}
+              <div className="w-[80px] h-4"></div> 
             </div>
             <CardDescription>{t("records_page.review_past_sessions")}</CardDescription>
           </CardHeader>
