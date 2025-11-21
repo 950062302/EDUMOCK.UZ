@@ -25,18 +25,18 @@ import {
 import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthProvider";
-import { useUploadProgress, setUploadProgress, removeUploadProgress } from "@/utils/uploadProgress";
 
 const Records: React.FC = () => {
   const [recordings, setRecordings] = useState<RecordedSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { t } = useTranslation();
   const { user } = useAuth();
-  const uploadProgress = useUploadProgress();
-  const [downloadingRecordId, setDownloadingRecordId] = useState<string | null>(null); // New state for download status
+  const [uploadingRecordId, setUploadingRecordId] = useState<string | null>(null);
+  const [uploadErrorRecordId, setUploadErrorRecordId] = useState<string | null>(null);
+  const [downloadingRecordId, setDownloadingRecordId] = useState<string | null>(null);
 
   const fetchRecordings = useCallback(async () => {
-    setIsLoading(true); // Set to true at the start
+    setIsLoading(true);
     let loadedRecordings: RecordedSession[] = [];
     try {
       const data = await getLocalRecordings();
@@ -45,14 +45,13 @@ const Records: React.FC = () => {
     } catch (error: any) {
       showError(`${t("records_page.error_loading_recordings")} ${error.message}`);
     } finally {
-      setIsLoading(false); // Set to false in finally block
+      setIsLoading(false);
     }
-  }, [t]); // Dependency array for useCallback
+  }, [t]);
 
   useEffect(() => {
     fetchRecordings();
 
-    // Cleanup function for object URLs
     return () => {
       recordings.forEach(rec => {
         if (rec.isLocalBlobAvailable && rec.video_url.startsWith('blob:')) {
@@ -60,7 +59,7 @@ const Records: React.FC = () => {
         }
       });
     };
-  }, [fetchRecordings]); // Removed 'recordings' from here to prevent infinite loop
+  }, [fetchRecordings]);
 
   const handleUploadToSupabase = useCallback(async (recording: RecordedSession) => {
     if (!user?.id) {
@@ -72,29 +71,29 @@ const Records: React.FC = () => {
       return;
     }
 
+    setUploadingRecordId(recording.id);
+    setUploadErrorRecordId(null);
     showSuccess(t("records_page.uploading_to_cloud"));
     const blob = await getRecordingBlob(recording.id);
 
     if (!blob) {
       showError(t("records_page.error_no_video_data"));
+      setUploadingRecordId(null);
       return;
     }
 
     const filePath = `${user.id}/${recording.id}.webm`;
-    setUploadProgress(recording.id, 0);
     const { data, error: uploadError } = await supabase.storage
       .from('recordings')
       .upload(filePath, blob, {
         cacheControl: '3600',
         upsert: false,
-      }, (event) => {
-        setUploadProgress(recording.id, event.percent || 0);
       });
 
     if (uploadError) {
       showError(`${t("records_page.error_uploading_to_cloud")} ${uploadError.message}`);
-      setUploadProgress(recording.id, -1);
-      setTimeout(() => removeUploadProgress(recording.id), 3000); // Remove progress on error
+      setUploadErrorRecordId(recording.id);
+      setTimeout(() => setUploadErrorRecordId(null), 5000);
     } else {
       const { data: publicUrlData } = supabase.storage
         .from('recordings')
@@ -102,7 +101,6 @@ const Records: React.FC = () => {
       
       if (publicUrlData.publicUrl) {
         await updateLocalRecordingSupabaseUrl(recording.id, publicUrlData.publicUrl);
-        // Also update metadata in Supabase DB
         await upsertRecordingMetadataToSupabase({
           id: recording.id,
           user_id: user.id,
@@ -116,23 +114,21 @@ const Records: React.FC = () => {
 
         setRecordings(prev => prev.map(rec => rec.id === recording.id ? { ...rec, supabase_url: publicUrlData.publicUrl } : rec));
         showSuccess(t("records_page.upload_success"));
-        setUploadProgress(recording.id, 100); // Set to 100% briefly
-        setTimeout(() => removeUploadProgress(recording.id), 2000); // Then remove progress after a delay
       } else {
         showError(t("records_page.error_getting_public_url"));
-        setUploadProgress(recording.id, -1);
-        setTimeout(() => removeUploadProgress(recording.id), 3000); // Remove progress on error
+        setUploadErrorRecordId(recording.id);
+        setTimeout(() => setUploadErrorRecordId(null), 5000);
       }
     }
+    setUploadingRecordId(null);
   }, [user, t]);
 
   const handleDownload = useCallback(async (recording: RecordedSession) => {
-    setDownloadingRecordId(recording.id); // Set downloading status
+    setDownloadingRecordId(recording.id);
     try {
       let urlToDownload = recording.video_url;
       let filename = `recording_${recording.id}.webm`;
 
-      // If local blob is available, prioritize downloading from local
       if (recording.isLocalBlobAvailable && recording.video_url.startsWith('blob:')) {
         urlToDownload = recording.video_url;
         filename = `local_recording_${recording.id}.webm`;
@@ -167,11 +163,11 @@ const Records: React.FC = () => {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      showSuccess(t("records_page.success_downloaded")); // New translation key needed
+      showSuccess(t("records_page.success_downloaded"));
     } catch (error: any) {
       showError(`${t("records_page.error_downloading_video")} ${error.message}`);
     } finally {
-      setDownloadingRecordId(null); // Clear downloading status
+      setDownloadingRecordId(null);
     }
   }, [t]);
 
@@ -180,8 +176,8 @@ const Records: React.FC = () => {
       if (recording.isLocalBlobAvailable && recording.video_url.startsWith('blob:')) {
         URL.revokeObjectURL(recording.video_url);
       }
-      const localDeleted = await deleteLocalRecording(recording.id); // Get return value
-      if (localDeleted) { // Only update state if local deletion was successful
+      const localDeleted = await deleteLocalRecording(recording.id);
+      if (localDeleted) {
         setRecordings(prev => prev.filter(rec => rec.id !== recording.id));
         showSuccess(t("records_page.success_recording_deleted"));
       }
@@ -195,8 +191,8 @@ const Records: React.FC = () => {
       <Navbar />
       <main className="flex-grow container mx-auto p-4 flex items-center justify-center">
         <Card className="w-full max-w-3xl">
-          <CardHeader className="relative text-center pt-8"> {/* pt-8 qo'shildi */}
-            <Link to="/home" className="absolute left-0 top-0"> {/* top-0 ga o'zgartirildi */}
+          <CardHeader className="relative text-center pt-8">
+            <Link to="/home" className="absolute left-0 top-0">
               <Button variant="outline">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 {t("common.back")}
@@ -211,9 +207,8 @@ const Records: React.FC = () => {
             ) : (
               <div className="space-y-4">
                 {recordings.map((recording, index) => {
-                  const currentUploadProgress = uploadProgress.get(recording.id);
-                  const isUploading = currentUploadProgress !== undefined && currentUploadProgress < 100 && currentUploadProgress >= 0;
-                  const uploadError = currentUploadProgress === -1;
+                  const isUploading = uploadingRecordId === recording.id;
+                  const uploadError = uploadErrorRecordId === recording.id;
                   const isDownloading = downloadingRecordId === recording.id;
 
                   return (
@@ -241,32 +236,26 @@ const Records: React.FC = () => {
                           )}
                         </div>
                         <div className="flex flex-wrap justify-end gap-2 mt-2 sm:mt-0 w-full sm:w-auto">
-                          {/* Play button */}
                           <Button asChild size="sm" className="flex items-center gap-1 w-full sm:w-auto">
                             <a href={recording.video_url} target="_blank" rel="noopener noreferrer">
                               <PlayCircle className="h-4 w-4" /> {t("records_page.play")}
                             </a>
                           </Button>
 
-                          {/* Local Download button (conditional) */}
                           {recording.isLocalBlobAvailable && (
                             <Button onClick={() => handleDownload({ ...recording, supabase_url: undefined })} variant="outline" size="sm" className="flex items-center gap-1 w-full sm:w-auto" disabled={isDownloading || isUploading}>
                               <Download className="h-4 w-4" /> {t("records_page.download_local")}
                             </Button>
                           )}
                           
-                          {/* Conditional Upload / Uploading / Cloud Download button */}
-                          {!recording.supabase_url && user?.id && !isUploading && !uploadError ? (
+                          {!recording.supabase_url && user?.id && !isUploading ? (
                             <Button onClick={() => handleUploadToSupabase(recording)} variant="outline" size="sm" className="flex items-center gap-1 w-full sm:w-auto" disabled={isDownloading}>
                               <Cloud className="h-4 w-4" /> {t("records_page.upload")}
                             </Button>
                           ) : isUploading ? (
-                            <Button variant="outline" size="sm" className="flex items-center gap-1 relative overflow-hidden w-full sm:w-auto" disabled>
-                              <div 
-                                className="absolute inset-0 bg-blue-500 opacity-30" 
-                                style={{ width: `${currentUploadProgress}%` }}
-                              ></div>
-                              <span className="relative z-10">{t("records_page.uploading_to_cloud")} {currentUploadProgress?.toFixed(0)}%</span>
+                            <Button variant="outline" size="sm" className="flex items-center gap-1 w-full sm:w-auto" disabled>
+                              <Cloud className="h-4 w-4 animate-pulse" />
+                              {t("records_page.uploading_to_cloud")}
                             </Button>
                           ) : recording.supabase_url && (
                             <Button onClick={() => handleDownload(recording)} variant="default" size="sm" className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 w-full sm:w-auto" disabled={isDownloading || isUploading}>
@@ -282,7 +271,6 @@ const Records: React.FC = () => {
                             </Button>
                           )}
 
-                          {/* Delete button */}
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button variant="destructive" size="sm" className="flex items-center gap-1 w-full sm:w-auto" disabled={isDownloading || isUploading}>
