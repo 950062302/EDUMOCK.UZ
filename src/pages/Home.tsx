@@ -133,19 +133,32 @@ export default function Home() {
             >
               <Link to={item.path}>
                 <Card className={cn(
-                  "group bg-gradient-to-br backdrop-blur-2xl border rounded-2xl shadow-xl hover:scale-105 transition-all duration-500 cursor-pointer",
+                  "group bg-gradient-to-br backdrop-blur-2xl border rounded-2xl shadow-xl hover:scale-105 transition-all duration-500 cursor-pointer h-full",
                   isMockTestCard
-                    ? "from-sky-500/30 to-indigo-600/50 border-sky-400/50 shadow-indigo-500/40 hover:shadow-2xl hover:shadow-sky-500/50 animate-card-pulse"
+                    ? "from-sky-400/50 to-violet-600/50 border-sky-400/50 shadow-indigo-500/40 hover:shadow-2xl hover:shadow-sky-500/50 animate-card-pulse"
                     : "from-white/20 to-white/5 border-white/30 hover:border-indigo-400/50 hover:shadow-indigo-500/40 hover:shadow-2xl"
                 )}>
-                  <CardContent className="flex flex-col items-center text-center p-4 sm:p-8">
-                    <div className="mb-4 text-indigo-300 transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_10px_rgba(99,102,241,0.8)]">{item.icon}</div>
-                    <h3 className="text-lg sm:text-2xl font-bold mb-2">{item.title}</h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground mb-4">{item.subtitle}</p>
+                  <CardContent className="flex flex-col items-center justify-between text-center p-4 sm:p-6 h-full">
+                    <div>
+                      <div className={cn(
+                        "mb-4 text-indigo-300 transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_10px_rgba(99,102,241,0.8)]",
+                        isMockTestCard && "text-sky-200"
+                      )}>
+                        {React.cloneElement(item.icon, { className: isMockTestCard ? "w-12 h-12 sm:w-16 sm:h-16" : "w-10 h-10" })}
+                      </div>
+                      <h3 className={cn(
+                        "text-lg sm:text-2xl font-bold mb-2",
+                        isMockTestCard && "sm:text-3xl"
+                      )}>{item.title}</h3>
+                      <p className={cn(
+                        "text-xs sm:text-sm text-muted-foreground",
+                        isMockTestCard && "sm:text-base"
+                      )}>{item.subtitle}</p>
+                    </div>
                     <Button className={cn(
-                      "mt-2 text-white px-4 py-1 sm:px-6 sm:py-2 rounded-xl shadow-lg transition-all duration-300 hover:scale-105",
+                      "mt-4 text-white px-4 py-1 sm:px-6 sm:py-2 rounded-xl shadow-lg transition-all duration-300 hover:scale-105",
                       isMockTestCard
-                        ? "bg-sky-500 hover:bg-sky-600 shadow-sky-500/30"
+                        ? "bg-sky-500 hover:bg-sky-600 shadow-sky-500/30 sm:text-lg sm:px-8 sm:py-3"
                         : "bg-indigo-500 hover:bg-indigo-600 shadow-indigo-500/30"
                     )}>
                       {t("common.open")}
