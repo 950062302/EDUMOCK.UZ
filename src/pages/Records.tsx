@@ -22,6 +22,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription as DialogDescriptionComponent, // Renamed to avoid conflict
+  DialogHeader as DialogHeaderComponent, // Renamed to avoid conflict
+  DialogTitle as DialogTitleComponent, // Renamed to avoid conflict
+} from "@/components/ui/dialog";
+import PricingCard from "@/components/PricingCard";
 import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthProvider";
@@ -32,10 +40,12 @@ const Records: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { t } = useTranslation();
   const { user } = useAuth();
+  const isGuestMode = localStorage.getItem("isGuestMode") === "true" && !user;
   const [uploadingRecordId, setUploadingRecordId] = useState<string | null>(null);
   const [uploadErrorRecordId, setUploadErrorRecordId] = useState<string | null>(null);
   const [downloadingRecordId, setDownloadingRecordId] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<Map<string, number>>(new Map());
+  const [isPricingDialogOpen, setIsPricingDialogOpen] = useState(false);
 
   const fetchRecordings = useCallback(async () => {
     setIsLoading(true);
@@ -143,6 +153,14 @@ const Records: React.FC = () => {
 
     upload.start();
   }, [t]);
+
+  const handleUploadClick = (recording: RecordedSession) => {
+    if (isGuestMode) {
+      setIsPricingDialogOpen(true);
+    } else {
+      handleUploadToSupabase(recording);
+    }
+  };
 
   const handleDownload = useCallback(async (recording: RecordedSession) => {
     setDownloadingRecordId(recording.id);
@@ -270,16 +288,12 @@ const Records: React.FC = () => {
                             </Button>
                           )}
                           
-                          {!recording.supabase_url && user?.id && !isUploading ? (
-                            <Button onClick={() => handleUploadToSupabase(recording)} variant="outline" size="sm" className="flex items-center gap-1 w-full sm:w-auto" disabled={isDownloading}>
-                              <Cloud className="h-4 w-4" /> {t("records_page.upload")}
-                            </Button>
-                          ) : isUploading ? (
+                          {isUploading ? (
                             <Button variant="outline" size="sm" className="flex items-center gap-1 w-full sm:w-auto" disabled>
                               <Cloud className="h-4 w-4 animate-pulse" />
                               {t("records_page.uploading_to_cloud")}
                             </Button>
-                          ) : recording.supabase_url && (
+                          ) : recording.supabase_url ? (
                             <Button onClick={() => handleDownload(recording)} variant="default" size="sm" className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 w-full sm:w-auto" disabled={isDownloading || isUploading}>
                               {isDownloading ? (
                                 <>
@@ -290,6 +304,10 @@ const Records: React.FC = () => {
                                   <Zap className="h-4 w-4" /> {t("records_page.download_from_cloud")}
                                 </>
                               )}
+                            </Button>
+                          ) : (user?.id || isGuestMode) && (
+                            <Button onClick={() => handleUploadClick(recording)} variant="outline" size="sm" className="flex items-center gap-1 w-full sm:w-auto" disabled={isDownloading}>
+                              <Cloud className="h-4 w-4" /> {t("records_page.upload")}
                             </Button>
                           )}
 
@@ -332,6 +350,21 @@ const Records: React.FC = () => {
         </Card>
       </main>
       <CefrCentreFooter />
+      <Dialog open={isPricingDialogOpen} onOpenChange={setIsPricingDialogOpen}>
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden">
+          <div className="p-6 pb-0">
+            <DialogHeaderComponent>
+              <DialogTitleComponent>{t("records_page.guest_upload_title")}</DialogTitleComponent>
+              <DialogDescriptionComponent>
+                {t("records_page.guest_upload_description")}
+              </DialogDescriptionComponent>
+            </DialogHeaderComponent>
+          </div>
+          <div className="bg-background">
+            <PricingCard isDialog={true} />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

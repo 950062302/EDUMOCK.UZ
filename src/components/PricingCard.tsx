@@ -11,6 +11,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { cn } from "@/lib/utils";
 
 interface PriceOption {
   price: number;
@@ -92,7 +93,11 @@ const prices: { [key: string]: PriceOption } = {
   },
 };
 
-const PricingCard: React.FC = () => {
+interface PricingCardProps {
+  isDialog?: boolean;
+}
+
+const PricingCard: React.FC<PricingCardProps> = ({ isDialog = false }) => {
   const [openAccordionValue, setOpenAccordionValue] = useState<string | undefined>("1");
   const [selectedPriceKey, setSelectedPriceKey] = useState<string>("1");
   const { t } = useTranslation();
@@ -115,7 +120,10 @@ const PricingCard: React.FC = () => {
   };
 
   return (
-    <div className="bg-card p-6 border border-border rounded-xl shadow-2xl sticky top-20 animated-card" style={{ animationDelay: '1.5s' }}>
+    <div className={cn(
+      "bg-card p-6 border border-border rounded-xl shadow-2xl animated-card",
+      !isDialog && "sticky top-20"
+    )} style={{ animationDelay: '1.5s' }}>
       <h2 className="text-xl font-bold text-foreground mb-6">{t("landing_page.select_tariff")}</h2>
 
       <Accordion 
