@@ -44,9 +44,9 @@ const normalizeSubQuestions = (subQuestions: string[] | undefined): string => {
 export const checkDuplicateQuestion = async (
   questionData: Omit<SpeakingQuestion, 'id' | 'date' | 'user_id'>,
   userId: string | null,
-  excludeId?: string // Update uchun, o'zini tekshirmaslik uchun
+  excludeId?: string // Update uchun, o'zini tekshirmaslik
 ): Promise<boolean> => {
-  let query = supabase.from('questions').select('id, type, question_text, sub_questions');
+  let query = supabase.from('questions').select('*');
 
   if (userId) {
     query = query.eq('user_id', userId);
