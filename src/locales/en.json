@@ -233,7 +233,8 @@
     "error_cloud_delete_failed_local_kept": "Cloud deletion failed. Local recording kept.",
     "upload_success": "Video successfully uploaded to cloud!",
     "guest_upload_title": "Cloud Upload",
-    "guest_upload_description": "This feature is available for subscribed users. Please select a plan to upload your recordings to the cloud and access them from any device."
+    "guest_upload_description": "This feature is available for subscribed users. Please select a plan to upload your recordings to the cloud and access them from any device.",
+    "error_max_size_exceeded": "Upload failed: The video file size exceeds the maximum limit allowed by the cloud storage. Please contact support if you need a higher limit."
   },
   "mood_journal_page": {
     "mood_journal_tracker": "Mood Journal & Tracker",

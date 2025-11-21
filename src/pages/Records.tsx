@@ -145,7 +145,16 @@ const Records: React.FC = () => {
         setUploadProgress(prev => { const next = new Map(prev); next.delete(recording.id); return next; });
       },
       onError: (error) => {
-        showError(`${t("records_page.error_uploading_to_cloud")} ${error.message}`);
+        console.error("Tus upload error:", error);
+        
+        let errorMessage = `${t("records_page.error_uploading_to_cloud")} ${error.message}`;
+        
+        // Check for 413 error code (Payload Too Large)
+        if (error.originalRequest && (error.originalRequest as any).response && (error.originalRequest as any).response.getStatus() === 413) {
+          errorMessage = t("records_page.error_max_size_exceeded");
+        }
+
+        showError(errorMessage);
         setUploadErrorRecordId(recording.id);
         setUploadingRecordId(null);
         setUploadProgress(prev => { const next = new Map(prev); next.delete(recording.id); return next; });
