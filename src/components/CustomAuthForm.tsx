@@ -13,13 +13,6 @@ import { useNavigate } from 'react-router-dom';
 
 const VITE_TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY;
 
-// --- DIAGNOSTICS START ---
-console.log("Turnstile Site Key read from environment:", VITE_TURNSTILE_SITE_KEY);
-if (!VITE_TURNSTILE_SITE_KEY) {
-  console.error("CRITICAL: Turnstile site key is NOT DEFINED. Please set VITE_TURNSTILE_SITE_KEY in your Netlify environment variables and redeploy.");
-}
-// --- DIAGNOSTICS END ---
-
 const CustomAuthForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -88,18 +81,9 @@ const CustomAuthForm: React.FC = () => {
           <div className="flex justify-center">
             <Turnstile
               siteKey={VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'} // Default test key
-              onSuccess={(token) => {
-                console.log("Turnstile success! Token received:", token);
-                setCaptchaToken(token);
-              }}
-              onError={() => {
-                console.error("Turnstile challenge failed or encountered an error.");
-                setCaptchaToken(null);
-              }}
-              onExpire={() => {
-                console.warn("Turnstile token expired.");
-                setCaptchaToken(null);
-              }}
+              onSuccess={setCaptchaToken}
+              onError={() => setCaptchaToken(null)}
+              onExpire={() => setCaptchaToken(null)}
             />
           </div>
           <Button type="submit" className="w-full" disabled={loading || !captchaToken}>
@@ -120,18 +104,9 @@ const CustomAuthForm: React.FC = () => {
           <div className="flex justify-center">
             <Turnstile
               siteKey={VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'} // Default test key
-              onSuccess={(token) => {
-                console.log("Turnstile success! Token received:", token);
-                setCaptchaToken(token);
-              }}
-              onError={() => {
-                console.error("Turnstile challenge failed or encountered an error.");
-                setCaptchaToken(null);
-              }}
-              onExpire={() => {
-                console.warn("Turnstile token expired.");
-                setCaptchaToken(null);
-              }}
+              onSuccess={setCaptchaToken}
+              onError={() => setCaptchaToken(null)}
+              onExpire={() => setCaptchaToken(null)}
             />
           </div>
           <Button type="submit" className="w-full" disabled={loading || !captchaToken}>
