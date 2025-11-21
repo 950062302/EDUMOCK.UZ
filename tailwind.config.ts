@@ -89,16 +89,11 @@ export default {
           "0%, 100%": { transform: "scale(1)" },
           "50%": { transform: "scale(1.05)" },
         },
-        "card-pulse": {
-          "0%, 100%": { transform: "scale(1)", boxShadow: "0 0 15px rgba(99, 102, 241, 0.2)" },
-          "50%": { transform: "scale(1.02)", boxShadow: "0 0 25px rgba(99, 102, 241, 0.4)" },
-        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "logo-pulse": "logo-pulse 2s ease-in-out infinite",
-        "card-pulse": "card-pulse 3s infinite ease-in-out",
       },
     },
   },

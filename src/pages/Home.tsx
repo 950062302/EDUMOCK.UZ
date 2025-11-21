@@ -12,7 +12,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from 'react-i18next';
 import GuideDialog from "@/components/GuideDialog";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -122,53 +121,25 @@ export default function Home() {
       </motion.div>
 
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8 max-w-6xl mx-auto mt-8 sm:mt-16">
-        {items.map((item, index) => {
-          const isMockTestCard = item.title === t("home_page.mock_test");
-          return (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <Link to={item.path}>
-                <Card className={cn(
-                  "group bg-gradient-to-br backdrop-blur-2xl border rounded-2xl shadow-xl hover:scale-105 transition-all duration-500 cursor-pointer h-full",
-                  isMockTestCard
-                    ? "from-amber-400/40 to-red-500/50 border-amber-400/50 shadow-amber-500/40 hover:shadow-2xl hover:shadow-amber-500/50 animate-card-pulse"
-                    : "from-white/20 to-white/5 border-white/30 hover:border-indigo-400/50 hover:shadow-indigo-500/40 hover:shadow-2xl"
-                )}>
-                  <CardContent className="flex flex-col items-center justify-between text-center p-4 sm:p-6 h-full">
-                    <div>
-                      <div className={cn(
-                        "mb-4 text-indigo-300 transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_10px_rgba(99,102,241,0.8)]",
-                        isMockTestCard && "text-amber-200"
-                      )}>
-                        {React.cloneElement(item.icon, { className: isMockTestCard ? "w-12 h-12 sm:w-16 sm:h-16" : "w-10 h-10" })}
-                      </div>
-                      <h3 className={cn(
-                        "text-lg sm:text-2xl font-bold mb-2",
-                        isMockTestCard && "sm:text-3xl"
-                      )}>{item.title}</h3>
-                      <p className={cn(
-                        "text-xs sm:text-sm text-muted-foreground",
-                        isMockTestCard && "sm:text-base"
-                      )}>{item.subtitle}</p>
-                    </div>
-                    <Button className={cn(
-                      "mt-4 text-white px-4 py-1 sm:px-6 sm:py-2 rounded-xl shadow-lg transition-all duration-300 hover:scale-105",
-                      isMockTestCard
-                        ? "bg-amber-500 hover:bg-amber-600 shadow-amber-500/30 sm:text-lg sm:px-8 sm:py-3"
-                        : "bg-indigo-500 hover:bg-indigo-600 shadow-indigo-500/30"
-                    )}>
-                      {t("common.open")}
-                    </Button>
-                  </CardContent>
-                </Card>
-              </Link>
-            </motion.div>
-          );
-        })}
+        {items.map((item, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+          >
+            <Link to={item.path}>
+              <Card className="group bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-2xl border border-white/30 rounded-2xl shadow-xl hover:scale-105 hover:border-indigo-400/50 hover:shadow-indigo-500/40 hover:shadow-2xl transition-all duration-500 cursor-pointer">
+                <CardContent className="flex flex-col items-center text-center p-4 sm:p-8">
+                  <div className="mb-4 text-indigo-300 transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_10px_rgba(99,102,241,0.8)]">{item.icon}</div>
+                  <h3 className="text-lg sm:text-2xl font-bold mb-2">{item.title}</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-4">{item.subtitle}</p>
+                  <Button className="mt-2 bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-1 sm:px-6 sm:py-2 rounded-xl shadow-lg shadow-indigo-500/30 transition-all duration-300 hover:scale-105">{t("common.open")}</Button>
+                </CardContent>
+              </Card>
+            </Link>
+          </motion.div>
+        ))}
       </div>
 
       <footer className="mt-10 sm:mt-20 text-center text-slate-200 opacity-90">
