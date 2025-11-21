@@ -65,7 +65,32 @@ export const useProfile = () => {
 
   useEffect(() => {
     fetchProfile();
-  }, [fetchProfile]);
+
+    if (!user) return;
+
+    // Profil o'zgarishlarini real vaqtda tinglash uchun subscription
+    const channel = supabase
+      .channel(`profile-changes:${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('Realtime profile update received:', payload.new);
+          setProfile(payload.new as Profile);
+        }
+      )
+      .subscribe();
+
+    // Komponent unmount bo'lganda subscriptionni tozalash
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, fetchProfile]);
 
   return { profile, loading, fetchProfile };
 };
