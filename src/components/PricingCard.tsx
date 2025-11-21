@@ -121,10 +121,13 @@ const PricingCard: React.FC<PricingCardProps> = ({ isDialog = false }) => {
 
   return (
     <div className={cn(
-      "bg-card p-6 border border-border rounded-xl shadow-2xl animated-card",
-      !isDialog && "sticky top-20"
+      "bg-card border border-border rounded-xl shadow-2xl animated-card",
+      isDialog ? "p-4" : "p-6 sticky top-20",
     )} style={{ animationDelay: '1.5s' }}>
-      <h2 className="text-xl font-bold text-foreground mb-6">{t("landing_page.select_tariff")}</h2>
+      <h2 className={cn(
+        "font-bold text-foreground",
+        isDialog ? "text-lg mb-4" : "text-xl mb-6"
+      )}>{t("landing_page.select_tariff")}</h2>
 
       <Accordion 
         type="single" 
@@ -142,7 +145,12 @@ const PricingCard: React.FC<PricingCardProps> = ({ isDialog = false }) => {
             <AccordionItem 
               key={option} 
               value={option} 
-              className={`price-option p-4 flex flex-col border border-border rounded-xl relative mb-3 last:mb-0 ${cardBackgrounds[option]} ${selectedPriceKey === option ? 'price-option-active' : ''}`}
+              className={cn(
+                "price-option flex flex-col border border-border rounded-xl relative mb-3 last:mb-0",
+                cardBackgrounds[option],
+                selectedPriceKey === option ? 'price-option-active' : '',
+                isDialog ? "p-3" : "p-4"
+              )}
             >
               {isHotSaleCard && (
                 <div className="hot-sale-badge absolute -top-3 -right-3 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md z-10 animate-pulse-hot-sale">
@@ -164,7 +172,11 @@ const PricingCard: React.FC<PricingCardProps> = ({ isDialog = false }) => {
                   )}
                 </div>
                 <div className="text-right flex flex-col items-end">
-                  <p className={`text-xl font-bold ${selectedPriceKey === option ? 'text-primary' : 'text-foreground'}`}>
+                  <p className={cn(
+                    "font-bold",
+                    selectedPriceKey === option ? 'text-primary' : 'text-foreground',
+                    isDialog ? "text-lg" : "text-xl"
+                  )}>
                     {priceData.display}
                   </p>
                   {priceData.discount && (
@@ -173,10 +185,16 @@ const PricingCard: React.FC<PricingCardProps> = ({ isDialog = false }) => {
                 </div>
               </AccordionTrigger>
               <AccordionContent>
-                <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
+                <ul className={cn(
+                  "space-y-1 text-muted-foreground",
+                  isDialog ? "mt-1 text-xs" : "mt-2 text-sm"
+                )}>
                   {priceData.features.map((featureKey) => (
                     <li key={featureKey} className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-primary" />
+                      <CheckCircle className={cn(
+                        "text-primary",
+                        isDialog ? "h-3.5 w-3.5" : "h-4 w-4"
+                      )} />
                       {t(`landing_page.features.${featureKey}`)}
                     </li>
                   ))}
@@ -189,7 +207,10 @@ const PricingCard: React.FC<PricingCardProps> = ({ isDialog = false }) => {
 
       {/* Promo kod kiritish qismi olib tashlandi */}
 
-      <Button asChild className="w-full mt-4 py-4 bg-primary text-white font-bold text-lg rounded-xl hover:bg-primary/90 transition duration-150 shadow-md">
+      <Button asChild className={cn(
+        "w-full mt-4 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition duration-150 shadow-md",
+        isDialog ? "py-2 text-base" : "py-4 text-lg"
+      )}>
         <a href="https://t.me/aero_one" target="_blank" rel="noopener noreferrer">
           {t("landing_page.pay_for")} {totalPrice.display}
         </a>
