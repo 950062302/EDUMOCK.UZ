@@ -80,6 +80,7 @@ serve(async (req) => {
         return new Response('Missing path in payload', { status: 400, headers: corsHeaders });
     }
 
+    // Xato tuzatildi: userId ni const/let bilan e'lon qilish
     const userId = getUserIdFromPath(path);
 
     if (!userId) {
