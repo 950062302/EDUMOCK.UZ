@@ -363,7 +363,7 @@ const SpeakingQuestionManager: React.FC = () => {
               {Array.isArray(q.sub_questions) && q.sub_questions.length > 0
                 ? q.sub_questions.map((subQ, i) => <li key={i}>{subQ}</li>)
                 : <li className="text-yellow-600">{t("add_question_page.no_sub_questions")}</li>}
-          </ul>
+            </ul>
           </div>
         );
       case "Part 2":
@@ -398,15 +398,22 @@ const SpeakingQuestionManager: React.FC = () => {
       <Navbar />
       <main className="flex-grow container mx-auto p-4">
         <Card className="max-w-3xl mx-auto">
-          <CardHeader className="pt-8"> {/* pt-8 qo'shildi */}
+          <CardHeader className="pt-8">
             <div className="relative text-center">
-              <Link to="/home" className="absolute left-0 top-0"> {/* top-0 ga o'zgartirildi */}
+              <Link to="/home" className="absolute left-0 top-0">
                 <Button variant="outline">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   {t("common.back")}
                 </Button>
               </Link>
               <CardTitle className="text-3xl font-bold">{t("add_question_page.question_management")}</CardTitle>
+              <Button 
+                onClick={handleResetAllCooldowns} 
+                variant="link" 
+                className="absolute right-0 top-0 text-primary"
+              >
+                {t("add_question_page.reset_all_cooldowns")}
+              </Button>
             </div>
           </CardHeader>
           <CardContent>
@@ -480,11 +487,6 @@ const SpeakingQuestionManager: React.FC = () => {
                 </TabsContent>
               ))}
             </Tabs>
-            <div className="mt-6 text-center">
-              <Button onClick={handleResetAllCooldowns} variant="outline" className="w-full">
-                {t("add_question_page.reset_all_cooldowns")}
-              </Button>
-            </div>
           </CardContent>
         </Card>
       </main>
