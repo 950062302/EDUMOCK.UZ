@@ -21,8 +21,11 @@ export default function Home() {
   const [isGuideDialogOpen, setIsGuideDialogOpen] = useState(false);
 
   useEffect(() => {
-    if (isGuestMode && !session) {
+    const welcomeToastShown = sessionStorage.getItem("guestWelcomeToastShown") === "true";
+
+    if (isGuestMode && !session && !welcomeToastShown) {
       toast.info(t("landing_page.guest_mode_welcome"));
+      sessionStorage.setItem("guestWelcomeToastShown", "true");
     }
 
     const shouldShowGuide = sessionStorage.getItem("showGuestGuide") === "true";
@@ -38,6 +41,7 @@ export default function Home() {
       showSuccess(t("common.success_logged_in"));
     } else if (isGuestMode) {
       localStorage.removeItem("isGuestMode");
+      sessionStorage.removeItem("guestWelcomeToastShown"); // Belgini o'chirish
       showSuccess(t("common.success_guest_mode_exited"));
     }
     navigate("/login");

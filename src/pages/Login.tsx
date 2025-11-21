@@ -31,7 +31,7 @@ const Login: React.FC = () => {
   const handleTryMe = () => {
     localStorage.setItem("isGuestMode", "true");
     sessionStorage.setItem("showGuestGuide", "true"); // Qo'llanmani ko'rsatish uchun belgi
-    toast.info(t("landing_page.guest_mode_welcome"));
+    // toast.info(t("landing_page.guest_mode_welcome")); // Bu yerdan olib tashlandi, Home.tsx ga o'tkazildi
     navigate("/home");
   };
 

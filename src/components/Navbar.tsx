@@ -31,6 +31,7 @@ const Navbar: React.FC = () => {
       showSuccess(t("common.success_logged_in"));
     } else if (isGuestMode) {
       localStorage.removeItem("isGuestMode");
+      sessionStorage.removeItem("guestWelcomeToastShown"); // Belgini o'chirish
       showSuccess(t("common.success_guest_mode_exited"));
     }
     navigate("/login");
