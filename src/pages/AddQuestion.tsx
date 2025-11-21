@@ -407,9 +407,9 @@ const SpeakingQuestionManager: React.FC = () => {
       <main className="flex-grow container mx-auto p-4">
         <Card className="max-w-3xl mx-auto">
           <CardHeader className="pt-8">
-            <div className="relative text-center">
-              <Link to="/home" className="absolute left-0 top-0">
-                <Button variant="outline">
+            <div className="relative flex justify-center items-center">
+              <Link to="/home" className="absolute left-0">
+                <Button variant="default">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   {t("common.back")}
                 </Button>
@@ -421,7 +421,7 @@ const SpeakingQuestionManager: React.FC = () => {
                     onClick={handleResetAllCooldowns} 
                     variant="default"
                     size="icon"
-                    className="absolute right-0 top-0"
+                    className="absolute right-0"
                   >
                     <RefreshCw className="h-5 w-5" />
                   </Button>

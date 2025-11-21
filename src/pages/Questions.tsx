@@ -104,9 +104,9 @@ const Questions: React.FC = () => {
       <main className="flex-grow container mx-auto p-4">
         <Card className="max-w-4xl mx-auto">
           <CardHeader>
-            <div className="relative text-center">
-              <Link to="/home" className="absolute left-0 top-1/2 -translate-y-1/2">
-                <Button variant="outline">
+            <div className="relative flex justify-center items-center">
+              <Link to="/home" className="absolute left-0">
+                <Button variant="default">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   {t("common.back")}
                 </Button>

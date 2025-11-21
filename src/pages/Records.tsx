@@ -231,14 +231,16 @@ const Records: React.FC = () => {
       <Navbar />
       <main className="flex-grow container mx-auto p-4 flex items-center justify-center">
         <Card className="w-full max-w-3xl">
-          <CardHeader className="relative text-center pt-8">
-            <Link to="/home" className="absolute left-0 top-0">
-              <Button variant="outline">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                {t("common.back")}
-              </Button>
-            </Link>
-            <CardTitle className="text-3xl font-bold">{t("records_page.your_recordings")}</CardTitle>
+          <CardHeader className="pt-8 text-center">
+            <div className="relative flex justify-center items-center mb-2">
+              <Link to="/home" className="absolute left-0">
+                <Button variant="default">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  {t("common.back")}
+                </Button>
+              </Link>
+              <CardTitle className="text-3xl font-bold">{t("records_page.your_recordings")}</CardTitle>
+            </div>
             <CardDescription>{t("records_page.review_past_sessions")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
