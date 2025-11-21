@@ -45,7 +45,6 @@ async function calculateTotalStorageUsed(userId: string): Promise<number> {
 
   // Fayl hajmini metadata.size dan olish
   const totalSize = data.reduce((sum, file) => {
-    // Supabase Storage list API'si metadata.size ni qaytarmaydi, faqat size ni qaytaradi.
     const size = file.size || 0; 
     console.log(`[Storage] File: ${file.name}, Size: ${size}`);
     return sum + size;
@@ -64,27 +63,27 @@ serve(async (req) => {
     const payload = await req.json();
     const eventType = payload.event_type;
     
-    let path: string | undefined;
+    let objectName: string | undefined;
     
-    // Storage trigger payloadida 'path' ustuni 'user_id/file_name' ni o'z ichiga oladi.
+    // Storage trigger payloadida 'name' ustuni 'user_id/file_name' ni o'z ichiga oladi.
     if (eventType === 'INSERT' || eventType === 'UPDATE') {
-        path = payload.new?.path; 
+        objectName = payload.new?.name; 
     } else if (eventType === 'DELETE') {
-        path = payload.old?.path;
+        objectName = payload.old?.name;
     }
 
-    console.log(`[Trigger] Received event: ${eventType}, Path: ${path}`);
+    console.log(`[Trigger] Received event: ${eventType}, Object Name: ${objectName}`);
 
-    if (!path) {
-        console.warn(`[Trigger] Missing path in payload for event type: ${eventType}`);
-        return new Response('Missing path in payload', { status: 400, headers: corsHeaders });
+    if (!objectName) {
+        console.warn(`[Trigger] Missing object name in payload for event type: ${eventType}`);
+        return new Response('Missing object name in payload', { status: 400, headers: corsHeaders });
     }
 
-    // Xato tuzatildi: userId ni const/let bilan e'lon qilish
-    const userId = getUserIdFromPath(path);
+    // objectName ni path sifatida ishlatamiz
+    const userId = getUserIdFromPath(objectName);
 
     if (!userId) {
-      console.warn(`[Trigger] Could not extract user ID from path: ${path}`);
+      console.warn(`[Trigger] Could not extract user ID from object name: ${objectName}`);
       return new Response('User ID not found', { status: 200, headers: corsHeaders });
     }
 
