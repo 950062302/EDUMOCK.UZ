@@ -416,9 +416,9 @@ const SpeakingQuestionManager: React.FC = () => {
                 <TooltipTrigger asChild>
                   <Button 
                     onClick={handleResetAllCooldowns} 
-                    variant="ghost"
+                    variant="default"
                     size="icon"
-                    className="absolute right-0 top-0 text-primary"
+                    className="absolute right-0 top-0"
                   >
                     <RefreshCw className="h-5 w-5" />
                   </Button>
