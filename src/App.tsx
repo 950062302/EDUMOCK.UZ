@@ -100,10 +100,10 @@ const App = () => {
             
             {/* Floating EduAi Assistant Button */}
             <motion.div
-              initial={{ opacity: 0, y: 50 }} {/* Pastdan yuqoriga ko'tarilish uchun y: 50 */}
+              initial={{ opacity: 0, y: 50 }} 
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 1 }}
-              className="fixed bottom-4 right-4 z-[9999]" {/* Pastki o'ng burchakka joylashtirish */}
+              className="fixed bottom-4 right-4 z-[9999]" 
             >
               <Button
                 variant="default"
