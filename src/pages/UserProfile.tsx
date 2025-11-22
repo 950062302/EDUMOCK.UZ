@@ -19,7 +19,7 @@ import { Progress } from "@/components/ui/progress"; // Progress komponenti
 const UserProfile: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { profile, loading } = useProfile();
+  const { profile, loading, fetchProfile } = useProfile();
 
   // Profil ma'lumotlarini saqlash uchun state
   const [firstName, setFirstName] = useState(profile?.first_name || "");
@@ -54,7 +54,7 @@ const UserProfile: React.FC = () => {
           first_name: firstName.trim(),
           last_name: lastName.trim(),
           bio: bio.trim(),
-          updated_at: new Date().toISOString(),
+          // updated_at maydoni sxemada mavjud emas, shuning uchun uni olib tashladim.
         })
         .eq('id', user.id);
 
@@ -73,6 +73,9 @@ const UserProfile: React.FC = () => {
         console.warn("Could not update user metadata:", authError.message);
         // Bu yerda xato ko'rsatmaslik, chunki asosiy profil yangilandi
       }
+      
+      // Profilni yangilash tugagandan so'ng, yangi ma'lumotlarni yuklash
+      await fetchProfile();
 
       showSuccess(t("settings_page.success_profile_saved"));
     } catch (error: any) {
