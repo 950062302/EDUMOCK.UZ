@@ -113,6 +113,7 @@ const Records: React.FC = () => {
   const [uploadingRecordId, setUploadingRecordId] = useState<string | null>(null);
   const [uploadErrorRecordId, setUploadErrorRecordId] = useState<string | null>(null);
   const [downloadingRecordId, setDownloadingRecordId] = useState<string | null>(null);
+  const [downloadProgress, setDownloadProgress] = useState<Map<string, number>>(new Map()); // Yangi holat
   const [uploadProgress, setUploadProgress] = useState<Map<string, number>>(new Map());
   const [isPricingDialogOpen, setIsPricingDialogOpen] = useState(false);
 
@@ -249,6 +250,8 @@ const Records: React.FC = () => {
 
   const handleDownload = useCallback(async (recording: RecordedSession) => {
     setDownloadingRecordId(recording.id);
+    setDownloadProgress(prev => new Map(prev).set(recording.id, 0));
+
     try {
       let urlToDownload = recording.video_url;
       let filename = `recording_${recording.id}.webm`;
@@ -266,7 +269,30 @@ const Records: React.FC = () => {
       }
       
       const response = await fetch(urlToDownload);
-      const blob = await response.blob();
+      if (!response.body) throw new Error("Response body is null");
+
+      const contentLength = response.headers.get('content-length');
+      const total = contentLength ? parseInt(contentLength, 10) : 0;
+      let loaded = 0;
+
+      const reader = response.body.getReader();
+      const chunks: Uint8Array[] = [];
+
+      // Yuklab olish jarayonini kuzatish
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        chunks.push(value);
+        loaded += value.length;
+
+        if (total) {
+          const percentage = (loaded / total) * 100;
+          setDownloadProgress(prev => new Map(prev).set(recording.id, percentage));
+        }
+      }
+
+      const blob = new Blob(chunks, { type: response.headers.get('content-type') || 'video/webm' });
       const url = URL.createObjectURL(blob);
 
       const a = document.createElement("a");
@@ -281,6 +307,7 @@ const Records: React.FC = () => {
       showError(`${t("records_page.error_downloading_video")} ${error.message}`);
     } finally {
       setDownloadingRecordId(null);
+      setDownloadProgress(prev => { const next = new Map(prev); next.delete(recording.id); return next; });
     }
   }, [t]);
 
@@ -354,7 +381,8 @@ const Records: React.FC = () => {
                   const isUploading = uploadingRecordId === recording.id;
                   const uploadError = uploadErrorRecordId === recording.id;
                   const isDownloading = downloadingRecordId === recording.id;
-                  const progress = uploadProgress.get(recording.id) || 0;
+                  const uploadP = uploadProgress.get(recording.id) || 0;
+                  const downloadP = downloadProgress.get(recording.id) || 0; // Yangi progress
 
                   return (
                     <Card key={recording.id} className="p-4">
@@ -396,13 +424,13 @@ const Records: React.FC = () => {
                           {isUploading ? (
                             <Button variant="outline" size="sm" className="flex items-center gap-1 w-full sm:w-auto" disabled>
                               <Cloud className="h-4 w-4 animate-pulse" />
-                              {t("records_page.uploading_to_cloud")} ({progress.toFixed(0)}%)
+                              {t("records_page.uploading_to_cloud")} ({uploadP.toFixed(0)}%)
                             </Button>
                           ) : recording.supabase_url ? (
                             <Button onClick={() => handleDownload(recording)} variant="default" size="sm" className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 w-full sm:w-auto" disabled={isDownloading || isUploading}>
                               {isDownloading ? (
                                 <>
-                                  <Zap className="h-4 w-4 animate-pulse" /> {t("records_page.downloading")}
+                                  <Zap className="h-4 w-4 animate-pulse" /> {t("records_page.downloading")} ({downloadP.toFixed(0)}%)
                                 </>
                               ) : (
                                 <>
@@ -440,6 +468,12 @@ const Records: React.FC = () => {
                           </AlertDialog>
                         </div>
                       </div>
+                      {/* Yuklab olish progress barini ko'rsatish */}
+                      {isDownloading && (
+                        <div className="mt-2">
+                          <Progress value={downloadP} className="h-2" />
+                        </div>
+                      )}
                       {recording.student_name && (
                         <div className="text-left text-sm text-muted-foreground mt-2 border-t pt-2">
                           <p><strong>{t("mock_test_page.student_id")}:</strong> {recording.student_id}</p>
