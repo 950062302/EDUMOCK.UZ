@@ -200,7 +200,7 @@ const EduAiAssistant: React.FC<EduAiAssistantProps> = ({ isOpen, onClose }) => {
             <Input
               type="text"
               placeholder={t("eduai_assistant.input_placeholder")}
-              className="flex-grow p-3 rounded-lg bg-input border border-border focus:border-primary focus:ring focus:ring-primary/50 text-foreground placeholder-muted-foreground transition-colors"
+              className="flex-grow p-3 rounded-lg bg-card border border-primary focus:border-primary focus:ring focus:ring-primary/50 text-foreground placeholder-muted-foreground transition-colors"
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
               disabled={isLoading}
