@@ -324,5 +324,16 @@
     "system_logs": "System Logs",
     "system_logs_desc": "Monitor real-time system activity and debug logs.",
     "warning": "⚠️ Caution: Only users with 'developer' role can access this page."
+  },
+  "eduai_assistant": {
+    "title": "EduAi",
+    "subtitle": "Edumock.uz Assistant",
+    "input_placeholder": "Ask EduAi a question about Edumock.uz...",
+    "send_button": "Send",
+    "initial_greeting": "Hello! I am **EduAi**, the assistant for Edumock.uz. I can help answer your questions about our Speaking Platform, tariffs, features, and technical instructions. How can I assist you today?",
+    "empty_response_error": "I apologize, but I received an empty response. Could you please try asking in a different way?",
+    "connection_error": "I'm sorry, I encountered a connection error or failed to get a valid response. Please check your connection and try again in a moment.",
+    "sources_label": "Sources:",
+    "open_assistant": "Open EduAi Assistant"
   }
 }

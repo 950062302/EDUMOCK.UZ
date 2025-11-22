@@ -111,7 +111,38 @@
 
   body {
     @apply bg-background text-foreground;
+    /* EduAi Assistant uchun qo'shilgan fon va shrift */
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--secondary)) 100%); 
+    color: hsl(var(--foreground));
   }
+}
+
+/* Custom Scrollbar for better dark mode look */
+#eduai-messages::-webkit-scrollbar {
+    width: 8px;
+}
+#eduai-messages::-webkit-scrollbar-track {
+    background: hsl(var(--secondary)); /* Dark track */
+}
+#eduai-messages::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground)); /* Gray thumb */
+    border-radius: 4px;
+}
+#eduai-messages::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted)); /* Lighter on hover */
+}
+
+/* Styling for the messages in JS to use enhanced bubbles */
+.ai-bubble {
+    background-color: hsl(var(--secondary)); /* Gray-700 */
+    border-radius: 1rem; /* rounded-2xl */
+    border-top-left-radius: 0.125rem; /* rounded-tl-sm */
+}
+.user-bubble {
+    background-color: hsl(var(--primary)); /* Emerald-600 */
+    border-radius: 1rem; /* rounded-2xl */
+    border-top-right-radius: 0.125rem; /* rounded-tr-sm */
 }
 
 /* Custom CSS from provided HTML */

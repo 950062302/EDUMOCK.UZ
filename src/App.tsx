@@ -14,13 +14,21 @@ import UserProfile from "./pages/UserProfile";
 import Questions from "./pages/Questions";
 import Records from "./pages/Records";
 import ProtectedRoute from "./components/ProtectedRoute";
-import SuperAdminRoute from "./components/SuperAdminRoute"; // Yangi import
-import SuperAdminDashboard from "./pages/SuperAdminDashboard"; // Yangi import
+import SuperAdminRoute from "./components/SuperAdminRoute";
+import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import { AuthProvider } from "./context/AuthProvider";
+import EduAiAssistant from "./components/EduAiAssistant"; // Import EduAiAssistant
+import { useState } from "react"; // Import useState
+import { Button } from "./components/ui/button"; // Import Button
+import { Bot } from "lucide-react"; // Import Bot icon
+import { useTranslation } from 'react-i18next'; // Import useTranslation
 
 const queryClient = new QueryClient();
 
 const App = () => {
+  const [isEduAiAssistantOpen, setIsEduAiAssistantOpen] = useState(false);
+  const { t } = useTranslation();
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -88,6 +96,19 @@ const App = () => {
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </div>
+            
+            {/* Floating EduAi Assistant Button */}
+            <Button
+              variant="default"
+              size="icon"
+              className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90 transition-all duration-300 animate-bounce-slow"
+              onClick={() => setIsEduAiAssistantOpen(true)}
+              aria-label={t("eduai_assistant.open_assistant")}
+            >
+              <Bot className="h-7 w-7 text-primary-foreground" />
+            </Button>
+
+            <EduAiAssistant isOpen={isEduAiAssistantOpen} onClose={() => setIsEduAiAssistantOpen(false)} />
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
