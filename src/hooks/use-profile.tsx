@@ -12,6 +12,7 @@ interface Profile {
   first_name?: string;
   last_name?: string;
   bio?: string;
+  role: string; // Yangi: Rolni qo'shish
   storage_limit_bytes: number;
   storage_used_bytes: number;
 }
@@ -42,7 +43,7 @@ export const useProfile = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, username, first_name, last_name, bio, storage_limit_bytes, storage_used_bytes')
+      .select('id, username, first_name, last_name, bio, role, storage_limit_bytes, storage_used_bytes') // 'role' ni so'rovga qo'shish
       .eq('id', user.id)
       .single();
 
@@ -56,6 +57,7 @@ export const useProfile = () => {
       setProfile({
         id: user.id,
         username: user.email?.split('@')[0] || 'user',
+        role: 'user', // Default rol
         storage_limit_bytes: 10737418240, // Default 10 GB (10 * 1024 * 1024 * 1024)
         storage_used_bytes: 0,
       });
