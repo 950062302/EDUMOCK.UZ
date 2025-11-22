@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import Lora font from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap');
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -148,6 +151,7 @@
     backdrop-filter: none; /* Remove glass effect */
     -webkit-backdrop-filter: none; /* Remove glass effect for Safari */
     background-image: none; /* Remove gradient */
+    font-family: 'Lora', serif; /* Apply Lora font */
 }
 .user-bubble {
     background-color: hsl(var(--green-500)); /* Solid green color */
