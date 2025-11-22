@@ -3,8 +3,8 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useTranslation } from 'react-i18next'; // useTranslation import qilish
-import { showSuccess, showError } from '@/utils/toast'; // Toast xabarlari uchun
+import { useTranslation } from 'react-i18next';
+import { showSuccess, showError } from '@/utils/toast';
 
 interface AuthContextType {
   session: Session | null;
@@ -17,59 +17,48 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const { t } = useTranslation(); // useTranslation hookini ishlatish
+  const [loading, setLoading] = useState(true); // Dastlab true
+  const { t } = useTranslation();
 
   useEffect(() => {
-    const handleAuthRedirect = async () => {
-      setLoading(true);
-      
-      // Supabase'dan joriy sessiyani olishga urinish
+    // 1. Dastlabki sessiyani olish
+    const getInitialSession = async () => {
       const { data: { session: initialSession } } = await supabase.auth.getSession();
       setSession(initialSession);
       setUser(initialSession?.user ?? null);
-
-      // URL hashini tekshirish (masalan, email o'zgarishi yoki parolni tiklashdan keyin)
-      const hash = window.location.hash;
-      const params = new URLSearchParams(hash.substring(1)); // '#' belgisini olib tashlash
-      const accessToken = params.get('access_token');
-      const refreshToken = params.get('refresh_token');
-      const type = params.get('type');
-
-      if (accessToken && refreshToken && type === 'recovery') {
-        console.log("AuthProvider: URLda recovery tokenlari topildi. Sessiyani o'rnatishga urinilmoqda.");
-        const { data: { session: newSession }, error } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
-
-        if (error) {
-          console.error("AuthProvider: Recovery tokenlaridan sessiyani o'rnatishda xatolik:", error.message);
-          showError(t("user_profile_page.error_recovery_login_failed"));
-        } else if (newSession) {
-          console.log("AuthProvider: Recovery tokenlaridan sessiya muvaffaqiyatli o'rnatildi.");
-          setSession(newSession);
-          setUser(newSession.user);
-          showSuccess(t("user_profile_page.success_recovery_login"));
-        }
-
-        // URL hashini tozalash, qayta ishlashni oldini olish uchun
-        window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
-      }
-      setLoading(false);
+      setLoading(false); // Dastlabki yuklash tugadi
     };
 
-    handleAuthRedirect();
+    getInitialSession();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    // 2. Auth holati o'zgarishlarini tinglash
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log(`[Auth] Event: ${event}, Session: ${session ? 'Active' : 'Inactive'}`);
       setSession(session);
       setUser(session?.user ?? null);
+      
+      // Agar SIGNED_IN yoki SIGNED_OUT bo'lsa, loadingni false qilish
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
+        setLoading(false);
+      }
+
+      // URL hashini tekshirish (masalan, email o'zgarishi yoki parolni tiklashdan keyin)
+      if (window.location.hash.includes('access_token') && window.location.hash.includes('type=recovery')) {
+        // Recovery tokenlaridan sessiyani o'rnatish logikasi (bu onAuthStateChange ichida ham ishlaydi)
+        if (session) {
+          showSuccess(t("user_profile_page.success_recovery_login"));
+        } else {
+          showError(t("user_profile_page.error_recovery_login_failed"));
+        }
+        // URL hashini tozalash
+        window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+      }
     });
 
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [t]); // t ni dependency arrayga qo'shish
+  }, [t]);
 
   const value = {
     session,
