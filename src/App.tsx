@@ -22,6 +22,7 @@ import { useState } from "react";
 import { Button } from "./components/ui/button";
 import { Bot } from "lucide-react";
 import { useTranslation } from 'react-i18next';
+import { motion } from "framer-motion"; // framer-motion import qilindi
 
 const queryClient = new QueryClient();
 
@@ -98,16 +99,21 @@ const App = () => {
             </div>
             
             {/* Floating EduAi Assistant Button */}
-            <Button
-              variant="default"
-              // size="icon" // Ikonka o'rniga matn bo'lgani uchun size="icon" olib tashlandi
-              className="fixed bottom-4 right-4 z-[9999] h-14 px-6 rounded-full shadow-lg bg-gradient-purple text-white transition-all duration-300 animate-button-pulse btn-hover-glow flex items-center justify-center"
-              onClick={() => setIsEduAiAssistantOpen(true)}
-              aria-label={t("eduai_assistant.open_assistant")}
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 1 }} // Sahifa yuklangandan 1 soniya o'tib paydo bo'ladi
+              className="fixed bottom-4 right-4 z-[9999]"
             >
-              {/* <Bot className="h-7 w-7" /> */}
-              <span className="text-lg font-semibold">{t("eduai_assistant.chat_button_label")}</span>
-            </Button>
+              <Button
+                variant="default"
+                className="h-14 px-6 rounded-full shadow-lg bg-gradient-purple text-white transition-all duration-300 animate-button-pulse btn-hover-glow flex items-center justify-center"
+                onClick={() => setIsEduAiAssistantOpen(true)}
+                aria-label={t("eduai_assistant.open_assistant")}
+              >
+                <span className="text-lg font-semibold">{t("eduai_assistant.chat_button_label")}</span>
+              </Button>
+            </motion.div>
 
             <EduAiAssistant isOpen={isEduAiAssistantOpen} onClose={() => setIsEduAiAssistantOpen(false)} />
           </AuthProvider>
