@@ -20,8 +20,6 @@ const CustomAuthForm: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  // Sign Up funksiyasi olib tashlandi
-
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!captchaToken) {
