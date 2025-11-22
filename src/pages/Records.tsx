@@ -41,9 +41,65 @@ import { useProgress, setProgress, removeProgress } from "@/utils/uploadProgress
 import { Badge } from "@/components/ui/badge"; // Badge import qilindi
 
 // Xotira ishlatilishini ko'rsatuvchi kichik komponent
-const StorageUsageCard: React.FC = () => {
+const StorageUsageCard: React.FC<{ isGuest: boolean, onOpenPricing: () => void }> = ({ isGuest, onOpenPricing }) => {
   const { profile, loading } = useProfile();
   const { t } = useTranslation();
+
+  if (isGuest) {
+    // Mehmon rejimi uchun maxsus ko'rinish
+    const totalLimit = 10737418240; // 10 GB default limit
+    const usedSpace = 0; // Mehmon rejimida ishlatilgan joy 0 deb hisoblanadi
+    const usagePercentage = 0;
+    
+    return (
+      <Card className="p-4 mb-6 bg-[#1A237E] text-white border-4 border-[#3F51B5] shadow-2xl rounded-xl relative overflow-hidden">
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-10">
+          <div className="text-center p-4">
+            <Lock className="h-8 w-8 mx-auto mb-2 text-yellow-300" />
+            <p className="text-sm font-semibold mb-3">{t("records_page.guest_storage_description")}</p>
+            <Button onClick={onOpenPricing} size="sm" className="bg-yellow-400 text-black hover:bg-yellow-500">
+              {t("records_page.view_plans")}
+            </Button>
+          </div>
+        </div>
+
+        {/* Orqa fondagi dizayn (Locked) */}
+        <div className="opacity-30">
+          <div className="flex justify-between items-center mb-3">
+            <div className="flex items-center gap-2">
+              <Cloud className="h-6 w-6 text-yellow-300" />
+              <h4 className="text-xl font-bold">{t("user_profile_page.cloud_storage")}</h4>
+              <Badge className="bg-yellow-400 text-black font-bold">
+                BASIC
+              </Badge>
+            </div>
+          </div>
+          
+          <div className="flex justify-between items-baseline mb-1">
+            <p className="text-3xl font-bold">
+              {formatBytes(usedSpace)}
+            </p>
+            <p className="text-lg font-medium text-gray-300">
+              / {formatBytes(totalLimit)}
+            </p>
+          </div>
+          
+          <div className="w-full bg-[#3F51B5] rounded-full h-2.5 overflow-hidden mb-1">
+            <div
+              className="h-2.5 rounded-full bg-yellow-300"
+              style={{ width: `${usagePercentage}%` }}
+            />
+          </div>
+
+          <div className="flex justify-end">
+             <p className="text-sm text-gray-300">
+              {t("records_page.used_percentage", { percentage: usagePercentage.toFixed(1) })}
+            </p>
+          </div>
+        </div>
+      </Card>
+    );
+  }
 
   if (loading || !profile) {
     return (
@@ -355,27 +411,7 @@ const Records: React.FC = () => {
             <CardDescription className="text-center mt-2">{t("records_page.review_past_sessions")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {isGuestMode ? (
-              <Card className="p-4 mb-6 bg-card border border-border/80 shadow-sm rounded-lg text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Cloud className="h-5 w-5 text-primary" />
-                  <h4 className="text-base font-semibold text-foreground">{t("user_profile_page.cloud_storage")}</h4>
-                </div>
-                <div className="relative w-full bg-secondary rounded-full h-2.5 overflow-hidden my-2">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Lock className="h-3 w-3 text-muted-foreground" />
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground mt-2 mb-4">
-                  {t("records_page.guest_storage_description")}
-                </p>
-                <Button onClick={() => setIsPricingDialogOpen(true)} size="sm">
-                  {t("records_page.view_plans")}
-                </Button>
-              </Card>
-            ) : (
-              <StorageUsageCard />
-            )}
+            <StorageUsageCard isGuest={isGuestMode} onOpenPricing={() => setIsPricingDialogOpen(true)} />
             
             {isLoading ? <p className="text-center">{t("common.loading")}</p> : recordings.length === 0 ? (
               <p className="text-muted-foreground text-center">{t("records_page.no_recordings_available")}</p>
