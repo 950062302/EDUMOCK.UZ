@@ -135,14 +135,14 @@
 
 /* Styling for the messages in JS to use enhanced bubbles */
 .ai-bubble {
-    background-color: hsl(var(--secondary)); /* Gray-700 */
-    border-radius: 1rem; /* rounded-2xl */
-    border-top-left-radius: 0.125rem; /* rounded-tl-sm */
+    background-color: hsl(var(--secondary));
+    border-radius: 0.75rem; /* rounded-xl */
+    border-top-left-radius: 0.25rem; /* rounded-sm */
 }
 .user-bubble {
-    background-color: hsl(var(--primary)); /* Emerald-600 */
-    border-radius: 1rem; /* rounded-2xl */
-    border-top-right-radius: 0.125rem; /* rounded-tr-sm */
+    background-color: hsl(var(--primary));
+    border-radius: 0.75rem; /* rounded-xl */
+    border-top-right-radius: 0.25rem; /* rounded-sm */
 }
 
 /* Custom CSS from provided HTML */
@@ -323,3 +323,22 @@
   animation: toast-text-intro 0.4s ease-out;
   animation-delay: 0.3s;
 }
+
+/* Typing indicator animation */
+@keyframes dot-pulse {
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.typing-dot {
+  animation: dot-pulse 1.4s infinite ease-in-out both;
+}
+.typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-dot:nth-child(2) { animation-delay: -0.16s; }
+.typing-dot:nth-child(3) { animation-delay: 0s; }

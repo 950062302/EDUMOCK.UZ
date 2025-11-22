@@ -54,6 +54,7 @@ const EduAiAssistant: React.FC<EduAiAssistantProps> = ({ isOpen, onClose }) => {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [userInput, setUserInput] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isTyping, setIsTyping] = useState<boolean>(false); // New state for typing indicator
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -69,7 +70,7 @@ const EduAiAssistant: React.FC<EduAiAssistantProps> = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [chatHistory]);
+  }, [chatHistory, isTyping]); // Scroll when typing indicator appears/disappears
 
   const fetchWithRetry = useCallback(async (payload: any, maxRetries = 5, delay = 1000): Promise<Response> => {
     if (!apiKey) {
@@ -111,6 +112,7 @@ const EduAiAssistant: React.FC<EduAiAssistantProps> = ({ isOpen, onClose }) => {
     setChatHistory(prev => [...prev, { role: "user", parts: [{ text: userQuery }] }]);
     setUserInput('');
     setIsLoading(true);
+    setIsTyping(true); // Start typing indicator
 
     const currentPayload = {
       contents: [...chatHistory, { role: "user", parts: [{ text: userQuery }] }],
@@ -147,6 +149,7 @@ const EduAiAssistant: React.FC<EduAiAssistantProps> = ({ isOpen, onClose }) => {
       setChatHistory(prev => [...prev, { role: "model", parts: [{ text: t("eduai_assistant.connection_error") }] }]);
     } finally {
       setIsLoading(false);
+      setIsTyping(false); // Stop typing indicator
     }
   };
 
@@ -171,7 +174,7 @@ const EduAiAssistant: React.FC<EduAiAssistantProps> = ({ isOpen, onClose }) => {
           {chatHistory.map((message, index) => (
             <div key={index} className={cn("flex", message.role === 'user' ? 'justify-end' : 'justify-start')}>
               <div className={cn(
-                "max-w-xl p-3 shadow-md transition-all duration-100 rounded-2xl",
+                "max-w-xl p-3 shadow-md transition-all duration-100 rounded-xl", // Changed to rounded-xl
                 message.role === 'user' ? 'user-bubble rounded-tr-sm bg-primary text-primary-foreground' : 'ai-bubble rounded-tl-sm bg-secondary text-secondary-foreground'
               )}>
                 {renderMessageContent(message)}
@@ -180,6 +183,18 @@ const EduAiAssistant: React.FC<EduAiAssistantProps> = ({ isOpen, onClose }) => {
               </div>
             </div>
           ))}
+          {isTyping && (
+            <div className="flex justify-start">
+              <div className="ai-bubble max-w-xl p-3 shadow-md transition-all duration-100 rounded-xl rounded-tl-sm bg-secondary text-secondary-foreground flex items-center space-x-1">
+                <span className="text-sm">{t("eduai_assistant.typing")}</span>
+                <div className="flex space-x-0.5">
+                  <span className="typing-dot w-1.5 h-1.5 bg-muted-foreground rounded-full inline-block"></span>
+                  <span className="typing-dot w-1.5 h-1.5 bg-muted-foreground rounded-full inline-block"></span>
+                  <span className="typing-dot w-1.5 h-1.5 bg-muted-foreground rounded-full inline-block"></span>
+                </div>
+              </div>
+            </div>
+          )}
           <div ref={messagesEndRef} />
         </div>
 

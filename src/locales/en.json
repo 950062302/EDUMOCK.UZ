@@ -334,6 +334,7 @@
     "empty_response_error": "I apologize, but I received an empty response. Could you please try asking in a different way?",
     "connection_error": "I'm sorry, I encountered a connection error or failed to get a valid response. Please check your connection and try again in a moment.",
     "sources_label": "Sources:",
-    "open_assistant": "Open EduAi Assistant"
+    "open_assistant": "Open EduAi Assistant",
+    "typing": "Typing..."
   }
 }
