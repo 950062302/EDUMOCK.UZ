@@ -101,7 +101,7 @@ const App = () => {
             <Button
               variant="default"
               // size="icon" // Ikonka o'rniga matn bo'lgani uchun size="icon" olib tashlandi
-              className="fixed bottom-4 right-4 z-[99] h-14 px-6 rounded-full shadow-lg bg-gradient-purple text-white transition-all duration-300 animate-button-pulse btn-hover-glow flex items-center justify-center"
+              className="fixed bottom-4 right-4 z-[9999] h-14 px-6 rounded-full shadow-lg bg-gradient-purple text-white transition-all duration-300 animate-button-pulse btn-hover-glow flex items-center justify-center"
               onClick={() => setIsEduAiAssistantOpen(true)}
               aria-label={t("eduai_assistant.open_assistant")}
             >
