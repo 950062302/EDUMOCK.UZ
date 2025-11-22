@@ -1,7 +1,7 @@
 import { toast } from "sonner";
 import i18n from '@/i18n';
 
-const playSound = (type: 'success' | 'error' = 'success') => {
+export const playSound = (type: 'success' | 'error' = 'success') => {
   try {
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     if (!audioContext) {
