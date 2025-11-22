@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Bot, Send } => 'lucide-react'; // X icon removed as it's no longer needed for the custom close button
+import { Bot, Send } from 'lucide-react'; // Xato tuzatildi: '=>' o'rniga 'from' ishlatildi
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
