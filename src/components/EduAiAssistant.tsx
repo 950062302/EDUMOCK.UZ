@@ -108,7 +108,7 @@ const EduAiAssistant: React.FC<EduAiAssistantProps> = ({ isOpen, onClose }) => {
     e.preventDefault();
     const userQuery = userInput.trim();
 
-    if (!userQuery) return;
+    if (!userQuery) return; // Agar maydoncha bo'sh bo'lsa, xabar yuborilmaydi
 
     setChatHistory(prev => [...prev, { role: "user", parts: [{ text: userQuery }] }]);
     setUserInput('');
@@ -209,7 +209,7 @@ const EduAiAssistant: React.FC<EduAiAssistantProps> = ({ isOpen, onClose }) => {
             <Button
               type="submit"
               className="px-5 py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-colors disabled:bg-muted disabled:opacity-50 flex items-center justify-center shadow-md hover:shadow-lg"
-              disabled={isLoading || !userInput.trim()}
+              disabled={isLoading} // Faqat yuklanayotgan bo'lsa o'chiriladi
             >
               {isLoading ? (
                 <svg className="animate-spin h-5 w-5 text-primary-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
