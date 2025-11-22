@@ -22,17 +22,20 @@ const SuperAdminRoute: React.FC = () => {
     );
   }
 
-  const isSuperAdmin = profile?.role === 'developer';
-
+  // 1. Tizimga kirmagan bo'lsa, login sahifasiga yuborish
   if (!session) {
-    // Agar tizimga kirmagan bo'lsa, login sahifasiga yuborish
     return <Navigate to="/login" replace />;
   }
+
+  // 2. Profil ma'lumotlari yuklanganidan keyin rolni tekshirish
+  const isSuperAdmin = profile?.role === 'developer';
 
   if (isSuperAdmin) {
     return <Outlet />;
   } else {
     // Agar tizimga kirgan, lekin Super Admin bo'lmasa, xato xabari bilan home sahifasiga yuborish
+    // Xato xabarini faqat bir marta ko'rsatish uchun session storage dan foydalanishimiz mumkin,
+    // lekin hozircha shunday qoldiramiz.
     showError(t("common.admin_only"));
     return <Navigate to="/home" replace />;
   }
