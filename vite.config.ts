@@ -17,4 +17,8 @@ export default defineConfig(() => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // Yangi: Production build uchun Source Maps ni o'chirish
+  build: {
+    sourcemap: false,
+  },
 }));
