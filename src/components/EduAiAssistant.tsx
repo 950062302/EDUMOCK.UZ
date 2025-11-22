@@ -4,9 +4,10 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Bot, Send } from 'lucide-react'; // Xato tuzatildi: '=>' o'rniga 'from' ishlatildi
+import { Bot, Send } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
+import { playSound } from '@/utils/toast'; // playSound funksiyasini import qilish
 
 interface ChatMessage {
   role: 'user' | 'model';
@@ -113,6 +114,7 @@ const EduAiAssistant: React.FC<EduAiAssistantProps> = ({ isOpen, onClose }) => {
     setUserInput('');
     setIsLoading(true);
     setIsTyping(true);
+    playSound('success'); // Foydalanuvchi xabar yuborganda ovoz effektini ijro etish
 
     const currentPayload = {
       contents: [...chatHistory, { role: "user", parts: [{ text: userQuery }] }],
