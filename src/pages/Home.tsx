@@ -49,10 +49,10 @@ export default function Home() {
 
   const items = [
     {
-      icon: <BookOpen className="w-10 h-10" />, // Yangi ikon
-      title: t("home_page.cefr_tests"), // Yangi tarjima kaliti
-      subtitle: t("home_page.select_cefr_test"), // Yangi tarjima kaliti
-      path: "/cefr-tests", // Yangi marshrut
+      icon: <BookOpen className="w-10 h-10" />,
+      title: t("home_page.cefr_tests"),
+      subtitle: t("home_page.select_cefr_test"),
+      path: "/cefr-tests",
     },
     {
       icon: <Book className="w-10 h-10" />,
@@ -64,7 +64,7 @@ export default function Home() {
       icon: <PlusCircle className="w-10 h-10" />,
       title: t("home_page.add_question"),
       subtitle: t("home_page.add_new_question"),
-      path: "/add-question",
+      path: "/add-question", // Yangi marshrutga yo'naltirish
     },
     {
       icon: <ListChecks className="w-10 h-10" />,

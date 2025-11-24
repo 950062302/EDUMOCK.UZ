@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import Navbar from "@/components/Navbar";
-import AppFooter from "@/components/AppFooter"; // Yangi import
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showSuccess, showError } from "@/utils/toast";
-import { Trash2, Pencil, X, ArrowLeft, RefreshCw } from "lucide-react";
+import { Trash2, Pencil, X, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { SpeakingQuestion, SpeakingPart, Part1_1Question, Part1_2Question, Part2Question, Part3Question } from "@/lib/types";
 import { allSpeakingParts } from "@/lib/constants";
@@ -24,7 +22,6 @@ import {
 import { supabase } from "../integrations/supabase/client";
 import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from "@/context/AuthProvider";
-import { Link } from "react-router-dom";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,14 +34,14 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useTranslation } from 'react-i18next';
-import { normalizeText } from "@/lib/utils"; // normalizeText funksiyasini import qilish
+import { normalizeText } from "@/lib/utils";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-const SpeakingQuestionManager: React.FC = () => {
+const AddSpeakingQuestion: React.FC = () => {
   const { session, user } = useAuth();
   const isGuestMode = localStorage.getItem("isGuestMode") === "true" && !session;
   const [currentTab, setCurrentTab] = useState<SpeakingPart>("Part 1.1");
@@ -371,7 +368,7 @@ const SpeakingQuestionManager: React.FC = () => {
               {Array.isArray(q.sub_questions) && q.sub_questions.length > 0
                 ? q.sub_questions.map((subQ, i) => <li key={i}>{subQ}</li>)
                 : <li className="text-yellow-600">{t("add_question_page.no_sub_questions")}</li>}
-            </ul>
+          </ul>
           </div>
         );
       case "Part 2":
@@ -402,124 +399,112 @@ const SpeakingQuestionManager: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <main className="flex-grow container mx-auto p-4">
-        <Card className="max-w-3xl mx-auto">
-          <CardHeader className="pt-8">
-            <div className="flex justify-between items-center">
-              <Link to="/home">
-                <Button variant="default" className="bg-primary hover:bg-primary/90">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  {t("common.back")}
-                </Button>
-              </Link>
-              <CardTitle className="text-xl sm:text-3xl font-bold text-center flex-grow">
-                {t("add_question_page.question_management")}
-              </CardTitle>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    onClick={handleResetAllCooldowns} 
-                    variant="default"
-                    size="icon"
-                    className="bg-primary hover:bg-primary/90"
-                  >
-                    <RefreshCw className="h-5 w-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{t("add_question_page.reset_all_cooldowns")}</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Tabs value={currentTab} onValueChange={(value) => { setCurrentTab(value as SpeakingPart); resetForm(); }} className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
-                {allSpeakingParts.map(part => <TabsTrigger key={part} value={part}>{part}</TabsTrigger>)}
-              </TabsList>
-              {allSpeakingParts.map(part => (
-                <TabsContent key={part} value={part} className="mt-4">
-                  <div className="space-y-4 mb-6 p-4 border rounded-lg bg-card relative">
-                    <h3 className="text-lg font-semibold">
-                      {editingQuestionId ? t("add_question_page.edit_question_title", { id_suffix: editingQuestionId.slice(-6) }) : t("add_question_page.add_new_question_title", { part })}
-                    </h3>
-                    {isGuestMode && (
-                      <div className="p-3 text-center bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-400 dark:border-yellow-700 rounded-md text-yellow-800 dark:text-yellow-300">
-                        <p>{t("add_question_page.guest_mode_add_question_warning")}</p>
-                      </div>
-                    )}
-                    <fieldset disabled={isGuestMode}>
-                      {renderQuestionInput(part)}
-                      <div className="flex gap-2 mt-4">
-                        <Button onClick={() => handleSubmitQuestion(part)} className="w-full" disabled={isUploading}>
-                          {editingQuestionId ? t("add_question_page.save_changes") : t("add_question_page.add_question_to_part", { part })}
-                        </Button>
-                        {editingQuestionId && (
-                          <Button variant="outline" onClick={resetForm} className="w-full">
-                            <X className="h-4 w-4 mr-2" /> {t("add_question_page.cancel")}
-                          </Button>
-                        )}
-                      </div>
-                    </fieldset>
+    <Card className="w-full">
+      <CardHeader className="pt-8">
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-xl sm:text-3xl font-bold text-center flex-grow">
+            {t("question_management_page.speaking_questions")}
+          </CardTitle>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                onClick={handleResetAllCooldowns} 
+                variant="default"
+                size="icon"
+                className="bg-primary hover:bg-primary/90"
+              >
+                <RefreshCw className="h-5 w-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{t("add_question_page.reset_all_cooldowns")}</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <Tabs value={currentTab} onValueChange={(value) => { setCurrentTab(value as SpeakingPart); resetForm(); }} className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            {allSpeakingParts.map(part => <TabsTrigger key={part} value={part}>{part}</TabsTrigger>)}
+          </TabsList>
+          {allSpeakingParts.map(part => (
+            <TabsContent key={part} value={part} className="mt-4">
+              <div className="space-y-4 mb-6 p-4 border rounded-lg bg-card relative">
+                <h3 className="text-lg font-semibold">
+                  {editingQuestionId ? t("add_question_page.edit_question_title", { id_suffix: editingQuestionId.slice(-6) }) : t("add_question_page.add_new_question_title", { part })}
+                </h3>
+                {isGuestMode && (
+                  <div className="p-3 text-center bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-400 dark:border-yellow-700 rounded-md text-yellow-800 dark:text-yellow-300">
+                    <p>{t("add_question_page.guest_mode_add_question_warning")}</p>
                   </div>
-                  {isLoading ? <p className="text-center">{t("add_question_page.questions_loading")}</p> : (
-                    <div className="space-y-3">
-                      {questions[part].length === 0 ? (
-                        <p className="text-center text-muted-foreground">{t("add_question_page.no_questions_added")}</p>
-                      ) : (
-                        questions[part].map((q) => (
-                          <div 
-                            key={q.id} 
-                            className={`flex items-start justify-between p-3 border rounded-md bg-secondary text-secondary-foreground ${q.isSimilar ? 'border-red-400 bg-red-50/50 dark:bg-red-900/20' : ''}`}
-                          >
-                            <div className="flex-grow mr-4">{renderQuestionCardContent(q)}</div>
-                            <div className="flex flex-col items-end gap-2">
-                              {!isGuestMode && (
-                                <div className="flex items-center gap-2">
-                                  <Button variant="ghost" size="icon" onClick={() => handleEditClick(q)}>
-                                    <Pencil className="h-4 w-4 text-blue-500" />
+                )}
+                <fieldset disabled={isGuestMode}>
+                  {renderQuestionInput(part)}
+                  <div className="flex gap-2 mt-4">
+                    <Button onClick={() => handleSubmitQuestion(part)} className="w-full" disabled={isUploading}>
+                      {editingQuestionId ? t("add_question_page.save_changes") : t("add_question_page.add_question_to_part", { part })}
+                    </Button>
+                    {editingQuestionId && (
+                      <Button variant="outline" onClick={resetForm} className="w-full">
+                        <X className="h-4 w-4 mr-2" /> {t("add_question_page.cancel")}
+                      </Button>
+                    )}
+                  </div>
+                </fieldset>
+              </div>
+              {isLoading ? <p className="text-center">{t("add_question_page.questions_loading")}</p> : (
+                <div className="space-y-3">
+                  {questions[part].length === 0 ? (
+                    <p className="text-center text-muted-foreground">{t("add_question_page.no_questions_added")}</p>
+                  ) : (
+                    questions[part].map((q) => (
+                      <div 
+                        key={q.id} 
+                        className={`flex items-start justify-between p-3 border rounded-md bg-secondary text-secondary-foreground ${q.isSimilar ? 'border-red-400 bg-red-50/50 dark:bg-red-900/20' : ''}`}
+                      >
+                        <div className="flex-grow mr-4">{renderQuestionCardContent(q)}</div>
+                        <div className="flex flex-col items-end gap-2">
+                          {!isGuestMode && (
+                            <div className="flex items-center gap-2">
+                              <Button variant="ghost" size="icon" onClick={() => handleEditClick(q)}>
+                                <Pencil className="h-4 w-4 text-blue-500" />
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="icon">
+                                    <Trash2 className="h-4 w-4 text-destructive" />
                                   </Button>
-                                  <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                      <Button variant="ghost" size="icon">
-                                        <Trash2 className="h-4 w-4 text-destructive" />
-                                      </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                      <AlertDialogHeader>
-                                        <AlertDialogTitle>{t("add_question_page.delete_question_confirm_title")}</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                          {t("add_question_page.delete_question_confirm_description")}
-                                        </AlertDialogDescription>
-                                      </AlertDialogHeader>
-                                      <AlertDialogFooter>
-                                        <AlertDialogCancel>{t("add_question_page.cancel")}</AlertDialogCancel>
-                                        <AlertDialogAction onClick={() => handleDeleteQuestion(q.id)}>{t("add_question_page.delete")}</AlertDialogAction>
-                                      </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                  </AlertDialog>
-                                </div>
-                              )}
-                              <div className="text-xs text-muted-foreground text-right">
-                                <span>{q.last_used ? t("add_question_page.last_used", { date: format(new Date(q.last_used), "MMM dd, HH:mm") }) : t("add_question_page.not_used")}</span>
-                              </div>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>{t("add_question_page.delete_question_confirm_title")}</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      {t("add_question_page.delete_question_confirm_description")}
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>{t("add_question_page.cancel")}</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDeleteQuestion(q.id)}>{t("add_question_page.delete")}</AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </div>
+                          )}
+                          <div className="text-xs text-muted-foreground text-right">
+                            <span>{q.last_used ? t("add_question_page.last_used", { date: format(new Date(q.last_used), "MMM dd, HH:mm") }) : t("add_question_page.not_used")}</span>
                           </div>
-                        ))
-                      )}
-                    </div>
+                        </div>
+                      </div>
+                    ))
                   )}
-                </TabsContent>
-              ))}
-            </Tabs>
-          </CardContent>
-        </Card>
-      </main>
-      <AppFooter />
-    </div>
+                </div>
+              )}
+            </TabsContent>
+          ))}
+        </Tabs>
+      </CardContent>
+    </Card>
   );
 };
 
-export default SpeakingQuestionManager;
+export default AddSpeakingQuestion;

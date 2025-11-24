@@ -351,5 +351,16 @@
     "error_loading_tests": "Error loading CEFR tests:",
     "no_tests_available": "No CEFR tests are available yet. Please check back later.",
     "test_selection_not_implemented": "Test selection logic is not yet implemented."
+  },
+  "question_management_page": {
+    "title": "Question Management",
+    "add_speaking": "Add Speaking",
+    "add_listening": "Add Listening",
+    "add_reading": "Add Reading",
+    "add_writing": "Add Writing",
+    "speaking_questions": "Speaking Questions",
+    "listening_section_placeholder": "Listening questions management will be available here soon.",
+    "reading_section_placeholder": "Reading questions management will be available here soon.",
+    "writing_section_placeholder": "Writing questions management will be available here soon."
   }
 }

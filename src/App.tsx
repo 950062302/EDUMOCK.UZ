@@ -7,7 +7,7 @@ import NotFound from "./pages/NotFound";
 import MoodJournal from "./pages/MoodJournal";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
-import AddQuestion from "./pages/AddQuestion";
+import QuestionManagement from "./pages/QuestionManagement"; // Yangi nom bilan import
 import MockTest from "./pages/MockTest";
 import Settings from "./pages/Settings";
 import UserProfile from "./pages/UserProfile";
@@ -16,14 +16,14 @@ import Records from "./pages/Records";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SuperAdminRoute from "./components/SuperAdminRoute";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
-import CefrTests from "./pages/CefrTests"; // Yangi import
+import CefrTests from "./pages/CefrTests";
 import { AuthProvider } from "./context/AuthProvider";
 import EduAiAssistant from "./components/EduAiAssistant";
 import { useState } from "react";
 import { Button } from "./components/ui/button";
 import { Bot } from "lucide-react";
 import { useTranslation } from 'react-i18next';
-import { motion } from "framer-motion"; // framer-motion import qilindi
+import { motion } from "framer-motion";
 
 const queryClient = new QueryClient();
 
@@ -86,13 +86,13 @@ const App = () => {
                 {/* Oddiy foydalanuvchilar uchun himoyalangan marshrutlar guruhi */}
                 <Route element={<ProtectedRoute />}>
                   <Route path="/home" element={<Home />} />
-                  <Route path="/add-question" element={<AddQuestion />} />
+                  <Route path="/add-question" element={<QuestionManagement />} /> {/* Marshrutni yangilash */}
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/user-profile" element={<UserProfile />} />
                   <Route path="/questions" element={<Questions />} />
                   <Route path="/records" element={<Records />} />
                   <Route path="/mood-journal" element={<MoodJournal />} />
-                  <Route path="/cefr-tests" element={<CefrTests />} /> {/* Yangi marshrut */}
+                  <Route path="/cefr-tests" element={<CefrTests />} />
                 </Route>
 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
