@@ -101,13 +101,13 @@ export const getSupabaseQuestions = async (): Promise<SpeakingQuestion[]> => {
   let query = supabase.from('questions').select('*');
 
   if (isGuestMode && !user) {
-    -- Mehmon rejimida faqat user_id NULL bo'lgan savollarni ko'rsatish
+    // Mehmon rejimida faqat user_id NULL bo'lgan savollarni ko'rsatish
     query = query.is('user_id', null);
   } else if (userId) {
-    -- Tizimga kirgan foydalanuvchi uchun faqat o'zining savollarini ko'rsatish
+    // Tizimga kirgan foydalanuvchi uchun faqat o'zining savollarini ko'rsatish
     query = query.eq('user_id', userId);
   } else {
-    -- Tizimga kirmagan va mehmon rejimida bo'lmagan foydalanuvchi uchun savollar yo'q
+    // Tizimga kirmagan va mehmon rejimida bo'lmagan foydalanuvchi uchun savollar yo'q
     return [];
   }
 
