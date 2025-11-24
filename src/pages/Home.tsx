@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Book, PlusCircle, ListChecks, Video, Settings as SettingsIcon, User as UserIcon, Home as HomeIcon, LogOut, Info, Send } from "lucide-react";
+import { Book, PlusCircle, ListChecks, Video, Settings as SettingsIcon, User as UserIcon, Home as HomeIcon, LogOut, Info, Send, BookOpen } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { showSuccess } from "@/utils/toast";
@@ -48,6 +48,12 @@ export default function Home() {
   };
 
   const items = [
+    {
+      icon: <BookOpen className="w-10 h-10" />, // Yangi ikon
+      title: t("home_page.cefr_tests"), // Yangi tarjima kaliti
+      subtitle: t("home_page.select_cefr_test"), // Yangi tarjima kaliti
+      path: "/cefr-tests", // Yangi marshrut
+    },
     {
       icon: <Book className="w-10 h-10" />,
       title: t("home_page.questions"),

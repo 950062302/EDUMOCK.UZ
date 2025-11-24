@@ -101,7 +101,9 @@
     "mock_test": "Mock Test",
     "start_the_test": "Start the test",
     "records": "Records",
-    "view_recorded_videos": "View recorded videos"
+    "view_recorded_videos": "View recorded videos",
+    "cefr_tests": "CEFR Tests",
+    "select_cefr_test": "Select a CEFR test"
   },
   "settings_page": {
     "settings": "Settings",
@@ -341,5 +343,13 @@
     "open_assistant": "Open EduAi Assistant",
     "typing": "Typing...",
     "chat_button_label": "Chat"
+  },
+  "cefr_tests_page": {
+    "select_test_description": "Select a CEFR test from the list below to start practicing.",
+    "created_at": "Created",
+    "select_test": "Select Test",
+    "error_loading_tests": "Error loading CEFR tests:",
+    "no_tests_available": "No CEFR tests are available yet. Please check back later.",
+    "test_selection_not_implemented": "Test selection logic is not yet implemented."
   }
 }

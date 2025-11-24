@@ -1,6 +1,6 @@
 import { openDB, IDBPDatabase } from 'idb';
 import { v4 as uuidv4 } from 'uuid';
-import { SpeakingQuestion, MoodEntry, RecordedSession, Part1_1Question, Part1_2Question, Part2Question, Part3Question } from './types';
+import { SpeakingQuestion, MoodEntry, RecordedSession, Part1_1Question, Part1_2Question, Part2Question, Part3Question, IeltsTest } from './types';
 import { supabase } from '@/integrations/supabase/client';
 import { showError } from '@/utils/toast';
 import i18n from '@/i18n';
@@ -566,4 +566,17 @@ export const deleteLocalRecording = async (id: string): Promise<boolean> => {
 
   // Return true if either local deletion happened, or it was a cloud-only recording and cloud deletion succeeded.
   return localDeletionPerformed || (supabaseMetadataExists && supabaseDeletionSuccessful);
+};
+
+export const getIeltsTests = async (): Promise<IeltsTest[]> => {
+  const { data, error } = await supabase
+    .from('ielts_tests')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    showError(i18n.t("cefr_tests_page.error_loading_tests", { message: error.message }));
+    return [];
+  }
+  return data as IeltsTest[];
 };

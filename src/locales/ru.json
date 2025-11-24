@@ -101,7 +101,9 @@
     "mock_test": "Пробный тест",
     "start_the_test": "Начать тест",
     "records": "Записи",
-    "view_recorded_videos": "Посмотреть записанные видео"
+    "view_recorded_videos": "Посмотреть записанные видео",
+    "cefr_tests": "Тесты CEFR",
+    "select_cefr_test": "Выбрать тест CEFR"
   },
   "settings_page": {
     "settings": "Настройки",
@@ -341,5 +343,13 @@
     "open_assistant": "Открыть помощника EduAi",
     "typing": "Печатает...",
     "chat_button_label": "Чат"
+  },
+  "cefr_tests_page": {
+    "select_test_description": "Выберите тест CEFR из списка ниже, чтобы начать практику.",
+    "created_at": "Создан",
+    "select_test": "Выбрать тест",
+    "error_loading_tests": "Ошибка загрузки тестов CEFR:",
+    "no_tests_available": "Тесты CEFR пока недоступны. Пожалуйста, зайдите позже.",
+    "test_selection_not_implemented": "Логика выбора теста еще не реализована."
   }
 }

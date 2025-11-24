@@ -63,3 +63,9 @@ export interface RecordedSession {
   supabase_url?: string; // Supabase'ga yuklangan videoning ommaviy URL manzili
   isLocalBlobAvailable?: boolean; // Yangi: video blob mahalliy IndexedDBda mavjudligini bildiradi
 }
+
+export interface IeltsTest {
+  id: string;
+  title: string;
+  created_at: string;
+}

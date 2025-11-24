@@ -16,6 +16,7 @@ import Records from "./pages/Records";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SuperAdminRoute from "./components/SuperAdminRoute";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
+import CefrTests from "./pages/CefrTests"; // Yangi import
 import { AuthProvider } from "./context/AuthProvider";
 import EduAiAssistant from "./components/EduAiAssistant";
 import { useState } from "react";
@@ -91,6 +92,7 @@ const App = () => {
                   <Route path="/questions" element={<Questions />} />
                   <Route path="/records" element={<Records />} />
                   <Route path="/mood-journal" element={<MoodJournal />} />
+                  <Route path="/cefr-tests" element={<CefrTests />} /> {/* Yangi marshrut */}
                 </Route>
 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
