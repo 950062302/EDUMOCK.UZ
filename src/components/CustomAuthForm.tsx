@@ -5,12 +5,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Turnstile } from '@marsidev/react-turnstile';
 import { showError, showSuccess } from '@/utils/toast';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-
-const VITE_TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY;
 
 const CustomAuthForm: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -19,22 +16,16 @@ const CustomAuthForm: React.FC = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [isSignUp, setIsSignUp] = useState(false); // New state to toggle between sign-in and sign-up
   const { t } = useTranslation();
   const navigate = useNavigate();
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!captchaToken) {
-      showError(t("common.captcha_challenge_error"));
-      return;
-    }
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
-      options: { captchaToken },
     });
     if (error) {
       showError(error.message);
@@ -47,10 +38,6 @@ const CustomAuthForm: React.FC = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!captchaToken) {
-      showError(t("common.captcha_challenge_error"));
-      return;
-    }
     if (password !== confirmPassword) {
       showError(t("user_profile_page.error_password_mismatch"));
       return;
@@ -65,7 +52,6 @@ const CustomAuthForm: React.FC = () => {
       email,
       password,
       options: {
-        captchaToken,
         data: {
           first_name: firstName.trim(),
           last_name: lastName.trim(),
@@ -77,9 +63,6 @@ const CustomAuthForm: React.FC = () => {
       showError(error.message);
     } else {
       showSuccess(t("common.confirmation_email_sent"));
-      // After sign-up, you might want to redirect to a page that tells them to check their email
-      // or automatically sign them in if auto-confirm is enabled in Supabase.
-      // For now, we'll just show success and let them sign in.
       setIsSignUp(false); // Switch back to sign-in form
       setEmail('');
       setPassword('');
@@ -119,15 +102,7 @@ const CustomAuthForm: React.FC = () => {
             <Input id="confirm-password-auth" type="password" placeholder={t("user_profile_page.confirm_password")} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
           </div>
         )}
-        <div className="flex justify-center">
-          <Turnstile
-            siteKey={VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'} // Default test key
-            onSuccess={setCaptchaToken}
-            onError={() => setCaptchaToken(null)}
-            onExpire={() => setCaptchaToken(null)}
-          />
-        </div>
-        <Button type="submit" className="w-full" disabled={loading || !captchaToken}>
+        <Button type="submit" className="w-full" disabled={loading}>
           {loading ? (isSignUp ? t("common.signing_up") : t("common.logging_in")) : (isSignUp ? t("common.sign_up") : t("common.sign_in"))}
         </Button>
       </form>
