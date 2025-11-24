@@ -24,7 +24,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { CEFRTest } from "@/lib/types"; // Yangi CEFRTest interfeysini import qilish
+import { IeltsTest } from "@/lib/types"; // IeltsTest tipidan foydalanish
 
 const CreateTestCard: React.FC = () => {
   const { t } = useTranslation();
@@ -34,7 +34,7 @@ const CreateTestCard: React.FC = () => {
   const [testTitle, setTestTitle] = useState<string>("");
   const [isActive, setIsActive] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [tests, setTests] = useState<CEFRTest[]>([]); // CEFRTest tipidan foydalanish
+  const [tests, setTests] = useState<IeltsTest[]>([]); // IeltsTest tipidan foydalanish
   const [editingTestId, setEditingTestId] = useState<string | null>(null);
 
   const fetchTests = useCallback(async () => {
@@ -163,7 +163,7 @@ const CreateTestCard: React.FC = () => {
     }
   };
 
-  const handleEditClick = (test: CEFRTest) => {
+  const handleEditClick = (test: IeltsTest) => {
     setEditingTestId(test.id);
     setTestTitle(test.title);
     setIsActive(test.is_active);

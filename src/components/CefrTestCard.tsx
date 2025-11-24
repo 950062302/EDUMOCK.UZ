@@ -5,11 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BookOpen } from "lucide-react";
 import { format } from "date-fns";
-import { CEFRTest } from "@/lib/types"; // Yangi CEFRTest interfeysini import qilish
+import { IeltsTest } from "@/lib/types"; // IeltsTest tipidan foydalanish
 import { useTranslation } from 'react-i18next';
 
 interface CefrTestCardProps {
-  test: CEFRTest; // CEFRTest tipidan foydalanish
+  test: IeltsTest; // IeltsTest tipidan foydalanish
   onSelectTest: (testId: string) => void;
 }
 

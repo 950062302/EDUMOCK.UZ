@@ -10,7 +10,7 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
-import { CEFRTest } from "@/lib/types"; // Yangi CEFRTest interfeysini import qilish
+import { IeltsTest } from "@/lib/types"; // IeltsTest tipidan foydalanish
 import ListeningSectionEditor from "@/components/ListeningSectionEditor";
 import ReadingSectionEditor from "@/components/ReadingSectionEditor";
 import WritingSectionEditor from "@/components/WritingSectionEditor";
@@ -24,7 +24,7 @@ const EditTestCard: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  const [test, setTest] = useState<CEFRTest | null>(null); // CEFRTest tipidan foydalanish
+  const [test, setTest] = useState<IeltsTest | null>(null); // IeltsTest tipidan foydalanish
   const [sections, setSections] = useState<any[]>([]); // CEFR sections
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentSectionTab, setCurrentSectionTab] = useState<SectionType>("Listening");

@@ -80,7 +80,7 @@ export interface RecordedSession {
 }
 
 // Yangi CEFR test turlari
-export interface CEFRTest {
+export interface IeltsTest { // Renamed to IeltsTest to avoid conflict with CEFRTest in components
   id: string;
   user_id: string;
   title: string;

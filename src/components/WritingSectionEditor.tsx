@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useTranslation } from 'react-i18next';
+import { useTranslation } 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
 import { showSuccess, showError } from "@/utils/toast";
 import { v4 as uuidv4 } from 'uuid';
@@ -147,7 +147,7 @@ const WritingSectionEditor: React.FC<WritingSectionEditorProps> = ({ sectionId }
         const existingRubricIds = new Set(rubrics.filter(r => r.id).map(r => r.id));
         const rubricsToDelete = editingQuestion.rubrics.filter(r => !existingRubricIds.has(r.id));
         if (rubricsToDelete.length > 0) {
-          await supabase.from('cefr_rubrics').delete().in('id', rubricsToDelete.map(r => r.id)); // Yangi jadval nomi
+          await supabase.from('cefr_rubrics').delete().in('id', rubricsToDelete.map(o => o.id)); // Yangi jadval nomi
         }
 
         showSuccess(t("question_management_page.question_updated_successfully"));

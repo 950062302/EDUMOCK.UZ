@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, BookOpen } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
-import { CEFRTest } from "@/lib/types"; // Yangi CEFRTest interfeysini import qilish
+import { IeltsTest } from "@/lib/types"; // IeltsTest tipidan foydalanish
 import { supabase } from "@/integrations/supabase/client"; // Supabase import qilish
 import { showError } from "@/utils/toast";
 import CefrTestCard from "@/components/CefrTestCard";
@@ -16,7 +16,7 @@ import CefrTestCard from "@/components/CefrTestCard";
 const CefrTests: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [tests, setTests] = useState<CEFRTest[]>([]); // CEFRTest tipidan foydalanish
+  const [tests, setTests] = useState<IeltsTest[]>([]); // IeltsTest tipidan foydalanish
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchTests = useCallback(async () => {
@@ -56,7 +56,7 @@ const CefrTests: React.FC = () => {
         return hasListeningQuestions && hasReadingQuestions && hasWritingQuestions && hasSpeakingSection;
       });
 
-      setTests(filteredTests as CEFRTest[]);
+      setTests(filteredTests as IeltsTest[]);
     } catch (error: any) {
       showError(`${t("cefr_tests_page.error_loading_tests")} ${error.message}`);
     } finally {
