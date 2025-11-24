@@ -304,7 +304,9 @@
     "your_last_name": "Ваша фамилия",
     "cloud_storage": "EduCloud",
     "error_loading_profile": "Ошибка загрузки профиля:",
-    "error_login_to_save": "Пожалуйста, войдите, чтобы сохранить свой профиль."
+    "error_login_to_save": "Пожалуйста, войдите, чтобы сохранить свой профиль.",
+    "balance": "Баланс",
+    "current_balance": "Текущий баланс:"
   },
   "guide_dialog": {
     "title": "Руководство",
