@@ -17,7 +17,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import SuperAdminRoute from "./components/SuperAdminRoute";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import CefrTests from "./pages/CefrTests";
-import EditTestCard from "./pages/EditTestCard"; // Yangi import
+import EditTestCard from "./pages/EditTestCard";
+import StartCefrTest from "./pages/StartCefrTest"; // Yangi import
 import { AuthProvider } from "./context/AuthProvider";
 import EduAiAssistant from "./components/EduAiAssistant";
 import { useState } from "react";
@@ -88,13 +89,14 @@ const App = () => {
                 <Route element={<ProtectedRoute />}>
                   <Route path="/home" element={<Home />} />
                   <Route path="/add-question" element={<QuestionManagement />} />
-                  <Route path="/edit-test-card/:testId" element={<EditTestCard />} /> {/* Yangi marshrut */}
+                  <Route path="/edit-test-card/:testId" element={<EditTestCard />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/user-profile" element={<UserProfile />} />
                   <Route path="/questions" element={<Questions />} />
                   <Route path="/records" element={<Records />} />
                   <Route path="/mood-journal" element={<MoodJournal />} />
                   <Route path="/cefr-tests" element={<CefrTests />} />
+                  <Route path="/start-cefr-test/:testId" element={<StartCefrTest />} /> {/* Yangi marshrut */}
                 </Route>
 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

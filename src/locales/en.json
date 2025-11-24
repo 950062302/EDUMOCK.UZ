@@ -435,5 +435,16 @@
     "speaking_section_auto_generated": "The Speaking section is automatically generated with a standard IELTS speaking test structure (Part 1.1, Part 1.2, Part 2, Part 3). You cannot manually add or edit questions here.",
     "system_generated_questions": "System-Generated Questions",
     "no_system_questions_found": "No system-generated speaking questions found for this test."
+  },
+  "cefr_start_test_page": {
+    "test_details_description": "Review the sections included in this test before starting.",
+    "sections_included": "Sections Included",
+    "no_sections_found": "No sections found for this test.",
+    "start_test": "Start Test",
+    "error_test_id_missing": "Test ID is missing. Cannot load test details.",
+    "error_loading_test_details": "Error loading test details:",
+    "error_loading_sections": "Error loading sections for this test:",
+    "test_not_found": "Test not found.",
+    "start_test_logic_not_implemented": "Test start logic is not yet implemented. This will navigate to the actual test interface."
   }
 }

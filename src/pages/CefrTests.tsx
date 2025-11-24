@@ -69,8 +69,7 @@ const CefrTests: React.FC = () => {
   }, [fetchTests]);
 
   const handleSelectTest = (testId: string) => {
-    console.log("Selected test ID:", testId);
-    showError(t("cefr_tests_page.test_selection_not_implemented"));
+    navigate(`/start-cefr-test/${testId}`);
   };
 
   return (
