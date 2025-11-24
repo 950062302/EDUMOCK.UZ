@@ -23,7 +23,7 @@ const MockTest: React.FC = () => {
 
   const {
     isTestStarted,
-    currentSectionIndex,
+    currentPartIndex,
     currentQuestionIndex,
     currentSubQuestionIndex,
     currentPhase,
@@ -36,13 +36,12 @@ const MockTest: React.FC = () => {
     handleStudentInfoSave,
     handleEndTest,
     handleResetTest,
-    getCurrentSection, // Yangi
-    getCurrentQuestion, // Yangi
-    testSections, // Yangi
+    getCurrentQuestion,
+    allSpeakingParts,
   } = useMockTestLogic({ startRecording, stopAllStreams, cefrTestId }); // cefrTestId ni uzatish
 
-  const currentSection = getCurrentSection();
-  const currentQuestion = getCurrentQuestion();
+  const currentPartName = allSpeakingParts[currentPartIndex];
+  const currentQ = getCurrentQuestion();
 
   React.useEffect(() => {
     if (webcamVideoRef.current) {
@@ -96,7 +95,7 @@ const MockTest: React.FC = () => {
                 </Link>
               )}
               <CardTitle className={`text-xl sm:text-3xl font-bold text-center flex-grow ${isTestStarted ? 'ml-0' : 'ml-4'}`}>
-                {cefrTestId ? currentSection?.type : t("mock_test_page.mock_speaking_test")}
+                {t("mock_test_page.mock_speaking_test")}
               </CardTitle>
               {/* Joyni to'ldirish uchun bo'sh div */}
               {!isTestStarted && <div className="w-[80px] h-4"></div>}
@@ -105,8 +104,8 @@ const MockTest: React.FC = () => {
           <CardContent className="space-y-6">
             {isTestStarted && currentPhase !== "finished" && (
               <TestQuestionDisplay
-                currentSection={currentSection} // Yangi
-                currentQ={currentQuestion} // Yangi
+                currentQ={currentQ}
+                currentPartName={currentPartName}
                 currentQuestionIndex={currentQuestionIndex}
                 currentSubQuestionIndex={currentSubQuestionIndex}
                 currentPhase={currentPhase}
@@ -121,7 +120,7 @@ const MockTest: React.FC = () => {
               handleStartTestClick={handleStartTestClick}
               handleEndTest={handleEndTest}
               handleResetTest={handleResetTest}
-              isRecordingSupported={isRecordingSupported}
+              isRecordingSupported={isRecordingSupported} // Pass the new prop
             />
           </CardContent>
         </Card>
