@@ -33,7 +33,6 @@
     "admin_contact_phone": "+998 77 207 71 17",
     "saving": "Saving...",
     "sign_in": "Sign In",
-    "captcha_challenge_error": "Please complete the CAPTCHA challenge.",
     "confirmation_email_sent": "Confirmation email sent. Please check your inbox.",
     "welcome": "Welcome",
     "auth_description": "Sign in or create an account to continue.",
@@ -306,7 +305,8 @@
     "error_loading_profile": "Error loading profile:",
     "error_login_to_save": "Please log in to save your profile.",
     "balance": "Balance",
-    "current_balance": "Current Balance:"
+    "current_balance": "Current Balance:",
+    "top_up_balance": "Top Up Balance"
   },
   "guide_dialog": {
     "title": "Guide",
