@@ -15,18 +15,18 @@ const AppFooter: React.FC = () => {
         <div className="flex flex-col md:flex-row justify-center items-center gap-6 md:gap-12 mb-8 opacity-90">
             
           {/* 1. Cloudflare Protection */}
-          {/* <div className="flex items-center gap-3 group cursor-default" title={t("landing_page.footer_cloudflare_title")}>
+          <div className="flex items-center gap-3 group cursor-default" title={t("landing_page.footer_cloudflare_title")}>
             <div className="p-2 bg-orange-50/50 dark:bg-orange-900/30 rounded-full border border-orange-100 dark:border-orange-900 group-hover:border-orange-300 transition-colors">
-              <ShieldCheck className="w-6 h-6 text-[#F48120]" />
+              <ShieldCheck className="w-6 h-6 text-[#F48120]" /> {/* Cloudflare Orange */}
             </div>
             <div className="flex flex-col">
               <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{t("landing_page.footer_protected_by")}</span>
               <span className="text-sm font-bold text-foreground">Cloudflare</span>
             </div>
-          </div> */}
+          </div>
 
           {/* Divider (Mobileda ko'rinmaydi) */}
-          {/* <div className="hidden md:block w-px h-8 bg-border"></div> */}
+          <div className="hidden md:block w-px h-8 bg-border"></div>
 
           {/* 2. EduCloud Ownership */}
           <div className="flex items-center gap-3 group cursor-default" title={t("landing_page.footer_educloud_title")}>
