@@ -36,7 +36,9 @@
     "captcha_challenge_error": "Please complete the CAPTCHA challenge.",
     "confirmation_email_sent": "Confirmation email sent. Please check your inbox.",
     "welcome": "Welcome",
-    "auth_description": "Sign in or create an account to continue."
+    "auth_description": "Sign in or create an account to continue.",
+    "sign_up": "Sign Up",
+    "signing_up": "Signing up..."
   },
   "landing_page": {
     "title_part1": "Edumock Plus –",
@@ -302,7 +304,9 @@
     "your_last_name": "Your last name",
     "cloud_storage": "EduCloud",
     "error_loading_profile": "Error loading profile:",
-    "error_login_to_save": "Please log in to save your profile."
+    "error_login_to_save": "Please log in to save your profile.",
+    "balance": "Balance",
+    "current_balance": "Current Balance:"
   },
   "guide_dialog": {
     "title": "Guide",
