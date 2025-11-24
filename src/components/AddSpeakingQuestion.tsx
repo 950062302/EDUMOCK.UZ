@@ -161,11 +161,11 @@ const AddSpeakingQuestion: React.FC = () => {
       showSuccess(t("add_question_page.success_video_saving"));
 
       const fileName = `${uuidv4()}-${file.name}`;
-      const filePath = `${user.id}/${fileName}`;
+      const filePath = `${user.id}/cefr-speaking-images/${fileName}`; // Yangi bucket nomi
 
       try {
         const { error: uploadError } = await supabase.storage
-          .from('question-images')
+          .from('cefr-speaking-images') // Yangi bucket nomi
           .upload(filePath, file);
 
         if (uploadError) {
@@ -173,7 +173,7 @@ const AddSpeakingQuestion: React.FC = () => {
         }
 
         const { data } = supabase.storage
-          .from('question-images')
+          .from('cefr-speaking-images') // Yangi bucket nomi
           .getPublicUrl(filePath);
 
         if (!data.publicUrl) {
@@ -209,8 +209,9 @@ const AddSpeakingQuestion: React.FC = () => {
         break;
       }
       case "Part 1.2": {
+        if (finalImageUrls.length === 0) { showError(t("add_question_page.error_image_and_sub_questions_empty")); return; }
         const subQ = subQuestionsText.split('\n').map(q => q.trim()).filter(Boolean);
-        if (finalImageUrls.length === 0 || subQ.length === 0) { showError(t("add_question_page.error_image_and_sub_questions_empty")); return; }
+        if (subQ.length === 0) { showError(t("add_question_page.error_enter_at_least_one_sub_question")); return; }
         questionData = { type: part, image_urls: finalImageUrls, sub_questions: subQ } as Omit<Part1_2Question, 'id' | 'date' | 'user_id'>;
         break;
       }
@@ -442,7 +443,7 @@ const AddSpeakingQuestion: React.FC = () => {
                   {renderQuestionInput(part)}
                   <div className="flex gap-2 mt-4">
                     <Button onClick={() => handleSubmitQuestion(part)} className="w-full" disabled={isUploading}>
-                      {editingQuestionId ? t("add_question_page.save_changes") : t("add_question_page.add_question_to_part", { part })}
+                      {isUploading ? t("common.saving") : (editingQuestionId ? t("common.save_changes") : t("add_question_page.add_question_to_part", { part }))}
                     </Button>
                     {editingQuestionId && (
                       <Button variant="outline" onClick={resetForm} className="w-full">
