@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, useEffect, useCallback } from "react";
 import Navbar from "@/components/Navbar";
 import AppFooter from "@/components/AppFooter"; // Yangi import
@@ -11,21 +10,8 @@ import { RecordedSession } from "@/lib/types";
 import { showError, showSuccess } from "@/utils/toast";
 import { getLocalRecordings, deleteLocalRecording, getRecordingBlob, updateLocalRecordingSupabaseUrl, upsertRecordingMetadataToSupabase } from "@/lib/local-db";
 import { Link } from "react-router-dom";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription as DialogDescriptionComponent, // Renamed to avoid conflict
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogDescription as DialogDescriptionComponent, // Renamed to avoid conflict
   DialogHeader as DialogHeaderComponent, // Renamed to avoid conflict
   DialogTitle as DialogTitleComponent, // Renamed to avoid conflict
 } from "@/components/ui/dialog";
@@ -44,7 +30,7 @@ import { Badge } from "@/components/ui/badge"; // Badge import qilindi
 const StorageUsageCard: React.FC<{ isGuest: boolean, onOpenPricing: () => void }> = ({ isGuest, onOpenPricing }) => {
   const { profile, loading } = useProfile();
   const { t } = useTranslation();
-
+  
   if (isGuest) {
     // Mehmon rejimi uchun maxsus ko'rinish
     const totalLimit = 10737418240; // 10 GB default limit
@@ -62,37 +48,30 @@ const StorageUsageCard: React.FC<{ isGuest: boolean, onOpenPricing: () => void }
             </Button>
           </div>
         </div>
-
+        
         {/* Orqa fondagi dizayn (Locked) */}
         <div className="opacity-30">
           <div className="flex justify-between items-center mb-3">
             <div className="flex items-center gap-2">
               <Cloud className="h-6 w-6 text-yellow-300" />
               <h4 className="text-xl font-bold">{t("user_profile_page.cloud_storage")}</h4>
-              <Badge className="bg-yellow-400 text-black font-bold">
-                BASIC
-              </Badge>
+              <Badge className="bg-yellow-400 text-black font-bold"> BASIC </Badge>
             </div>
           </div>
-          
           <div className="flex justify-between items-baseline mb-1">
             <p className="text-3xl font-bold">
               {formatBytes(usedSpace)}
             </p>
-            <p className="text-lg font-medium text-gray-300">
-              / {formatBytes(totalLimit)}
-            </p>
+            <p className="text-lg font-medium text-gray-300"> / {formatBytes(totalLimit)}</p>
           </div>
-          
           <div className="w-full bg-[#3F51B5] rounded-full h-2.5 overflow-hidden mb-1">
-            <div
-              className="h-2.5 rounded-full bg-yellow-300"
-              style={{ width: `${usagePercentage}%` }}
+            <div 
+              className="h-2.5 rounded-full bg-yellow-300" 
+              style={{ width: `${usagePercentage}%` }} 
             />
           </div>
-
           <div className="flex justify-end">
-             <p className="text-sm text-gray-300">
+            <p className="text-sm text-gray-300">
               {t("records_page.used_percentage", { percentage: usagePercentage.toFixed(1) })}
             </p>
           </div>
@@ -100,7 +79,7 @@ const StorageUsageCard: React.FC<{ isGuest: boolean, onOpenPricing: () => void }
       </Card>
     );
   }
-
+  
   if (loading || !profile) {
     return (
       <Card className="p-4 mb-6">
@@ -112,12 +91,12 @@ const StorageUsageCard: React.FC<{ isGuest: boolean, onOpenPricing: () => void }
       </Card>
     );
   }
-
+  
   const totalLimit = profile.storage_limit_bytes || 0;
   const usedSpace = profile.storage_used_bytes || 0;
   const usagePercentage = totalLimit > 0 ? (usedSpace / totalLimit) * 100 : 0;
   const isPremium = profile.tariff_name !== 'Basic';
-
+  
   const getProgressColor = () => {
     if (usagePercentage >= 90) {
       return "bg-red-500";
@@ -127,7 +106,7 @@ const StorageUsageCard: React.FC<{ isGuest: boolean, onOpenPricing: () => void }
     }
     return "bg-yellow-300"; // Premium rangga mos sariq
   };
-
+  
   return (
     <Card className="p-4 mb-6 bg-[#1A237E] text-white border-4 border-[#3F51B5] shadow-2xl rounded-xl">
       <div className="flex justify-between items-center mb-3">
@@ -135,39 +114,32 @@ const StorageUsageCard: React.FC<{ isGuest: boolean, onOpenPricing: () => void }
           <Cloud className="h-6 w-6 text-yellow-300" />
           <h4 className="text-xl font-bold">{t("user_profile_page.cloud_storage")}</h4>
           {isPremium && (
-            <Badge className="bg-yellow-400 text-black font-bold hover:bg-yellow-500">
-              PREMIUM
-            </Badge>
+            <Badge className="bg-yellow-400 text-black font-bold hover:bg-yellow-500"> PREMIUM </Badge>
           )}
         </div>
       </div>
-      
       <div className="flex justify-between items-baseline mb-1">
         <p className="text-3xl font-bold">
           {formatBytes(usedSpace)}
         </p>
-        <p className="text-lg font-medium text-gray-300">
-          / {formatBytes(totalLimit)}
-        </p>
+        <p className="text-lg font-medium text-gray-300"> / {formatBytes(totalLimit)}</p>
       </div>
       
       {/* Maxsus Progress Bar */}
       <div className="w-full bg-[#3F51B5] rounded-full h-2.5 overflow-hidden mb-1">
-        <div
-          className={`h-2.5 rounded-full transition-all duration-500 ease-out ${getProgressColor()}`}
-          style={{ width: `${usagePercentage}%` }}
+        <div 
+          className={`h-2.5 rounded-full transition-all duration-500 ease-out ${getProgressColor()}`} 
+          style={{ width: `${usagePercentage}%` }} 
         />
       </div>
-
       <div className="flex justify-end">
-         <p className="text-sm text-gray-300">
+        <p className="text-sm text-gray-300">
           {t("records_page.used_percentage", { percentage: usagePercentage.toFixed(1) })}
         </p>
       </div>
     </Card>
   );
 };
-
 
 const Records: React.FC = () => {
   const [recordings, setRecordings] = useState<RecordedSession[]>([]);
@@ -183,10 +155,11 @@ const Records: React.FC = () => {
   // useProgress hookidan foydalanish
   const progressMap = useProgress();
   const isDownloading = Array.from(progressMap.keys()).some(key => key.startsWith('download-'));
-
+  
   const fetchRecordings = useCallback(async () => {
     setIsLoading(true);
     let loadedRecordings: RecordedSession[] = [];
+    
     try {
       const data = await getLocalRecordings();
       loadedRecordings = data.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
@@ -197,10 +170,10 @@ const Records: React.FC = () => {
       setIsLoading(false);
     }
   }, [t]);
-
+  
   useEffect(() => {
     fetchRecordings();
-
+    
     return () => {
       recordings.forEach(rec => {
         if (rec.isLocalBlobAvailable && rec.video_url.startsWith('blob:')) {
@@ -209,37 +182,39 @@ const Records: React.FC = () => {
       });
     };
   }, [fetchRecordings]);
-
+  
   const handleUploadToSupabase = useCallback(async (recording: RecordedSession) => {
     const { data: { session } } = await supabase.auth.getSession();
+    
     if (!session) {
       showError(t("records_page.error_login_to_upload"));
       return;
     }
+    
     if (recording.supabase_url) {
       showError(t("records_page.error_already_uploaded"));
       return;
     }
-
+    
     const blob = await getRecordingBlob(recording.id);
     if (!blob) {
       showError(t("records_page.error_no_video_data"));
       return;
     }
-
+    
     if (profile && (profile.storage_used_bytes + blob.size > profile.storage_limit_bytes)) {
       showError(t("records_page.error_storage_limit_exceeded"));
       return;
     }
-
+    
     setUploadingRecordId(recording.id);
     setUploadErrorRecordId(null);
     setProgress(recording.id, 0); // Upload progressni boshlash
-
+    
     const filePath = `${session.user.id}/${recording.id}.webm`;
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
+    
     const upload = new tus.Upload(blob, {
       endpoint: `${supabaseUrl}/storage/v1/upload/resumable`,
       retryDelays: [0, 3000, 5000, 10000, 20000],
@@ -262,7 +237,7 @@ const Records: React.FC = () => {
         const { data: publicUrlData } = supabase.storage
           .from('recordings')
           .getPublicUrl(filePath);
-
+          
         if (publicUrlData.publicUrl) {
           await updateLocalRecordingSupabaseUrl(recording.id, publicUrlData.publicUrl);
           await upsertRecordingMetadataToSupabase({
@@ -275,36 +250,37 @@ const Records: React.FC = () => {
             student_phone: recording.student_phone,
             supabase_url: publicUrlData.publicUrl,
           });
-
-          await fetchProfile(); 
-          await fetchRecordings(); 
+          
+          await fetchProfile();
+          await fetchRecordings();
           showSuccess(t("records_page.upload_success"));
         } else {
           showError(t("records_page.error_getting_public_url"));
           setUploadErrorRecordId(recording.id);
         }
+        
         setUploadingRecordId(null);
         removeProgress(recording.id);
       },
       onError: (error) => {
         console.error("Tus upload error:", error);
-        
         let errorMessage = `${t("records_page.error_uploading_to_cloud")} ${error.message}`;
         
-        if (error.originalRequest && (error.originalRequest as any).response && (error.originalRequest as any).response.getStatus() === 413) {
+        if (error.originalRequest && (error.originalRequest as any).response && 
+            (error.originalRequest as any).response.getStatus() === 413) {
           errorMessage = t("records_page.error_max_size_exceeded");
         }
-
+        
         showError(errorMessage);
         setUploadErrorRecordId(recording.id);
         setUploadingRecordId(null);
         removeProgress(recording.id);
       },
     });
-
+    
     upload.start();
   }, [t, fetchRecordings, fetchProfile, profile]);
-
+  
   const handleUploadClick = (recording: RecordedSession) => {
     if (isGuestMode) {
       setIsPricingDialogOpen(true);
@@ -312,7 +288,7 @@ const Records: React.FC = () => {
       handleUploadToSupabase(recording);
     }
   };
-
+  
   const handleDownload = useCallback(async (recording: RecordedSession) => {
     const downloadId = `download-${recording.id}`;
     setProgress(downloadId, 0);
@@ -320,7 +296,7 @@ const Records: React.FC = () => {
     try {
       let urlToDownload = recording.video_url;
       let filename = `recording_${recording.id}.webm`;
-
+      
       if (recording.student_name && recording.student_phone) {
         const cleanName = recording.student_name.replace(/[^a-zA-Z0-9]/g, '_');
         const cleanPhone = recording.student_phone.replace(/[^0-9]/g, '');
@@ -336,14 +312,14 @@ const Records: React.FC = () => {
       const xhr = new XMLHttpRequest();
       xhr.open('GET', urlToDownload, true);
       xhr.responseType = 'blob';
-
+      
       xhr.onprogress = (event) => {
         if (event.lengthComputable) {
           const percentage = (event.loaded / event.total) * 100;
           setProgress(downloadId, percentage);
         }
       };
-
+      
       await new Promise<Blob>((resolve, reject) => {
         xhr.onload = () => {
           if (xhr.status === 200) {
@@ -365,19 +341,19 @@ const Records: React.FC = () => {
         URL.revokeObjectURL(url);
         showSuccess(t("records_page.success_downloaded"));
       });
-
     } catch (error: any) {
       showError(`${t("records_page.error_downloading_video")} ${error.message}`);
     } finally {
       removeProgress(downloadId);
     }
   }, [t]);
-
+  
   const handleDelete = useCallback(async (recording: RecordedSession) => {
     try {
       if (recording.isLocalBlobAvailable && recording.video_url.startsWith('blob:')) {
         URL.revokeObjectURL(recording.video_url);
       }
+      
       const localDeleted = await deleteLocalRecording(recording.id);
       if (localDeleted) {
         setRecordings(prev => prev.filter(rec => rec.id !== recording.id));
@@ -388,7 +364,7 @@ const Records: React.FC = () => {
       showError(`${t("records_page.error_deleting_recording")} ${error.message}`);
     }
   }, [t, fetchProfile]);
-
+  
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -406,14 +382,19 @@ const Records: React.FC = () => {
                 {t("records_page.your_recordings")}
               </CardTitle>
               {/* Joyni to'ldirish uchun bo'sh div */}
-              <div className="w-[80px] h-4"></div> 
+              <div className="w-[80px] h-4"></div>
             </div>
             <CardDescription className="text-center mt-2">{t("records_page.review_past_sessions")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <StorageUsageCard isGuest={isGuestMode} onOpenPricing={() => setIsPricingDialogOpen(true)} />
+            <StorageUsageCard 
+              isGuest={isGuestMode} 
+              onOpenPricing={() => setIsPricingDialogOpen(true)} 
+            />
             
-            {isLoading ? <p className="text-center">{t("common.loading")}</p> : recordings.length === 0 ? (
+            {isLoading ? (
+              <p className="text-center">{t("common.loading")}</p>
+            ) : recordings.length === 0 ? (
               <p className="text-muted-foreground text-center">{t("records_page.no_recordings_available")}</p>
             ) : (
               <div className="space-y-4">
@@ -425,13 +406,15 @@ const Records: React.FC = () => {
                   const uploadProgressValue = progressMap.get(recording.id) || 0;
                   const downloadProgressValue = progressMap.get(`download-${recording.id}`) || 0;
                   const isCurrentlyDownloading = downloadProgressValue > 0 && downloadProgressValue < 100;
-
+                  
                   return (
                     <Card key={recording.id} className="p-4">
                       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
                         <div className="text-left mb-2 sm:mb-0">
                           <h3 className="text-lg font-semibold">
-                            {recording.student_name ? `${t("records_page.student")}: ${recording.student_name}` : `${t("records_page.session")} ${recordings.length - index}`}
+                            {recording.student_name 
+                              ? `${t("records_page.student")}: ${recording.student_name}` 
+                              : `${t("records_page.session")} ${recordings.length - index}`}
                           </h3>
                           <p className="text-sm text-muted-foreground">
                             {format(new Date(recording.timestamp), "PPP - p")}
@@ -441,55 +424,92 @@ const Records: React.FC = () => {
                           </p>
                           {recording.supabase_url && (
                             <p className="text-xs text-green-600 flex items-center gap-1 mt-1">
-                              <CheckCircle2 className="h-3 w-3" /> {t("records_page.uploaded_to_cloud")}
+                              <CheckCircle2 className="h-3 w-3" />
+                              {t("records_page.uploaded_to_cloud")}
                             </p>
                           )}
                           {uploadError && (
                             <p className="text-xs text-red-500 flex items-center gap-1 mt-1">
-                              <Cloud className="h-3 w-3" /> {t("records_page.upload_failed")}
+                              <Cloud className="h-3 w-3" />
+                              {t("records_page.upload_failed")}
                             </p>
                           )}
                         </div>
+                        
                         <div className="flex flex-wrap justify-end gap-2 mt-2 sm:mt-0 w-full sm:w-auto">
                           <Button asChild size="sm" className="flex items-center gap-1 w-full sm:w-auto">
                             <a href={recording.video_url} target="_blank" rel="noopener noreferrer">
-                              <PlayCircle className="h-4 w-4" /> {t("records_page.play")}
+                              <PlayCircle className="h-4 w-4" />
+                              {t("records_page.play")}
                             </a>
                           </Button>
-
+                          
                           {recording.isLocalBlobAvailable && (
-                            <Button onClick={() => handleDownload({ ...recording, supabase_url: undefined })} variant="outline" size="sm" className="flex items-center gap-1 w-full sm:w-auto" disabled={isDownloading || isUploading}>
-                              <Download className="h-4 w-4" /> {t("records_page.download_local")}
+                            <Button 
+                              onClick={() => handleDownload({ ...recording, supabase_url: undefined })} 
+                              variant="outline" 
+                              size="sm" 
+                              className="flex items-center gap-1 w-full sm:w-auto"
+                              disabled={isDownloading || isUploading}
+                            >
+                              <Download className="h-4 w-4" />
+                              {t("records_page.download_local")}
                             </Button>
                           )}
                           
                           {isUploading ? (
-                            <Button variant="outline" size="sm" className="flex items-center gap-1 w-full sm:w-auto" disabled>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="flex items-center gap-1 w-full sm:w-auto"
+                              disabled
+                            >
                               <Cloud className="h-4 w-4 animate-pulse" />
                               {t("records_page.uploading_to_cloud")} ({uploadProgressValue.toFixed(0)}%)
                             </Button>
                           ) : recording.supabase_url ? (
-                            <Button onClick={() => handleDownload(recording)} variant="default" size="sm" className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 w-full sm:w-auto" disabled={isDownloading}>
+                            <Button 
+                              onClick={() => handleDownload(recording)} 
+                              variant="default" 
+                              size="sm" 
+                              className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 w-full sm:w-auto"
+                              disabled={isDownloading}
+                            >
                               {isCurrentlyDownloading ? (
                                 <>
-                                  <Zap className="h-4 w-4 animate-pulse" /> {t("records_page.downloading")} ({downloadProgressValue.toFixed(0)}%)
+                                  <Zap className="h-4 w-4 animate-pulse" />
+                                  {t("records_page.downloading")} ({downloadProgressValue.toFixed(0)}%)
                                 </>
                               ) : (
                                 <>
-                                  <Zap className="h-4 w-4" /> {t("records_page.download_from_cloud")}
+                                  <Zap className="h-4 w-4" />
+                                  {t("records_page.download_from_cloud")}
                                 </>
                               )}
                             </Button>
                           ) : (user?.id || isGuestMode) && (
-                            <Button onClick={() => handleUploadClick(recording)} variant="outline" size="sm" className="flex items-center gap-1 w-full sm:w-auto" disabled={isDownloading}>
-                              <Cloud className="h-4 w-4" /> {t("records_page.upload")}
+                            <Button 
+                              onClick={() => handleUploadClick(recording)} 
+                              variant="outline" 
+                              size="sm" 
+                              className="flex items-center gap-1 w-full sm:w-auto"
+                              disabled={isDownloading}
+                            >
+                              <Cloud className="h-4 w-4" />
+                              {t("records_page.upload")}
                             </Button>
                           )}
-
+                          
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="destructive" size="sm" className="flex items-center gap-1 w-full sm:w-auto" disabled={isDownloading || isUploading}>
-                                <Trash2 className="h-4 w-4" /> {t("records_page.delete")}
+                              <Button 
+                                variant="destructive" 
+                                size="sm" 
+                                className="flex items-center gap-1 w-full sm:w-auto"
+                                disabled={isDownloading || isUploading}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                {t("records_page.delete")}
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
@@ -498,18 +518,23 @@ const Records: React.FC = () => {
                                 <AlertDialogDescription>
                                   {t("records_page.delete_recording_confirm_description")}
                                   {recording.supabase_url && (
-                                    <span className="block text-red-500 mt-2">{t("records_page.delete_from_cloud_warning")}</span>
+                                    <span className="block text-red-500 mt-2">
+                                      {t("records_page.delete_from_cloud_warning")}
+                                    </span>
                                   )}
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>{t("add_question_page.cancel")}</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDelete(recording)}>{t("records_page.delete")}</AlertDialogAction>
+                                <AlertDialogAction onClick={() => handleDelete(recording)}>
+                                  {t("records_page.delete")}
+                                </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
                         </div>
                       </div>
+                      
                       {recording.student_name && (
                         <div className="text-left text-sm text-muted-foreground mt-2 border-t pt-2">
                           <p><strong>{t("mock_test_page.student_id")}:</strong> {recording.student_id}</p>
@@ -525,6 +550,7 @@ const Records: React.FC = () => {
         </Card>
       </main>
       <AppFooter />
+      
       <Dialog open={isPricingDialogOpen} onOpenChange={setIsPricingDialogOpen}>
         <DialogContent className="sm:max-w-md p-0 overflow-hidden">
           <ScrollArea className="max-h-[90vh]">

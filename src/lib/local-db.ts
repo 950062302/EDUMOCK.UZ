@@ -8,8 +8,9 @@ import i18n from '@/i18n';
 const DB_NAME = 'edumock_uz_db';
 const DB_VERSION = 1;
 const STORE_MOODS = 'mood_entries';
-const STORE_RECORDINGS = 'recordings'; // IndexedDB uchun
+const STORE_RECORDINGS = 'recordings';
 
+// IndexedDB uchun
 let db: IDBPDatabase;
 
 async function initDB() {
@@ -47,32 +48,33 @@ export const checkDuplicateQuestion = async (
   excludeId?: string // Update uchun, o'zini tekshirmaslik
 ): Promise<boolean> => {
   let query = supabase.from('questions').select('*');
-
+  
   if (userId) {
     query = query.eq('user_id', userId);
   } else {
     query = query.is('user_id', null); // Mehmon rejimi uchun, public savollarni tekshirish
   }
-
+  
   query = query.eq('type', questionData.type);
-
+  
   const { data, error } = await query;
-
+  
   if (error) {
     console.error("Error checking for duplicate questions:", error.message);
     return false; // Xato bo'lsa, takrorlanish yo'q deb hisoblaymiz
   }
-
+  
   if (!data || data.length === 0) {
     return false; // Bu turdagi savollar yo'q, demak takrorlanish yo'q
   }
-
+  
   // Client-side comparison based on question type
   switch (questionData.type) {
     case "Part 1.1":
     case "Part 1.2": {
       const newNormalizedSubQuestions = normalizeSubQuestions((questionData as Part1_1Question | Part1_2Question).sub_questions);
       if (!newNormalizedSubQuestions) return false;
+      
       return data.some(existingQ => {
         if (excludeId && existingQ.id === excludeId) return false; // O'zini tekshirmaslik
         const existingNormalizedSubQuestions = normalizeSubQuestions((existingQ as Part1_1Question | Part1_2Question).sub_questions);
@@ -83,6 +85,7 @@ export const checkDuplicateQuestion = async (
     case "Part 3": {
       const newQuestionText = (questionData as Part2Question | Part3Question).question_text?.trim();
       if (!newQuestionText) return false; // Yangi matn bo'sh bo'lsa, takrorlanish bo'lishi mumkin emas
+      
       return data.some(existingQ => {
         if (excludeId && existingQ.id === excludeId) return false; // O'zini tekshirmaslik
         return existingQ.question_text?.trim() === newQuestionText;
@@ -97,9 +100,9 @@ export const getSupabaseQuestions = async (): Promise<SpeakingQuestion[]> => {
   const { data: { user } } = await supabase.auth.getUser();
   const userId = user?.id;
   const isGuestMode = localStorage.getItem("isGuestMode") === "true"; // Mehmon rejimini tekshirish
-
+  
   let query = supabase.from('questions').select('*');
-
+  
   if (isGuestMode && !user) {
     // Mehmon rejimida faqat user_id NULL bo'lgan savollarni ko'rsatish
     query = query.is('user_id', null);
@@ -110,68 +113,70 @@ export const getSupabaseQuestions = async (): Promise<SpeakingQuestion[]> => {
     // Tizimga kirmagan va mehmon rejimida bo'lmagan foydalanuvchi uchun savollar yo'q
     return [];
   }
-
+  
   const { data, error } = await query;
-
+  
   if (error) {
     showError(i18n.t("add_question_page.error_loading_entries", { message: error.message }));
     return [];
   }
+  
   return data as SpeakingQuestion[];
 };
 
 export const addSupabaseQuestion = async (question: Omit<SpeakingQuestion, 'id' | 'date' | 'user_id'>): Promise<SpeakingQuestion | null> => {
   const { data: { user } } = await supabase.auth.getUser();
   const userId = user?.id;
-
+  
   if (!userId) {
     console.warn("Attempted to add a question without being authenticated. This action is blocked.");
     return null;
   }
-
+  
   // Check for duplicate before adding
   const isDuplicate = await checkDuplicateQuestion(question, userId);
   if (isDuplicate) {
     showError(i18n.t("add_question_page.error_duplicate_question"));
     return null;
   }
-
+  
   const newQuestion = {
     ...question,
     id: uuidv4(),
     date: new Date().toISOString(),
     user_id: userId,
   };
-
+  
   const { data, error } = await supabase
     .from('questions')
     .insert(newQuestion)
     .select()
     .single();
-
+    
   if (error) {
     showError(i18n.t("add_question_page.error_saving_entry", { message: error.message }));
     return null;
   }
+  
   return data as SpeakingQuestion;
 };
 
 export const updateSupabaseQuestion = async (updatedQuestion: SpeakingQuestion): Promise<SpeakingQuestion | null> => {
   const { data: { user } } = await supabase.auth.getUser();
   const userId = user?.id;
-
+  
   if (!userId) {
     console.warn("Attempted to update a question without being authenticated. This action is blocked.");
     return null;
   }
-
+  
   // Check for duplicate before updating, excluding the current question being edited
   const isDuplicate = await checkDuplicateQuestion(updatedQuestion, userId, updatedQuestion.id);
   if (isDuplicate) {
     showError(i18n.t("add_question_page.error_duplicate_question"));
     return null;
   }
-
+  
   const { data, error } = await supabase
     .from('questions')
     .update(updatedQuestion)
@@ -179,11 +184,12 @@ export const updateSupabaseQuestion = async (updatedQuestion: SpeakingQuestion):
     .eq('user_id', userId) // Ensure user can only update their own questions
     .select()
     .single();
-
+    
   if (error) {
     showError(i18n.t("add_question_page.error_saving_entry", { message: error.message }));
     return null;
   }
+  
   return data as SpeakingQuestion;
 };
 
@@ -191,70 +197,73 @@ export const updateSupabaseQuestion = async (updatedQuestion: SpeakingQuestion):
 export const updateQuestionCooldown = async (questionId: string): Promise<boolean> => {
   const { data: { user } } = await supabase.auth.getUser();
   const userId = user?.id;
-
+  
   if (!userId) {
     console.warn("Cannot update cooldown without an authenticated user.");
     // Mehmon rejimida ommaviy savollar uchun cooldownni yangilashga hojat yo'q
     return true;
   }
-
+  
   const { error } = await supabase
     .from('questions')
     .update({ last_used: new Date().toISOString() })
     .eq('id', questionId)
     .eq('user_id', userId);
-
+    
   if (error) {
     console.error(`Error updating cooldown for question ${questionId}:`, error.message);
     // Foydalanuvchiga xato ko'rsatish shart emas, chunki bu fon jarayoni
     return false;
   }
+  
   return true;
 };
 
 export const deleteSupabaseQuestion = async (id: string): Promise<boolean> => {
   const { data: { user } } = await supabase.auth.getUser();
   const userId = user?.id;
-
+  
   if (!userId) {
     console.warn("Attempted to delete a question in guest mode. This action is blocked.");
     return false;
   }
-
+  
   const { error } = await supabase
     .from('questions')
     .delete()
     .eq('id', id)
     .eq('user_id', userId); // Ensure user can only delete their own questions
-
+    
   if (error) {
     showError(i18n.t("add_question_page.error_deleting_entry", { message: error.message }));
     return false;
   }
+  
   return true;
 };
 
 export const resetSupabaseQuestionCooldowns = async (): Promise<boolean> => {
   const { data: { user } = {} } = await supabase.auth.getUser();
   const userId = user?.id;
-
+  
   let query = supabase
     .from('questions')
     .update({ last_used: null });
-
+    
   if (userId) {
     query = query.eq('user_id', userId); // Faqat o'zining savollarini reset qilish
   } else {
     // Guest user can reset cooldowns for public sample questions
     query = query.is('user_id', null);
   }
-
+  
   const { error } = await query;
-
+  
   if (error) {
     showError(i18n.t("add_question_page.error_saving_entry", { message: error.message }));
     return false;
   }
+  
   return true;
 };
 
@@ -274,9 +283,11 @@ export const addLocalMoodEntry = (entry: Omit<MoodEntry, 'id' | 'date' | 'user_i
     date: new Date().toISOString(),
     user_id: 'local_user',
   };
+  
   const entries = getLocalMoodEntries();
   entries.push(newEntry);
   saveLocalMoodEntries(entries);
+  
   return newEntry;
 };
 
@@ -311,8 +322,10 @@ export const upsertRecordingMetadataToSupabase = async (recording: Omit<Recorded
       student_name: recording.student_name,
       student_phone: recording.student_phone,
       supabase_url: recording.supabase_url,
-    }, { onConflict: 'id' }); // Agar ID mavjud bo'lsa, yangilaydi
-
+    }, {
+      onConflict: 'id' // Agar ID mavjud bo'lsa, yangilaydi
+    });
+    
   if (error) {
     console.error("Error upserting recording metadata to Supabase:", error.message);
     showError(i18n.t("records_page.error_uploading_to_cloud", { message: error.message }));
@@ -322,23 +335,26 @@ export const upsertRecordingMetadataToSupabase = async (recording: Omit<Recorded
 // Yangi: Supabase jadvalidan yozuv metama'lumotlarini o'chirish
 const deleteRecordingMetadataFromSupabase = async (recordingId: string): Promise<boolean> => {
   const userId = await getUserId();
+  
   if (!userId) {
     console.error("[Delete Metadata] Cannot delete recording metadata from Supabase: User not authenticated.");
     return false;
   }
-
+  
   console.log(`[Delete Metadata] Attempting to delete metadata from Supabase DB for recording ID: ${recordingId}, by user ID: ${userId}`);
+  
   const { error } = await supabase
     .from('recordings_metadata')
     .delete()
     .eq('id', recordingId)
     .eq('user_id', userId);
-
+    
   if (error) {
     console.error("[Delete Metadata] Error deleting recording metadata from Supabase:", error.message);
     showError(i18n.t("records_page.error_deleting_from_cloud", { message: error.message }));
     return false;
   }
+  
   console.log(`[Delete Metadata] Successfully deleted metadata from Supabase DB for ID: ${recordingId}`);
   return true;
 };
@@ -346,16 +362,18 @@ const deleteRecordingMetadataFromSupabase = async (recordingId: string): Promise
 // Helper function to encapsulate cloud deletion logic
 const deleteCloudRecording = async (recordingId: string, userId: string): Promise<boolean> => {
   console.log(`[Delete Cloud] Attempting to delete from Supabase Storage: ${userId}/${recordingId}.webm`);
+  
   const { error: deleteStorageError } = await supabase.storage
     .from('recordings')
     .remove([`${userId}/${recordingId}.webm`]);
-
+    
   if (deleteStorageError) {
     console.error(`[Delete Cloud] Error deleting from Supabase Storage for ID ${recordingId}:`, deleteStorageError.message);
     showError(i18n.t("records_page.error_deleting_from_cloud", { message: deleteStorageError.message }));
     return false;
   } else {
     console.log(`[Delete Cloud] Successfully deleted from Supabase Storage: ${userId}/${recordingId}.webm`);
+    
     // Storage'dan o'chirilgandan so'ng, metama'lumotlarni ham o'chiramiz
     const metadataDeleted = await deleteRecordingMetadataFromSupabase(recordingId);
     if (!metadataDeleted) {
@@ -368,32 +386,32 @@ const deleteCloudRecording = async (recordingId: string, userId: string): Promis
   }
 };
 
-
 export const getLocalRecordings = async (): Promise<RecordedSession[]> => {
   const db = await initDB();
   const storedRecordings: StoredRecording[] = await db.getAll(STORE_RECORDINGS);
-  
   const userId = await getUserId();
+  
   let allRecordings: RecordedSession[] = [];
-
+  
   if (userId) {
     // Authenticated user: Fetch from Supabase metadata table first
     const { data, error } = await supabase
       .from('recordings_metadata')
       .select('*')
       .eq('user_id', userId);
-
+      
     if (error) {
       showError(i18n.t("records_page.error_loading_recordings", { message: error.message }));
     } else if (data) {
       const supabaseRecordingIds = new Set(data.map(rec => rec.id));
       const tx = db.transaction(STORE_RECORDINGS, 'readwrite');
       const store = tx.objectStore(STORE_RECORDINGS);
-
+      
       // Filter and potentially delete stale local recordings
       const filteredLocalRecordings: StoredRecording[] = [];
       for (const sRec of storedRecordings) {
-        if (sRec.user_id === userId) { // Only consider local recordings belonging to the current user
+        if (sRec.user_id === userId) {
+          // Only consider local recordings belonging to the current user
           if (sRec.supabase_url && !supabaseRecordingIds.has(sRec.id)) {
             // This local recording has a supabase_url but is not in Supabase metadata.
             // It means it was deleted from Supabase (e.g., by another browser). Delete it locally.
@@ -409,7 +427,7 @@ export const getLocalRecordings = async (): Promise<RecordedSession[]> => {
         }
       }
       await tx.done; // Commit the transaction after potential deletions
-
+      
       // Now, combine the fresh Supabase data with the filtered local data
       const combinedIds = new Set<string>();
       
@@ -417,6 +435,7 @@ export const getLocalRecordings = async (): Promise<RecordedSession[]> => {
       data.forEach(rec => {
         combinedIds.add(rec.id);
         const localVersion = filteredLocalRecordings.find(sRec => sRec.id === rec.id);
+        
         allRecordings.push({
           id: rec.id,
           user_id: rec.user_id,
@@ -430,19 +449,18 @@ export const getLocalRecordings = async (): Promise<RecordedSession[]> => {
           isLocalBlobAvailable: !!localVersion,
         });
       });
-
+      
       // Add local-only recordings that are not in Supabase
       filteredLocalRecordings.forEach(sRec => {
         if (!combinedIds.has(sRec.id)) {
           allRecordings.push({
             ...sRec,
             video_url: URL.createObjectURL(sRec.videoBlob),
-            isLocalBlobAvailable: true,
+            isLocalBlobAvailable: true, // It's a local recording, so blob is available
           });
         }
       });
     }
-
   } else {
     // Guest mode or not logged in: Fetch only from IndexedDB
     storedRecordings.forEach(rec => {
@@ -472,7 +490,7 @@ export const addLocalRecording = async (
   const newRecordingId = uuidv4();
   const currentTimestamp = new Date().toISOString();
   const userId = await getUserId() || 'local_user';
-
+  
   const newRecording: StoredRecording = {
     ...recording,
     id: newRecordingId,
@@ -481,8 +499,8 @@ export const addLocalRecording = async (
     videoBlob: recording.videoBlob,
     supabase_url: undefined, // Initially, no supabase_url
   };
+  
   await db.add(STORE_RECORDINGS, newRecording);
-
   return newRecordingId;
 };
 
@@ -491,22 +509,25 @@ export const updateLocalRecordingSupabaseUrl = async (id: string, supabaseUrl: s
   const tx = db.transaction(STORE_RECORDINGS, 'readwrite');
   const store = tx.objectStore(STORE_RECORDINGS);
   const recording = await store.get(id);
+  
   if (recording) {
     recording.supabase_url = supabaseUrl;
     await store.put(recording);
   }
+  
   await tx.done;
 };
 
 export const deleteLocalRecording = async (id: string): Promise<boolean> => {
   const db = await initDB();
   const userId = await getUserId();
+  
   let localRecording = await db.get(STORE_RECORDINGS, id);
   let supabaseMetadataExists = false;
   let supabaseDeletionSuccessful = true; // Assume true if no cloud interaction needed or successful
-
+  
   console.log(`[Delete] Starting deletion for recording ID: ${id}.`);
-
+  
   if (!userId) {
     // If not authenticated, we can only delete local-only recordings.
     // If localRecording has a supabase_url, we cannot delete it from cloud.
@@ -523,7 +544,7 @@ export const deleteLocalRecording = async (id: string): Promise<boolean> => {
       return false;
     }
   }
-
+  
   // User is authenticated.
   // First, check if it exists in Supabase metadata.
   const { data: metadata, error: metadataError } = await supabase
@@ -532,13 +553,13 @@ export const deleteLocalRecording = async (id: string): Promise<boolean> => {
     .eq('id', id)
     .eq('user_id', userId)
     .single();
-
+    
   if (metadataError && metadataError.code !== 'PGRST116') { // PGRST116 means no rows found
     console.error(`[Delete] Error fetching metadata for ID ${id} from Supabase:`, metadataError.message);
     showError(i18n.t("records_page.error_deleting_from_cloud", { message: metadataError.message }));
     return false; // Failed to even check Supabase
   }
-
+  
   if (metadata && metadata.supabase_url) {
     supabaseMetadataExists = true;
     console.log(`[Delete] Recording ID ${id} found in Supabase metadata. Attempting cloud deletion.`);
@@ -547,7 +568,7 @@ export const deleteLocalRecording = async (id: string): Promise<boolean> => {
     console.log(`[Delete] Recording ID ${id} not found in Supabase metadata or has no supabase_url.`);
     supabaseDeletionSuccessful = true; // No cloud resource to delete, so consider it successful for cloud part
   }
-
+  
   let localDeletionPerformed = false;
   if (localRecording) {
     if (supabaseDeletionSuccessful) {
@@ -563,7 +584,7 @@ export const deleteLocalRecording = async (id: string): Promise<boolean> => {
   } else {
     console.log(`[Delete] Recording ID ${id} not found in local IndexedDB.`);
   }
-
+  
   // Return true if either local deletion happened, or it was a cloud-only recording and cloud deletion succeeded.
   return localDeletionPerformed || (supabaseMetadataExists && supabaseDeletionSuccessful);
 };

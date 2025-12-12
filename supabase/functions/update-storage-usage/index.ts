@@ -32,10 +32,10 @@ async function calculateTotalStorageUsed(userId: string): Promise<number> {
   
   // Storage list chaqiruvi. Prefix sifatida userId ni ishlatamiz.
   const { data, error } = await supabaseAdmin.storage.from('recordings').list(userId, {
-    limit: 1000, 
+    limit: 1000,
     offset: 0,
   });
-
+  
   if (error) {
     console.error(`[Storage] Error listing storage files for user ${userId}:`, error.message);
     return 0;
@@ -45,13 +45,13 @@ async function calculateTotalStorageUsed(userId: string): Promise<number> {
     console.log(`[Storage] No files found for user ${userId}.`);
     return 0;
   }
-
+  
   console.log(`[Storage] Found ${data.length} files in the recordings bucket under prefix ${userId}.`);
-
+  
   // Fayl hajmini metadata.size dan olish
   const totalSize = data.reduce((sum, file) => {
     // XATO TUZATILDI: file.size o'rniga file.metadata.size ishlatildi
-    const size = file.metadata?.size ?? 0; 
+    const size = file.metadata?.size ?? 0;
     console.log(`[Storage] File: ${file.name}, Size: ${size}, Metadata: ${JSON.stringify(file.metadata)}`);
     return sum + size;
   }, 0);
@@ -64,45 +64,43 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
-
+  
   try {
     const payload = await req.json();
     const eventType = payload.event_type;
-    
     let objectName: string | undefined;
     
     // Storage trigger payloadida 'name' ustuni 'user_id/file_name' ni o'z ichiga oladi.
     if (eventType === 'INSERT' || eventType === 'UPDATE') {
-        objectName = payload.new?.name; 
+      objectName = payload.new?.name;
     } else if (eventType === 'DELETE') {
-        objectName = payload.old?.name;
+      objectName = payload.old?.name;
     }
-
+    
     console.log(`[Trigger] Received event: ${eventType}, Object Name: ${objectName}`);
-
+    
     if (!objectName) {
-        // Bu ogohlantirish endi 'Missing object name' deb chiqadi
-        console.warn(`[Trigger] Missing object name in payload for event type: ${eventType}`);
-        return new Response('Missing object name in payload', { status: 400, headers: corsHeaders });
+      // Bu ogohlantirish endi 'Missing object name' deb chiqadi
+      console.warn(`[Trigger] Missing object name in payload for event type: ${eventType}`);
+      return new Response('Missing object name in payload', { status: 400, headers: corsHeaders });
     }
-
+    
     // objectName ni path sifatida ishlatamiz
     const userId = getUserIdFromPath(objectName);
-
     if (!userId) {
       console.warn(`[Trigger] Could not extract user ID from object name: ${objectName}`);
       return new Response('User ID not found', { status: 200, headers: corsHeaders });
     }
-
+    
     // Umumiy hajmni qayta hisoblash
     const totalUsedBytes = await calculateTotalStorageUsed(userId);
-
+    
     // Profiles jadvalini yangilash
     const { error: updateError } = await supabaseAdmin
       .from('profiles')
       .update({ storage_used_bytes: totalUsedBytes })
       .eq('id', userId);
-
+      
     if (updateError) {
       console.error("[DB Update] Error updating profile storage usage:", updateError.message);
       return new Response(JSON.stringify({ error: updateError.message }), {
@@ -110,13 +108,11 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-
-    console.log(`[Success] Storage usage updated for user ${userId}: ${totalUsedBytes} bytes.`);
     
+    console.log(`[Success] Storage usage updated for user ${userId}: ${totalUsedBytes} bytes.`);
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-
   } catch (error) {
     console.error("[Fatal] Edge Function error:", error);
     return new Response(JSON.stringify({ error: error.message }), {
