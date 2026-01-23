@@ -10,25 +10,25 @@ const ProcessSteps: React.FC = () => {
     { 
       icon: <LayoutGrid className="h-8 w-8 process-card-icon mx-auto mb-2" />, 
       textKey: "landing_page.process_step_edumock", 
-      delay: "0s",
+      delay: "0s", 
       active: true 
     },
     { 
       icon: <Building className="h-8 w-8 process-card-icon mx-auto mb-2" />, 
       textKey: "landing_page.process_step_center", 
-      delay: "0.3s",
+      delay: "0.3s", 
       active: false 
     },
     { 
       icon: <User className="h-8 w-8 process-card-icon mx-auto mb-2" />, 
       textKey: "landing_page.process_step_student", 
-      delay: "0.6s",
+      delay: "0.6s", 
       active: false 
     },
     { 
       icon: <TrendingUp className="h-8 w-8 process-card-icon mx-auto mb-2" />, 
       textKey: "landing_page.process_step_result", 
-      delay: "0.9s",
+      delay: "0.9s", 
       active: false 
     },
   ];
