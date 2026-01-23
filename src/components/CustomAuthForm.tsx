@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { showError, showSuccess } from '@/utils/toast';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom'; // useNavigate endi bu yerda kerak emas
 
 const CustomAuthForm: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -17,7 +17,7 @@ const CustomAuthForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false); // New state to toggle between sign-in and sign-up
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  // const navigate = useNavigate(); // Bu qator olib tashlandi
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +32,7 @@ const CustomAuthForm: React.FC = () => {
       showError(error.message);
     } else {
       showSuccess(t("common.success_logged_in"));
-      navigate('/home');
+      // navigate('/home'); // Bu qator olib tashlandi, navigatsiyani Login.tsx boshqaradi
     }
     setLoading(false);
   };

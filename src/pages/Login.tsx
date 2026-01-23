@@ -17,8 +17,7 @@ import LoadingSpinner from "@/components/LoadingSpinner"; // Import the new comp
 
 const Login: React.FC = () => {
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
-  const [isLoadingTryMe, setIsLoadingTryMe] = useState(false); // State for 'Try Me' button loading
-  const [isLoadingLogin, setIsLoadingLogin] = useState(false); // New state for login loading
+  const [showGlobalSpinner, setShowGlobalSpinner] = useState(false); // Combined loading state for both "Try Me" and actual login
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -31,31 +30,37 @@ const Login: React.FC = () => {
   };
 
   const handleTryMe = () => {
-    setIsLoadingTryMe(true); // Start loading
+    setShowGlobalSpinner(true); // Start loading
     setTimeout(() => {
       localStorage.setItem("isGuestMode", "true");
       sessionStorage.setItem("showGuestGuide", "true");
       navigate("/home");
-      setIsLoadingTryMe(false); // End loading after navigation
+      setShowGlobalSpinner(false); // End loading after navigation
     }, 2000); // 2 seconds delay
   };
 
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session && !isLoadingLogin) { // Faqatgina login jarayoni tugagan bo'lsa va spinner ishlamayotgan bo'lsa
-        setIsLoadingLogin(true); // Login spinnerini ishga tushirish
+      if (event === 'SIGNED_IN' && session) {
+        setShowGlobalSpinner(true); // Start spinner for login
         setTimeout(() => {
           closeLoginModal();
           navigate("/home");
-          setIsLoadingLogin(false); // Spinnerni o'chirish
-        }, 2500); // 2.5 soniya kechikish
+          setShowGlobalSpinner(false); // End spinner
+        }, 2500); // 2.5 seconds delay
+      } else if (event === 'SIGNED_OUT') {
+        // If user signs out, ensure spinner is off and clear guest mode
+        setShowGlobalSpinner(false);
+        localStorage.removeItem("isGuestMode");
+        sessionStorage.removeItem("guestWelcomeToastShown");
+        sessionStorage.removeItem("showGuestGuide");
       }
     });
 
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [navigate, isLoadingLogin]); // isLoadingLogin ni dependency qilib qo'shish
+  }, [navigate]); // Removed showGlobalSpinner from dependencies to prevent re-running useEffect on state change
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -81,14 +86,14 @@ const Login: React.FC = () => {
               <Button
                 onClick={handleTryMe}
                 className="bg-gradient-purple text-white text-base px-6 py-4 rounded-full shadow-lg transition-all duration-300 animate-button-pulse btn-hover-glow"
-                disabled={isLoadingTryMe || isLoadingLogin} // Disable button while loading
+                disabled={showGlobalSpinner} // Disable button while loading
               >
                 {t("landing_page.try_me_button")}
               </Button>
               <Button
                 onClick={openLoginModal}
                 className="fixed-login-button text-white focus:outline-none focus:ring-4 focus:ring-primary focus:ring-opacity-50 rounded-xl flex items-center gap-2"
-                disabled={isLoadingTryMe || isLoadingLogin} // Disable button while loading
+                disabled={showGlobalSpinner} // Disable button while loading
               >
                 {t("common.login")}
               </Button>
@@ -121,7 +126,7 @@ const Login: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
-      {(isLoadingTryMe || isLoadingLogin) && <LoadingSpinner />} {/* Conditionally render spinner */}
+      {showGlobalSpinner && <LoadingSpinner />} {/* Conditionally render spinner */}
       <AppFooter />
     </div>
   );
