@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import CustomAuthForm from "@/components/CustomAuthForm";
+import { motion } from "framer-motion"; // Import motion from framer-motion
 
 const Login: React.FC = () => {
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
@@ -51,12 +52,18 @@ const Login: React.FC = () => {
       <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 hero-section">
         <div className="lg:flex lg:space-x-12">
           <div className="lg:w-3/5 pb-10">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-foreground mb-4 leading-tight">
-              {t("landing_page.title_part1")} <span className="text-primary">{t("landing_page.title_part2")}</span>
-            </h1>
-            <p className="text-xl sm:text-3xl font-semibold text-muted-foreground mb-8">
-              {t("landing_page.subtitle")}
-            </p>
+            <motion.div
+              initial={{ opacity: 0, filter: 'blur(10px)', y: 20 }}
+              animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
+              transition={{ duration: 1, delay: 0.2 }}
+            >
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-foreground mb-4 leading-tight">
+                {t("landing_page.title_part1")} <span className="text-primary">{t("landing_page.title_part2")}</span>
+              </h1>
+              <p className="text-xl sm:text-3xl font-semibold text-muted-foreground mb-8">
+                {t("landing_page.subtitle")}
+              </p>
+            </motion.div>
 
             <div className="flex flex-col sm:flex-row gap-4 mb-10">
               <Button
