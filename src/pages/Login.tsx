@@ -13,9 +13,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { supabase } from "@/integrations/supabase/client";
 import CustomAuthForm from "@/components/CustomAuthForm";
 import { motion } from "framer-motion"; // Import motion from framer-motion
+import LoadingSpinner from "@/components/LoadingSpinner"; // Import the new component
 
 const Login: React.FC = () => {
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
+  const [isLoadingTryMe, setIsLoadingTryMe] = useState(false); // New state for loading
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -28,9 +30,13 @@ const Login: React.FC = () => {
   };
 
   const handleTryMe = () => {
-    localStorage.setItem("isGuestMode", "true");
-    sessionStorage.setItem("showGuestGuide", "true");
-    navigate("/home");
+    setIsLoadingTryMe(true); // Start loading
+    setTimeout(() => {
+      localStorage.setItem("isGuestMode", "true");
+      sessionStorage.setItem("showGuestGuide", "true");
+      navigate("/home");
+      setIsLoadingTryMe(false); // End loading after navigation
+    }, 2000); // 2 seconds delay
   };
 
   useEffect(() => {
@@ -69,12 +75,14 @@ const Login: React.FC = () => {
               <Button
                 onClick={handleTryMe}
                 className="bg-gradient-purple text-white text-base px-6 py-4 rounded-full shadow-lg transition-all duration-300 animate-button-pulse btn-hover-glow"
+                disabled={isLoadingTryMe} // Disable button while loading
               >
                 {t("landing_page.try_me_button")}
               </Button>
               <Button
                 onClick={openLoginModal}
                 className="fixed-login-button text-white focus:outline-none focus:ring-4 focus:ring-primary focus:ring-opacity-50 rounded-xl flex items-center gap-2"
+                disabled={isLoadingTryMe} // Disable button while loading
               >
                 {t("common.login")}
               </Button>
@@ -107,6 +115,7 @@ const Login: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
+      {isLoadingTryMe && <LoadingSpinner />} {/* Conditionally render spinner */}
       <AppFooter />
     </div>
   );
