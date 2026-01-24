@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import CustomAuthForm from "@/components/CustomAuthForm";
 import { motion } from "framer-motion"; // Import motion from framer-motion
 import LoadingSpinner from "@/components/LoadingSpinner"; // Import the new component
+import RotatingText from "@/components/RotatingText"; // Yangi komponentni import qilish
 
 const Login: React.FC = () => {
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
@@ -75,10 +76,10 @@ const Login: React.FC = () => {
               transition={{ duration: 1, delay: 0.2 }}
             >
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-foreground mb-4 leading-tight">
-                {t("landing_page.title_part1")} <span className="text-primary">{t("landing_page.title_part2")}</span>
+                {t("landing_page.title_part1")} <span className="text-primary"><RotatingText type="title" /></span>
               </h1>
               <p className="text-xl sm:text-3xl font-semibold text-muted-foreground mb-8">
-                {t("landing_page.subtitle")}
+                <RotatingText type="subtitle" />
               </p>
             </motion.div>
 
