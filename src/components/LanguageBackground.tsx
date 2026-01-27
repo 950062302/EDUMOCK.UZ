@@ -19,8 +19,8 @@ const LanguageBackground: React.FC = () => {
       char: chars[Math.floor(Math.random() * chars.length)],
       x: Math.random() * 100, // Random X across screen
       y: Math.random() * 100, // Random Y across screen
-      size: Math.random() * 2 + 1, // 1rem to 3rem
-      opacity: Math.random() * 0.4 + 0.1, // 0.1 to 0.5 initial opacity
+      size: Math.random() * 1 + 0.5, // 0.5rem to 1.5rem (kichraytirildi)
+      opacity: Math.random() * 0.15 + 0.05, // 0.05 to 0.2 initial opacity (kamaytirildi)
       blur: Math.random() * 1 + 0.5, // 0.5px to 1.5px initial blur
       glow: `hsl(${Math.random() * 360}, 70%, 50%)`
     });
@@ -64,7 +64,7 @@ const LanguageBackground: React.FC = () => {
           initial={{ opacity: 0, scale: 0.8 }} // Initial entry animation: fade in and scale up
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, ease: "easeOut" }} // Quick entry transition
-          className="absolute text-4xl font-bold text-white"
+          className="absolute text-4xl font-bold text-white" // text-4xl o'rniga style ichidagi fontSize ishlaydi
           style={{
             fontSize: `${char.size}rem`,
             top: `${char.y}%`, // Position directly from state
