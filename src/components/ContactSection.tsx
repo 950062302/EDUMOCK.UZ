@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
-import { Phone, Upload } from "lucide-react";
+import { Phone, MessageSquareText } from "lucide-react"; // Upload ikonasi MessageSquareText ga o'zgartirildi
 import { useTranslation } from 'react-i18next';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // shadcn/ui Card komponentlari import qilindi
 
 const ContactSection: React.FC = () => {
   const { t } = useTranslation();
@@ -13,29 +14,48 @@ const ContactSection: React.FC = () => {
         <p className="text-base font-normal leading-relaxed text-foreground" dangerouslySetInnerHTML={{ __html: t("landing_page.description") }} />
       </div>
 
-      <div className="bg-card p-5 rounded-xl shadow-xl border border-border animated-card" style={{ animationDelay: '1.3s' }}>
-        <h2 className="text-xl font-bold text-foreground mb-3 flex items-center">
-          <div className="bg-primary rounded-full p-2 mr-3">
-            <Phone className="h-6 w-6 text-white" />
-          </div>
-          {t("landing_page.contact_us")}
-        </h2>
-        <div className="space-y-2 text-muted-foreground pl-3">
-          <p className="flex items-center text-lg">
-            <span className="text-primary mr-2">
-              <Phone className="h-5 w-5" />
-            </span>
-            <a href="tel:+998772077117" className="text-foreground font-semibold font-mono">+998 77 207 71 17</a>
-          </p>
-          {/* Removed +998 93 127 33 00 as requested */}
-          <p className="flex items-center text-lg">
-            <span className="text-primary mr-2">
-              <Upload className="h-5 w-5" />
-            </span>
-            <a href="https://t.me/aero_one" target="_blank" rel="noopener noreferrer" className="text-foreground font-semibold font-mono">Telegram</a>
-          </p>
-        </div>
-      </div>
+      {/* Yangilangan Aloqa Bo'limi Dizayni */}
+      <Card className="animated-card" style={{ animationDelay: '1.3s' }}>
+        <CardHeader>
+          <CardTitle className="flex items-center text-2xl font-bold text-foreground">
+            <div className="bg-primary rounded-full p-2 mr-3">
+              <Phone className="h-6 w-6 text-white" />
+            </div>
+            {t("landing_page.contact_us")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Telefon Aloqasi */}
+          <a
+            href="tel:+998772077117"
+            className="flex items-center p-4 rounded-lg border border-border hover:bg-accent hover:text-accent-foreground transition-colors group"
+          >
+            <div className="bg-primary/10 group-hover:bg-primary transition-colors rounded-full p-2 mr-4">
+              <Phone className="h-5 w-5 text-primary group-hover:text-white transition-colors" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">{t("landing_page.call_us", "Call Us")}</p>
+              <p className="text-lg font-semibold font-mono text-foreground">+998 77 207 71 17</p>
+            </div>
+          </a>
+
+          {/* Telegram Aloqasi */}
+          <a
+            href="https://t.me/aero_one"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center p-4 rounded-lg border border-border hover:bg-accent hover:text-accent-foreground transition-colors group"
+          >
+            <div className="bg-primary/10 group-hover:bg-primary transition-colors rounded-full p-2 mr-4">
+              <MessageSquareText className="h-5 w-5 text-primary group-hover:text-white transition-colors" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">{t("landing_page.message_us", "Message Us")}</p>
+              <p className="text-lg font-semibold font-mono text-foreground">Telegram</p>
+            </div>
+          </a>
+        </CardContent>
+      </Card>
     </div>
   );
 };
