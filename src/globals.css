@@ -594,7 +594,7 @@
 /* New glow effect for footer and contact card */
 .footer-glow, .card-glow {
   position: relative;
-  overflow: hidden;
+  /* overflow: hidden; <-- REMOVED THIS LINE */
   border: 1px solid hsl(var(--border));
   box-shadow: 0 0 8px hsl(var(--primary) / 0.2),
               0 0 15px hsl(var(--primary) / 0.15);
