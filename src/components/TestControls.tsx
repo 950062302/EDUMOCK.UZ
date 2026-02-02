@@ -25,7 +25,7 @@ const TestControls: React.FC<TestControlsProps> = ({
   const { t } = useTranslation();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 flex flex-col items-center"> {/* <-- Bu yerga o'zgartirish kiritildi */}
       {!isTestStarted && currentPhase === "idle" && (
         <>
           {!isRecordingSupported && (
@@ -69,7 +69,7 @@ const TestControls: React.FC<TestControlsProps> = ({
       )}
 
       {isTestStarted && currentPhase !== "finished" && (
-        <div className="flex gap-2 mt-4">
+        <div className="flex gap-2 mt-4 w-full max-w-sm"> {/* Tugmalarni markazga joylashtirish uchun kenglik qo'shildi */}
           <Button className="flex-grow" disabled={true}>
             {t("mock_test_page.next_question_auto")}
           </Button>
@@ -80,7 +80,7 @@ const TestControls: React.FC<TestControlsProps> = ({
       )}
 
       {currentPhase === "finished" && (
-        <div className="space-y-4">
+        <div className="space-y-4 text-center w-full max-w-sm"> {/* Tugmalarni markazga joylashtirish uchun kenglik qo'shildi */}
           <h3 className="text-2xl font-bold text-green-600 dark:text-green-400">{t("add_question_page.test_finished")}</h3>
           <p className="text-muted-foreground">{t("add_question_page.all_questions_reviewed")}</p>
           <Button onClick={handleResetTest} variant="outline" className="w-full">
