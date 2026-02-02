@@ -2,36 +2,17 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom"; // useLocation import qilindi
-import NotFound from "./pages/NotFound";
-import MoodJournal from "./pages/MoodJournal";
-import Login from "./pages/Login";
-import Home from "./pages/Home";
-import AddQuestion from "./pages/AddQuestion";
-import MockTest from "./pages/MockTest";
-import Settings from "./pages/Settings";
-import UserProfile from "./pages/UserProfile";
-import Questions from "./pages/Questions";
-import Records from "./pages/Records";
-import ProtectedRoute from "./components/ProtectedRoute";
-import SuperAdminRoute from "./components/SuperAdminRoute";
-import SuperAdminDashboard from "./pages/SuperAdminDashboard";
+import { BrowserRouter } from "react-router-dom"; // Removed Routes and useLocation from here
 import { AuthProvider } from "./context/AuthProvider";
-import EduAiAssistant from "./components/EduAiAssistant";
-import { useState } from "react";
-import { Button } from "./components/ui/button";
-import { Bot } from "lucide-react";
-import { useTranslation } from 'react-i18next';
-import { motion } from "framer-motion";
-import LanguageBackground from "./components/LanguageBackground";
+import { useTranslation } from 'react-i18next'; // Still needed for Sonner toastOptions
+
+// Import the new AppContent component
+import AppContent from "./components/AppContent";
 
 const queryClient = new QueryClient();
 
 const App = () => {
-  const [isEduAiAssistantOpen, setIsEduAiAssistantOpen] = useState(false);
-  const { t } = useTranslation();
-  const location = useLocation(); // useLocation hooki ishlatildi
-  const isMockTestPage = location.pathname === '/mock-test'; // MockTest sahifasini aniqlash
+  const { t } = useTranslation(); // Still needed for Sonner toastOptions
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -74,54 +55,7 @@ const App = () => {
         />
         <BrowserRouter>
           <AuthProvider>
-            <div className="pb-10 bg-background text-foreground min-h-screen relative">
-              <LanguageBackground />
-              <Routes>
-                <Route path="/" element={<Login />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/mock-test" element={<MockTest />} />
-
-                {/* Super Admin uchun himoyalangan marshrut */}
-                <Route element={<SuperAdminRoute />}>
-                  <Route path="/superadmin" element={<SuperAdminDashboard />} />
-                </Route>
-
-                {/* Oddiy foydalanuvchilar uchun himoyalangan marshrutlar guruhi */}
-                <Route element={<ProtectedRoute />}>
-                  <Route path="/home" element={<Home />} />
-                  <Route path="/add-question" element={<AddQuestion />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/user-profile" element={<UserProfile />} />
-                  <Route path="/questions" element={<Questions />} />
-                  <Route path="/records" element={<Records />} />
-                  <Route path="/mood-journal" element={<MoodJournal />} />
-                </Route>
-
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </div>
-
-            {/* Floating EduAi Assistant Button - Faqat MockTest sahifasida ko'rinmaydi */}
-            {!isMockTestPage && (
-              <motion.div
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 1 }}
-                className="fixed bottom-4 right-4 z-[9999]"
-              >
-                <Button
-                  variant="default"
-                  className="h-14 px-6 rounded-full shadow-lg bg-gradient-purple text-white transition-all duration-300 animate-button-pulse btn-hover-glow flex items-center justify-center"
-                  onClick={() => setIsEduAiAssistantOpen(true)}
-                  aria-label={t("eduai_assistant.open_assistant")}
-                >
-                  <span className="text-lg font-semibold">{t("eduai_assistant.chat_button_label")}</span>
-                </Button>
-              </motion.div>
-            )}
-
-            <EduAiAssistant isOpen={isEduAiAssistantOpen} onClose={() => setIsEduAiAssistantOpen(false)} />
+            <AppContent /> {/* Render the new AppContent component here */}
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
