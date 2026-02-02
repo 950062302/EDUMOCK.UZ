@@ -1,15 +1,15 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Routes, Route, useLocation, useNavigate } from "react-router-dom"; // useNavigate import qilindi
+import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Bot } from "lucide-react";
 import { useTranslation } from 'react-i18next';
-import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
-import { useAuth } from "@/context/AuthProvider"; // useAuth import qilindi
-import { supabase } from "@/integrations/supabase/client"; // supabase import qilindi
-import { showSuccess } from "@/utils/toast"; // showSuccess import qilindi
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/context/AuthProvider";
+import { supabase } from "@/integrations/supabase/client";
+import { showSuccess } from "@/utils/toast";
 
 import NotFound from "@/pages/NotFound";
 import MoodJournal from "@/pages/MoodJournal";
@@ -27,20 +27,20 @@ import SuperAdminDashboard from "@/pages/SuperAdminDashboard";
 import EduAiAssistant from "@/components/EduAiAssistant";
 import LanguageBackground from "@/components/LanguageBackground";
 import MobileBottomNavbar from "@/components/MobileBottomNavbar";
+import MapViewButton from "./MapViewButton"; // MapViewButton import qilindi
 import { cn } from "@/lib/utils";
 
 const AppContent: React.FC = () => {
   const [isEduAiAssistantOpen, setIsEduAiAssistantOpen] = useState(false);
-  const [isGuideDialogOpen, setIsGuideDialogOpen] = useState(false); // Holat AppContent ga ko'chirildi
+  const [isGuideDialogOpen, setIsGuideDialogOpen] = useState(false);
   const { t } = useTranslation();
   const location = useLocation();
-  const navigate = useNavigate(); // useNavigate import qilindi
+  const navigate = useNavigate();
   const isMockTestPage = location.pathname === '/mock-test';
-  const isMobile = useIsMobile(); // Use the hook
-  const { session } = useAuth(); // session useAuth dan olindi
-  const isGuestMode = localStorage.getItem("isGuestMode") === "true"; // isGuestMode bu yerda aniqlandi
+  const isMobile = useIsMobile();
+  const { session } = useAuth();
+  const isGuestMode = localStorage.getItem("isGuestMode") === "true";
 
-  // handleLogout funksiyasi Home dan AppContent ga ko'chirildi
   const handleLogout = async () => {
     if (session) {
       await supabase.auth.signOut();
@@ -56,7 +56,7 @@ const AppContent: React.FC = () => {
   return (
     <div className={cn(
       "pb-10 bg-background text-foreground min-h-screen relative",
-      isMobile && "pb-20" // Add extra padding at the bottom for mobile navbar
+      isMobile && "pb-20"
     )}>
       {!isMockTestPage && <LanguageBackground />}
       <Routes>
@@ -69,7 +69,7 @@ const AppContent: React.FC = () => {
         </Route>
 
         <Route element={<ProtectedRoute />}>
-          <Route path="/home" element={<Home setIsGuideDialogOpen={setIsGuideDialogOpen} handleLogout={handleLogout} isGuideDialogOpen={isGuideDialogOpen} />} /> {/* Prop uzatildi */}
+          <Route path="/home" element={<Home setIsGuideDialogOpen={setIsGuideDialogOpen} handleLogout={handleLogout} isGuideDialogOpen={isGuideDialogOpen} />} />
           <Route path="/add-question" element={<AddQuestion />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/user-profile" element={<UserProfile />} />
@@ -81,7 +81,7 @@ const AppContent: React.FC = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
 
-      {!isMockTestPage && !isMobile && ( // Only show EduAi Assistant button on desktop
+      {!isMockTestPage && !isMobile && (
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
@@ -99,13 +99,25 @@ const AppContent: React.FC = () => {
         </motion.div>
       )}
 
+      {/* MapViewButton sahifaning pastki o'ng qismiga joylashtirildi */}
+      {!isMockTestPage && (
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 1.2 }} // Kichik kechikish qo'shildi
+          className="fixed bottom-4 right-24 z-[9999]" // EduAiAssistant tugmasi bilan to'qnashmasligi uchun right-24 berildi
+        >
+          <MapViewButton />
+        </motion.div>
+      )}
+
       <EduAiAssistant isOpen={isEduAiAssistantOpen} onClose={() => setIsEduAiAssistantOpen(false)} />
       <MobileBottomNavbar 
         handleLogout={handleLogout} 
         setIsGuideDialogOpen={setIsGuideDialogOpen} 
         isGuestMode={isGuestMode} 
         session={session} 
-      /> {/* Prop'lar uzatildi */}
+      />
     </div>
   );
 };
