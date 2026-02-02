@@ -31,7 +31,7 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="pb-10 bg-background text-foreground min-h-screen relative">
-      <LanguageBackground />
+      {!isMockTestPage && <LanguageBackground />} {/* Faqat MockTest sahifasida ko'rinmasin */}
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
