@@ -29,7 +29,7 @@ const MockTest: React.FC = () => {
     initialCountdown,
     studentInfo,
     isStudentInfoFormOpen,
-    setIsStudentInfoFormOpen,
+    setIsStudentInfoFormFormOpen,
     handleStartTestClick,
     handleStudentInfoSave,
     handleEndTest,
@@ -56,7 +56,7 @@ const MockTest: React.FC = () => {
       {!isTestStarted && <Navbar />}
       <main className="flex-grow container mx-auto p-4 sm:p-6 md:p-8 flex items-center justify-center relative bg-gradient-to-br from-background to-secondary/50 min-h-[calc(100vh-120px)]">
         {(webcamStream || (isTestStarted && studentInfo)) && (
-          <Card className="fixed top-20 left-4 z-20 p-2 bg-card shadow-lg border border-border card-glow"> {/* 'right-4' o'rniga 'left-4' qilindi */}
+          <Card className="fixed top-16 left-4 z-20 p-2 bg-card shadow-lg border border-border card-glow"> {/* 'top-20' o'rniga 'top-16' qilindi */}
             <CardContent className="p-0 space-y-2">
               {webcamStream && (
                 <div className="flex flex-col items-center">
