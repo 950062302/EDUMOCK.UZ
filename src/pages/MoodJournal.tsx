@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import JournalEntryForm from "@/components/JournalEntryForm";
 import MoodEntryCard from "@/components/MoodEntryCard";
-import AppFooter from "@/components/AppFooter"; // Yangi import
+// import AppFooter from "@/components/AppFooter"; // Yangi import olib tashlandi
 import {
   Select,
   SelectContent,
@@ -113,7 +113,7 @@ const MoodJournal: React.FC = () => {
           </div>
         )}
       </main>
-      {!isMobile && <AppFooter />} {/* Conditionally render AppFooter */}
+      {/* AppFooter endi AppContent ichida render qilinadi */}
     </div>
   );
 };

@@ -7,7 +7,7 @@ import LandingPageHeader from "@/components/LandingPageHeader";
 import ProcessSteps from "@/components/ProcessSteps";
 import ContactSection from "@/components/ContactSection";
 import PricingCard from "@/components/PricingCard";
-import AppFooter from "@/components/AppFooter";
+// import AppFooter from "@/components/AppFooter"; // AppFooter olib tashlandi
 import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -130,7 +130,7 @@ const Login: React.FC = () => {
         </DialogContent>
       </Dialog>
       {showGlobalSpinner && <LoadingSpinner />} {/* Conditionally render spinner */}
-      {!isMobile && <AppFooter />} {/* Conditionally render AppFooter */}
+      {/* AppFooter endi AppContent ichida render qilinadi */}
     </div>
   );
 };

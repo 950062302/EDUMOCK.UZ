@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Navbar from "@/components/Navbar";
-import AppFooter from "@/components/AppFooter"; // Yangi import
+// import AppFooter from "@/components/AppFooter"; // Yangi import olib tashlandi
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -519,7 +519,7 @@ const SpeakingQuestionManager: React.FC = () => {
           </CardContent>
         </Card>
       </main>
-      {!isMobile && <AppFooter />} {/* Conditionally render AppFooter */}
+      {/* AppFooter endi AppContent ichida render qilinadi */}
     </div>
   );
 };

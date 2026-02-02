@@ -3,7 +3,6 @@
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/context/AuthProvider";
-import NetworkStatusFooter from "./NetworkStatusFooter";
 import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 
 const ProtectedRoute: React.FC = () => {
@@ -23,7 +22,7 @@ const ProtectedRoute: React.FC = () => {
     return (
       <>
         <Outlet />
-        {!isMobile && <NetworkStatusFooter />} {/* Conditionally render NetworkStatusFooter */}
+        {/* NetworkStatusFooter endi AppFooter ichida */}
       </>
     );
   }

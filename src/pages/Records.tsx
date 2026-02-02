@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import Navbar from "@/components/Navbar";
-import AppFooter from "@/components/AppFooter"; // Yangi import
+// import AppFooter from "@/components/AppFooter"; // Yangi import olib tashlandi
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, PlayCircle, Trash2, ArrowLeft, Cloud, Zap, CheckCircle2, Lock } from "lucide-react";
@@ -571,7 +571,7 @@ const Records: React.FC = () => {
           </CardContent>
         </Card>
       </main>
-      {!isMobile && <AppFooter />} {/* Conditionally render AppFooter */}
+      {/* AppFooter endi AppContent ichida render qilinadi */}
       
       <Dialog open={isPricingDialogOpen} onOpenChange={setIsPricingDialogOpen}>
         <DialogContent className="sm:max-w-md p-0 overflow-hidden">

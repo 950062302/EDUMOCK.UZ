@@ -1,53 +1,117 @@
 "use client";
-import React from "react";
-import { Server, Lock } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { Server, Lock, Wifi, WifiOff, Clock, Signal, ArrowDownCircle } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { useLocation } from "react-router-dom";
-// MapViewButton importini olib tashladim
+import { cn } from '@/lib/utils';
 
 const AppFooter: React.FC = () => {
   const { t } = useTranslation();
   const location = useLocation();
 
-  return (
-    <footer className="mt-auto bg-card border-t border-border py-6 text-foreground footer-glow">
-      <div className="container mx-auto px-4 flex flex-col items-center space-y-4">
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [ping, setPing] = useState<number | null>(null);
+  const [speed, setSpeed] = useState<number | null>(null);
+  const [time, setTime] = useState<string>('');
 
-        <div className="text-center">
-          <h3 className="text-xl font-bold mb-0.5">Edumock.uz</h3>
-          <p className="text-xs text-muted-foreground max-w-xs">
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  useEffect(() => {
+    const connection = (navigator as any).connection;
+    if (!connection) return;
+
+    const updateNetworkInfo = () => {
+      setPing(connection.rtt);
+      if (connection.downlink) {
+        setSpeed(connection.downlink / 8);
+      }
+    };
+
+    updateNetworkInfo();
+    connection.addEventListener('change', updateNetworkInfo);
+
+    return () => {
+      connection.removeEventListener('change', updateNetworkInfo);
+    };
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const tashkentTime = new Date().toLocaleTimeString('en-GB', {
+        timeZone: 'Asia/Tashkent',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+      setTime(tashkentTime);
+    }, 1000);
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, []);
+
+  return (
+    <footer className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border py-2 text-foreground shadow-lg">
+      <div className="container mx-auto px-4 flex flex-col sm:flex-row items-center justify-between text-xs">
+        {/* Left Section: Brand and Slogan */}
+        <div className="flex flex-col items-center sm:items-start mb-2 sm:mb-0">
+          <h3 className="text-base font-bold">Edumock.uz</h3>
+          <p className="text-xs text-muted-foreground max-w-xs text-center sm:text-left">
             {t("landing_page.slogan_short", "Your platform for conversational practice and real results.")}
           </p>
         </div>
 
-        {/* MapViewButton bu yerdan olib tashlandi */}
-
-        <div className="flex flex-wrap justify-center items-center gap-x-4 gap-y-2 opacity-90">
-          <div className="flex items-center gap-2 group cursor-default" title={t("landing_page.footer_educloud_title")}>
-            <div className="p-1.5 bg-blue-50/50 dark:bg-blue-900/30 rounded-full border border-blue-100 dark:border-blue-900 group-hover:border-blue-300 transition-colors">
-              <Server className="w-4 h-4 text-[#0EA5E9]" />
-            </div>
-            <span className="text-xs font-medium text-foreground">{t("landing_page.footer_powered_by")} EduCloud</span>
+        {/* Middle Section: Network Status and Time */}
+        <div className="flex flex-wrap justify-center sm:justify-start items-center gap-x-4 gap-y-1 mb-2 sm:mb-0">
+          <div className="flex items-center gap-1">
+            {isOnline ? <Wifi size={14} className="text-green-500" /> : <WifiOff size={14} className="text-destructive" />}
+            <span className={cn(isOnline ? 'text-green-500' : 'text-destructive', 'font-medium')}>
+              {isOnline ? t("common.online") : t("common.offline")}
+            </span>
           </div>
 
-          <div className="flex items-center gap-2 group cursor-default" title={t("landing_page.footer_ssl_title")}>
-            <div className="p-1.5 bg-emerald-50/50 dark:bg-emerald-900/30 rounded-full border border-emerald-100 dark:border-emerald-900 group-hover:border-emerald-300 transition-colors">
-              <Lock className="w-4 h-4 text-emerald-500" />
+          {isOnline && typeof ping === 'number' && (
+            <div className="flex items-center gap-1">
+              <Signal size={14} />
+              <span>Ping: {ping} ms</span>
             </div>
-            <span className="text-xs font-medium text-foreground">{t("landing_page.footer_data_secured")} SSL Encrypted</span>
+          )}
+
+          {isOnline && typeof speed === 'number' && (
+            <div className="flex items-center gap-1">
+              <ArrowDownCircle size={14} />
+              <span>{speed.toFixed(2)} MB/s</span>
+            </div>
+          )}
+
+          <div className="flex items-center gap-1">
+            <Clock size={14} />
+            <span>{t("common.tashkent")}: {time}</span>
           </div>
         </div>
 
-        <nav className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs">
-          <a href="#" className="text-muted-foreground hover:text-primary transition">
-            {t("landing_page.privacy_policy")}
-          </a>
-          <a href="#" className="text-muted-foreground hover:text-primary transition">
-            {t("landing_page.terms_of_use")}
-          </a>
-        </nav>
-
-        <div className="border-t border-border w-full pt-4 text-center mt-4">
+        {/* Right Section: Policies and Copyright */}
+        <div className="flex flex-col items-center sm:items-end">
+          <nav className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs mb-1">
+            <a href="#" className="text-muted-foreground hover:text-primary transition">
+              {t("landing_page.privacy_policy")}
+            </a>
+            <a href="#" className="text-muted-foreground hover:text-primary transition">
+              {t("landing_page.terms_of_use")}
+            </a>
+          </nav>
           <p className="text-muted-foreground text-xs font-medium">
             &copy; {new Date().getFullYear()} Edumock.uz, Inc. {t("landing_page.all_rights_reserved")}
           </p>

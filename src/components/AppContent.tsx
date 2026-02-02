@@ -29,6 +29,7 @@ import LanguageBackground from "@/components/LanguageBackground";
 import MobileBottomNavbar from "@/components/MobileBottomNavbar";
 import MapViewButton from "./MapViewButton";
 import { cn } from "@/lib/utils";
+import AppFooter from "./AppFooter"; // AppFooter import qilindi
 
 const AppContent: React.FC = () => {
   const [isEduAiAssistantOpen, setIsEduAiAssistantOpen] = useState(false);
@@ -87,9 +88,9 @@ const AppContent: React.FC = () => {
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 1 }}
-          className="fixed bottom-4 right-4 z-[9999] flex items-end space-x-4" // Minimalistik joylashuv uchun flex va space-x-4 ishlatildi
+          className="fixed bottom-[56px] right-4 z-[9999] flex items-end space-x-4" // AppFooter balandligini hisobga olgan holda bottom-[56px]
         >
-          <MapViewButton /> {/* MapViewButton */}
+          <MapViewButton />
           <Button
             variant="default"
             className="h-14 px-6 rounded-full shadow-lg bg-gradient-purple text-white transition-all duration-300 animate-button-pulse btn-hover-glow flex items-center justify-center"
@@ -108,6 +109,7 @@ const AppContent: React.FC = () => {
         isGuestMode={isGuestMode} 
         session={session} 
       />
+      {!isMobile && <AppFooter />} {/* AppFooter endi AppContent ichida render qilinadi */}
     </div>
   );
 };
