@@ -56,28 +56,30 @@ const MockTest: React.FC = () => {
       {!isTestStarted && <Navbar />}
       <main className="flex-grow container mx-auto p-4 sm:p-6 md:p-8 flex items-center justify-center relative bg-gradient-to-br from-background to-secondary/50 min-h-[calc(100vh-120px)]">
         {(webcamStream || (isTestStarted && studentInfo)) && (
-          <div className="fixed top-20 left-4 z-20 flex flex-col items-start space-y-2">
-            {webcamStream && (
-              <>
-                <video
-                  ref={webcamVideoRef}
-                  autoPlay
-                  muted
-                  className="w-32 h-24 rounded-lg shadow-lg border-2 border-primary-foreground bg-black"
-                />
-                <p className="text-xs text-white bg-black bg-opacity-70 p-1 rounded-md text-center w-32">
-                  edumock.uz
-                </p>
-              </>
-            )}
-            {isTestStarted && studentInfo && (
-              <div className="bg-black bg-opacity-70 text-white p-2 rounded-md text-sm">
-                <p><strong>{t("mock_test_page.student_id")}:</strong> {studentInfo.id}</p>
-                <p><strong>{t("mock_test_page.student_name")}:</strong> {studentInfo.name}</p>
-                <p><strong>{t("mock_test_page.student_phone")}:</strong> {studentInfo.phone}</p>
-              </div>
-            )}
-          </div>
+          <Card className="fixed top-20 left-4 z-20 p-2 bg-card shadow-lg border border-border">
+            <CardContent className="p-0 space-y-2">
+              {webcamStream && (
+                <div className="flex flex-col items-center">
+                  <video
+                    ref={webcamVideoRef}
+                    autoPlay
+                    muted
+                    className="w-32 h-24 rounded-lg shadow-lg border-2 border-primary-foreground bg-black"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    edumock.uz
+                  </p>
+                </div>
+              )}
+              {isTestStarted && studentInfo && (
+                <div className="p-2 border-t border-border mt-2 pt-2">
+                  <p className="text-sm text-foreground"><strong>{t("mock_test_page.student_id")}:</strong> {studentInfo.id}</p>
+                  <p className="text-sm text-foreground"><strong>{t("mock_test_page.student_name")}:</strong> {studentInfo.name}</p>
+                  <p className="text-sm text-foreground"><strong>{t("mock_test_page.student_phone")}:</strong> {studentInfo.phone}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         )}
 
         {isRecording && (
@@ -130,7 +132,7 @@ const MockTest: React.FC = () => {
       </main>
       <AppFooter />
       <StudentInfoForm
-        isOpen={isStudentInfoFormOpen} // Izoh to'g'rilandi
+        isOpen={isStudentInfoFormOpen}
         onClose={() => setIsStudentInfoFormOpen(false)}
         onSave={handleStudentInfoSave}
       />
