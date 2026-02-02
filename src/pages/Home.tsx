@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from 'react-i18next';
 import GuideDialog from "@/components/GuideDialog";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 
 export default function Home() {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ export default function Home() {
   const isGuestMode = localStorage.getItem("isGuestMode") === "true";
   const { t } = useTranslation();
   const [isGuideDialogOpen, setIsGuideDialogOpen] = useState(false);
+  const isMobile = useIsMobile(); // Use the hook
 
   useEffect(() => {
     const welcomeToastShown = sessionStorage.getItem("guestWelcomeToastShown") === "true";
@@ -78,37 +80,39 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-sky-500 to-slate-900 text-white p-4">
       <header className="flex flex-col sm:flex-row sm:justify-between items-center mb-8">
         <h1 className="text-xl sm:text-3xl font-bold">Edumock.uz</h1>
-        <nav className="flex flex-row flex-wrap justify-center sm:justify-end gap-x-2 gap-y-1 text-xs items-center mt-4 sm:mt-0">
-          <Button asChild variant="ghost" className="h-7 px-2 flex items-center gap-1 text-white rounded-md hover:bg-white/10 hover:text-indigo-300">
-            <Link to="/home">
-              <HomeIcon className="h-3 w-3" /> {t("common.home")}
-            </Link>
-          </Button>
-          <Button asChild variant="ghost" className="h-7 px-2 flex items-center gap-1 text-white rounded-md hover:bg-white/10 hover:text-indigo-300">
-            <Link to="/settings">
-              <SettingsIcon className="h-3 w-3" /> {t("common.settings")}
-            </Link>
-          </Button>
-          <Button asChild variant="ghost" className="h-7 px-2 flex items-center gap-1 text-white rounded-md hover:bg-white/10 hover:text-indigo-300">
-            <Link to="/user-profile">
-              <UserIcon className="h-3 w-3" /> {t("common.profile")}
-            </Link>
-          </Button>
-          <Button 
-            variant="ghost" 
-            className="h-7 px-2 flex items-center gap-1 text-white rounded-md hover:bg-white/10 hover:text-indigo-300" 
-            onClick={() => setIsGuideDialogOpen(true)}
-          >
-            <Info className="h-3 w-3" /> {t("common.guide")}
-          </Button>
-          {(session || isGuestMode) && (
-            <Button asChild variant="ghost" className="h-7 px-2 flex items-center gap-1 text-white rounded-md hover:bg-white/10 hover:text-red-300">
-              <Link to="/login" onClick={handleLogout}>
-                <LogOut className="h-3 w-3" /> {isGuestMode && !session ? t("common.guest_mode_exit") : t("common.logout")}
+        {!isMobile && ( // Only show header nav on non-mobile
+          <nav className="flex flex-row flex-wrap justify-center sm:justify-end gap-x-2 gap-y-1 text-xs items-center mt-4 sm:mt-0">
+            <Button asChild variant="ghost" className="h-7 px-2 flex items-center gap-1 text-white rounded-md hover:bg-white/10 hover:text-indigo-300">
+              <Link to="/home">
+                <HomeIcon className="h-3 w-3" /> {t("common.home")}
               </Link>
             </Button>
-          )}
-        </nav>
+            <Button asChild variant="ghost" className="h-7 px-2 flex items-center gap-1 text-white rounded-md hover:bg-white/10 hover:text-indigo-300">
+              <Link to="/settings">
+                <SettingsIcon className="h-3 w-3" /> {t("common.settings")}
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" className="h-7 px-2 flex items-center gap-1 text-white rounded-md hover:bg-white/10 hover:text-indigo-300">
+              <Link to="/user-profile">
+                <UserIcon className="h-3 w-3" /> {t("common.profile")}
+              </Link>
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="h-7 px-2 flex items-center gap-1 text-white rounded-md hover:bg-white/10 hover:text-indigo-300" 
+              onClick={() => setIsGuideDialogOpen(true)}
+            >
+              <Info className="h-3 w-3" /> {t("common.guide")}
+            </Button>
+            {(session || isGuestMode) && (
+              <Button asChild variant="ghost" className="h-7 px-2 flex items-center gap-1 text-white rounded-md hover:bg-white/10 hover:text-red-300">
+                <Link to="/login" onClick={handleLogout}>
+                  <LogOut className="h-3 w-3" /> {isGuestMode && !session ? t("common.guest_mode_exit") : t("common.logout")}
+                </Link>
+              </Button>
+            )}
+          </nav>
+        )}
       </header>
 
       <motion.div
