@@ -42,7 +42,7 @@ const TestControls: React.FC<TestControlsProps> = ({
               role="button"
               onClick={handleStartTestClick}
               disabled={!isRecordingSupported}
-              className="group relative inline-flex items-center justify-center text-base rounded-xl bg-gray-900 px-8 py-4 font-semibold text-white transition-all duration-200 hover:bg-gray-800 hover:shadow-lg hover:-translate-y-0.5 hover:shadow-gray-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group relative inline-flex items-center justify-center text-base rounded-xl bg-gray-900 px-8 py-4 font-semibold text-white transition-all duration-200 hover:bg-gray-800 hover:shadow-lg hover:-translate-y-0.5 hover:shadow-gray-600/30 disabled:opacity-50 disabled:cursor-not-allowed animate-beckon-pulse"
               title={t("mock_test_page.start_test_with_recording")}
             >
               {t("mock_test_page.start_test_with_recording")}
@@ -56,11 +56,11 @@ const TestControls: React.FC<TestControlsProps> = ({
               >
                 <path
                   d="M0 5h7"
-                  className="transition opacity-0 group-hover:opacity-100"
+                  class="transition opacity-0 group-hover:opacity-100"
                 ></path>
                 <path
                   d="M1 1l4 4-4 4"
-                  className="transition group-hover:translate-x-[3px]"
+                  class="transition group-hover:translate-x-[3px]"
                 ></path>
               </svg>
             </button>
