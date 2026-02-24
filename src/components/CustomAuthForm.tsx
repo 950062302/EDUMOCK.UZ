@@ -79,11 +79,13 @@ const CustomAuthForm: React.FC = () => {
 
   return (
     <div className="w-full">
-      <form onSubmit={isSignUp ? handleSignUp : handleSignIn} className="space-y-4 mt-4">
+      <form onSubmit={isSignUp ? handleSignUp : handleSignIn} className="space-y-5 mt-4">
         {isSignUp && (
-          <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="first-name-up">{t("user_profile_page.first_name")}</Label>
+              <Label htmlFor="first-name-up" className="text-sm font-medium">
+                {t("user_profile_page.first_name")}
+              </Label>
               <Input
                 id="first-name-up"
                 type="text"
@@ -91,10 +93,13 @@ const CustomAuthForm: React.FC = () => {
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 required
+                className="h-11"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="last-name-up">{t("user_profile_page.last_name")}</Label>
+              <Label htmlFor="last-name-up" className="text-sm font-medium">
+                {t("user_profile_page.last_name")}
+              </Label>
               <Input
                 id="last-name-up"
                 type="text"
@@ -102,12 +107,15 @@ const CustomAuthForm: React.FC = () => {
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 required
+                className="h-11"
               />
             </div>
-          </>
+          </div>
         )}
         <div className="space-y-2">
-          <Label htmlFor="email-auth">{t("common.email")}</Label>
+          <Label htmlFor="email-auth" className="text-sm font-medium">
+            {t("common.email")}
+          </Label>
           <Input
             id="email-auth"
             type="email"
@@ -115,10 +123,13 @@ const CustomAuthForm: React.FC = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            className="h-11"
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password-auth">{t("common.password")}</Label>
+          <Label htmlFor="password-auth" className="text-sm font-medium">
+            {t("common.password")}
+          </Label>
           <Input
             id="password-auth"
             type="password"
@@ -126,11 +137,14 @@ const CustomAuthForm: React.FC = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            className="h-11"
           />
         </div>
         {isSignUp && (
           <div className="space-y-2">
-            <Label htmlFor="confirm-password-auth">{t("user_profile_page.confirm_new_password")}</Label>
+            <Label htmlFor="confirm-password-auth" className="text-sm font-medium">
+              {t("user_profile_page.confirm_new_password")}
+            </Label>
             <Input
               id="confirm-password-auth"
               type="password"
@@ -138,10 +152,11 @@ const CustomAuthForm: React.FC = () => {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
+              className="h-11"
             />
           </div>
         )}
-        <Button type="submit" className="w-full" disabled={loading}>
+        <Button type="submit" className="w-full h-11 rounded-xl" disabled={loading}>
           {loading ? (
             isSignUp ? t("common.signing_up") : t("common.logging_in")
           ) : (
@@ -149,8 +164,14 @@ const CustomAuthForm: React.FC = () => {
           )}
         </Button>
       </form>
-      <div className="mt-4 text-center">
-        <Button variant="link" onClick={() => setIsSignUp(prev => !prev)} disabled={loading}>
+      <div className="mt-5 text-center">
+        <Button
+          type="button"
+          variant="link"
+          className="text-sm font-semibold text-primary underline-offset-4 hover:underline"
+          onClick={() => setIsSignUp((prev) => !prev)}
+          disabled={loading}
+        >
           {isSignUp ? t("common.sign_in") : t("common.sign_up")}
         </Button>
       </div>

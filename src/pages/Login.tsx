@@ -113,19 +113,24 @@ const Login: React.FC = () => {
       </main>
 
       <Dialog open={isLoginDialogOpen} onOpenChange={closeLoginModal}>
-        <DialogContent className="sm:max-w-[425px] p-6">
-          <DialogHeader>
-            <DialogTitle>{t("common.welcome")}</DialogTitle>
-            <DialogDescription>
-              {t("common.auth_description")}
-            </DialogDescription>
-          </DialogHeader>
-          <CustomAuthForm />
-          <div className="mt-4 text-center text-sm text-muted-foreground">
-            <p>{t("common.forgot_password_contact_admin_message")}</p>
-            <a href="tel:+998772077117" className="text-primary hover:underline font-semibold">
-              {t("common.admin_contact_phone")}
-            </a>
+        <DialogContent className="w-[calc(100vw-1.5rem)] sm:max-w-[425px] p-0 overflow-hidden rounded-2xl border bg-background/80 backdrop-blur-md shadow-2xl">
+          <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-sky-500 to-emerald-400" />
+          <div className="p-6">
+            <DialogHeader className="text-center">
+              <DialogTitle className="text-2xl font-bold tracking-tight">
+                {t("common.welcome")}
+              </DialogTitle>
+              <DialogDescription className="text-sm leading-relaxed">
+                {t("common.auth_description")}
+              </DialogDescription>
+            </DialogHeader>
+            <CustomAuthForm />
+            <div className="mt-6 border-t pt-4 text-center text-xs text-muted-foreground">
+              <p className="leading-relaxed">{t("common.forgot_password_contact_admin_message")}</p>
+              <a href="tel:+998772077117" className="mt-2 inline-block text-primary font-semibold underline-offset-4 hover:underline">
+                {t("common.admin_contact_phone")}
+              </a>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
