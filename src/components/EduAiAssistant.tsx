@@ -55,6 +55,7 @@ const EduAiAssistant: React.FC<EduAiAssistantProps> = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [userInput, setUserInput] = useState<string>('');
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -157,34 +158,68 @@ const EduAiAssistant: React.FC<EduAiAssistantProps> = ({ isOpen, onClose }) => {
   };
 
   const renderMessageContent = (message: ChatMessage) => {
-    let formattedText = message.parts[0].text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    return <div dangerouslySetInnerHTML={{ __html: formattedText.replace(/\n/g, '<br>') }} />;
+    const escapeHtml = (s: string) =>
+      s
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+
+    const escaped = escapeHtml(message.parts[0].text);
+    const withBold = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+    return <div dangerouslySetInnerHTML={{ __html: withBold.replace(/\n/g, '<br>') }} />;
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-md h-[85vh] flex flex-col p-0 bg-background text-foreground rounded-xl shadow-2xl">
-        <DialogHeader className="p-4 border-b border-border bg-card rounded-t-xl">
-          <DialogTitle className="text-2xl font-bold text-primary">{t("eduai_assistant.title")}</DialogTitle>
-          <DialogDescription className="text-sm text-muted-foreground">{t("eduai_assistant.subtitle")}</DialogDescription>
-          {/* The default close button is provided by DialogContent, so this custom button is removed. */}
+      <DialogContent className="w-[calc(100vw-1.5rem)] sm:max-w-lg h-[85vh] max-h-[720px] flex flex-col p-0 overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-2xl">
+        <DialogHeader className="px-4 py-3 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/75">
+          <div className="flex items-center gap-3">
+            <div className="rounded-xl bg-primary/10 p-2 text-primary ring-1 ring-primary/15">
+              <Bot className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <DialogTitle className="text-base sm:text-lg font-bold leading-tight">
+                {t("eduai_assistant.title")}
+              </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm text-muted-foreground truncate">
+                {t("eduai_assistant.subtitle")}
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
-        <div id="eduai-messages" className="flex-grow p-4 overflow-y-auto space-y-4 bg-background">
+        <div
+          id="eduai-messages"
+          className="flex-grow overflow-y-auto space-y-3 px-4 py-4 bg-muted/30"
+        >
           {chatHistory.map((message, index) => (
-            <div key={index} className={cn("flex", message.role === 'user' ? 'justify-end' : 'justify-start')}>
-              <div className={cn(
-                "max-w-xl p-3 shadow-md transition-all duration-100 rounded-xl",
-                message.role === 'user' ? 'user-bubble rounded-tr-sm bg-primary text-primary-foreground' : 'ai-bubble rounded-tl-sm bg-secondary text-secondary-foreground'
-              )}>
+            <div
+              key={index}
+              className={cn(
+                "flex",
+                message.role === "user" ? "justify-end" : "justify-start"
+              )}
+            >
+              <div
+                className={cn(
+                  "max-w-[88%] sm:max-w-[75%] px-4 py-2.5 text-sm leading-relaxed shadow-sm",
+                  message.role === "user"
+                    ? "user-bubble"
+                    : "ai-bubble"
+                )}
+              >
                 {renderMessageContent(message)}
               </div>
             </div>
           ))}
+
           {isTyping && (
             <div className="flex justify-start">
-              <div className="ai-bubble max-w-xl p-3 shadow-md transition-all duration-100 rounded-xl rounded-tl-sm bg-secondary text-secondary-foreground flex items-center space-x-1">
-                <span className="text-sm">{t("eduai_assistant.typing")}</span>
+              <div className="ai-bubble max-w-[88%] sm:max-w-[75%] px-4 py-2.5 text-sm shadow-sm flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">{t("eduai_assistant.typing")}</span>
                 <div className="flex space-x-0.5">
                   <span className="typing-dot w-1.5 h-1.5 bg-muted-foreground rounded-full inline-block"></span>
                   <span className="typing-dot w-1.5 h-1.5 bg-muted-foreground rounded-full inline-block"></span>
@@ -193,15 +228,16 @@ const EduAiAssistant: React.FC<EduAiAssistantProps> = ({ isOpen, onClose }) => {
               </div>
             </div>
           )}
+
           <div ref={messagesEndRef} />
         </div>
 
-        <form onSubmit={handleChatSubmission} className="p-4 border-t border-border bg-card rounded-b-xl">
-          <div className="flex space-x-3">
+        <form onSubmit={handleChatSubmission} className="p-3 border-t bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/75">
+          <div className="flex items-end gap-2">
             <Input
               type="text"
               placeholder={t("eduai_assistant.input_placeholder")}
-              className="flex-grow p-3 rounded-lg bg-card border border-primary focus:border-primary focus:ring focus:ring-primary/50 text-foreground placeholder-muted-foreground transition-colors"
+              className="h-11 rounded-full bg-background"
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
               disabled={isLoading}
@@ -209,18 +245,35 @@ const EduAiAssistant: React.FC<EduAiAssistantProps> = ({ isOpen, onClose }) => {
             />
             <Button
               type="submit"
-              className="px-5 py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-colors disabled:bg-muted disabled:opacity-50 flex items-center justify-center shadow-md hover:shadow-lg"
-              disabled={isLoading} // Faqat yuklanayotgan bo'lsa o'chiriladi
+              size="icon"
+              className="h-11 w-11 rounded-full"
+              disabled={isLoading}
+              aria-label={t("eduai_assistant.send_button")}
             >
               {isLoading ? (
-                <svg className="animate-spin h-5 w-5 text-primary-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  className="animate-spin h-5 w-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
               ) : (
                 <Send className="h-5 w-5" />
               )}
-              <span className="ml-2 hidden sm:inline">{t("eduai_assistant.send_button")}</span>
             </Button>
           </div>
         </form>
