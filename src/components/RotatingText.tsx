@@ -56,21 +56,22 @@ const RotatingText: React.FC<RotatingTextProps> = ({ type }) => {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -10, scale: 0.98 }}
           transition={{ duration: 0.35, ease: "easeOut" }}
-          className={cn(
-            "relative inline-flex items-center",
-            type === 'title'
-              ? "text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400"
-              : "text-foreground",
-            currentLang === 'ru' && type === 'title' && 'text-2xl sm:text-3xl lg:text-4xl'
-          )}
+          className="relative inline-flex items-center"
         >
           {type === 'title' ? (
             <>
               <span className="absolute -inset-x-2 -bottom-1 h-2 rounded-full bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400 opacity-25 blur-sm" />
-              <span className="relative leading-tight">{currentTextArray[currentIndex].text}</span>
+              <span
+                className={cn(
+                  "relative leading-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400",
+                  currentLang === 'ru' && 'text-2xl sm:text-3xl lg:text-4xl'
+                )}
+              >
+                {currentTextArray[currentIndex].text}
+              </span>
             </>
           ) : (
-            <span className="rounded-full border bg-background/40 px-3 py-1 text-sm sm:text-base font-semibold backdrop-blur-sm shadow-sm">
+            <span className="rounded-full border bg-background/40 px-3 py-1 text-sm sm:text-base font-semibold text-foreground backdrop-blur-sm shadow-sm">
               {currentTextArray[currentIndex].text}
             </span>
           )}
