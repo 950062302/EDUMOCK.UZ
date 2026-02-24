@@ -38,7 +38,9 @@ const MobileBottomNavbar: React.FC<MobileBottomNavbarProps> = ({
   const isMobile = useIsMobile();
   const [isMoreOpen, setIsMoreOpen] = useState(false);
 
-  if (!isMobile) {
+  const hideOnAuthPages = location.pathname === "/" || location.pathname === "/login";
+
+  if (!isMobile || hideOnAuthPages || (!session && !isGuestMode)) {
     return null;
   }
 
