@@ -45,13 +45,15 @@
     "onex_projects": "Onex Projects"
   },
   "landing_page": {
-    "title_part1": "Edumock Plus –",
+    "title_part1": "Mockapp.uz –",
     "title_part2": "Платформа для разговорной практики.",
     "subtitle": "Реальный результат.",
-    "slogan": "Edumock.uz качественное образование с вашим качественным приложением",
+    "slogan": "Mockapp.uz качественное образование с вашим качественным приложением",
+
     "contact_us": "Связаться с нами",
     "phone_number": "+998 77 207 71 17",
-    "description": "<strong class=\"text-primary\">Edumock.uz</strong> – это образовательная платформа, способствующая развитию учебных центров в Узбекистане, которая полностью берет на себя организацию разговорной части экзаменов CEFR в учебных центрах и гарантирует студентам качественную подготовку.",
+    "description": "<strong class=\"text-primary\">Mockapp.uz</strong> – это образовательная платформа, способствующая развитию учебных центров в Узбекистане, которая полностью берет на себя организацию разговорной части экзаменов CEFR в учебных центрах и гарантирует студентам качественную подготовку.",
+
     "select_tariff": "Выберите тариф",
     "monthly": "МЕСЯЦ",
     "lifetime": "ПОЖИЗНЕННО",
@@ -85,7 +87,8 @@
     "terms_of_use": "Условия использования",
     "try_me_button": "Попробовать (Гостевой режим)",
     "guest_mode_welcome": "Добро пожаловать, Гость! Вы находитесь в пробном режиме. Ваш прогресс не будет сохранен.",
-    "process_step_edumock": "Edumock.uz",
+    "process_step_edumock": "Mockapp.uz",
+
     "process_step_cdi_mock": "CDI MOCK",
     "process_step_cefr_mock_student": "CEFR MOCK",
     "process_step_result": "Результат",
@@ -335,10 +338,12 @@
   },
   "eduai_assistant": {
     "title": "EduAi",
-    "subtitle": "Edumock.uz Assistant",
-    "input_placeholder": "Ask EduAi a question about Edumock.uz...",
+    "subtitle": "Mockapp.uz Assistant",
+    "input_placeholder": "Ask EduAi a question about Mockapp.uz...",
+
     "send_button": "Send",
-    "initial_greeting": "Hello! I am **EduAi**, the assistant for Edumock.uz. I can help answer your questions about our Speaking Platform, tariffs, features, and technical instructions. How can I assist you today?",
+    "initial_greeting": "Hello! I am **EduAi**, the assistant for Mockapp.uz. I can help answer your questions about our Speaking Platform, tariffs, features, and technical instructions. How can I assist you today?",
+
     "empty_response_error": "I apologize, but I received an empty response. Could you please try asking in a different way?",
     "connection_error": "I'm sorry, I encountered a connection error or failed to get a valid response. Please check your connection and try again in a moment.",
     "sources_label": "Sources:",

@@ -75,7 +75,8 @@ const MockTest: React.FC = () => {
                       isMobile ? "w-24 h-20" : "w-32 h-24"
                     )}
                   />
-                  <p className="text-[10px] text-muted-foreground mt-1">edumock.uz</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">mockapp.uz</p>
+
                 </div>
               )}
               {isTestStarted && studentInfo && !isMobile && (
