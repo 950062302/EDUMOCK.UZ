@@ -49,11 +49,20 @@
     "title_part2": "منصة التحدث.",
     "subtitle": "نتائج حقيقية.",
     "slogan": "جودة التعليم من Mockapp.uz مع تطبيقك عالي الجودة",
-
     "contact_us": "اتصل بنا",
     "phone_number": "+998 77 207 71 17",
     "description": "<strong class=\"text-primary\">Mockapp.uz</strong> هي منصة تعليمية تساهم في تطوير مراكز التدريب في أوزبكستان، والتي تتولى بالكامل تنظيم جزء التحدث في امتحانات CEFR في مراكز التدريب وتضمن للطلاب إعدادًا عالي الجودة.",
-
+    "trust_section": {
+      "title_line1": "ندعم مراكز التدريب",
+      "title_line2": "في جميع أنحاء أوزبستان.",
+      "guaranteed_title": "جودة مضمونة",
+      "guaranteed_desc": "نضمن أعلى المعايير لتنظيم قسم التحدث.",
+      "collaborative_title": "نمو تعاوني",
+      "collaborative_desc": "نساهم معًا في تطوير النظام التعليمي.",
+      "localized_title": "حل محلي",
+      "localized_desc": "مصمم خصيصًا لاحتياجات مراكز التدريب في أوزبستان.",
+      "image_alt": "معاينة المنصة"
+    },
     "select_tariff": "اختر التعرفة",
     "monthly": "شهري",
     "lifetime": "مدى الحياة",
@@ -88,7 +97,6 @@
     "try_me_button": "جربني (وضع الضيف)",
     "guest_mode_welcome": "أهلاً بك، ضيف! أنت في وضع تجريبي. لن يتم حفظ تقدمك.",
     "process_step_edumock": "Mockapp.uz",
-
     "process_step_cdi_mock": "CDI MOCK",
     "process_step_cefr_mock_student": "CEFR MOCK",
     "process_step_result": "النتيجة",
@@ -340,10 +348,8 @@
     "title": "EduAi",
     "subtitle": "مساعد Mockapp.uz",
     "input_placeholder": "اسأل EduAi سؤالاً عن Mockapp.uz...",
-
     "send_button": "إرسال",
     "initial_greeting": "مرحباً! أنا **EduAi**، مساعد Mockapp.uz. يمكنني مساعدتك في الإجابة على أسئلتك حول منصة التحدث الخاصة بنا، والتعريفات، والميزات، والتعليمات الفنية. كيف يمكنني مساعدتك اليوم؟",
-
     "empty_response_error": "أعتذر، لقد تلقيت ردًا فارغًا. هل يمكنك محاولة السؤال بطريقة مختلفة؟",
     "connection_error": "أنا آسف، لقد واجهت خطأ في الاتصال أو فشلت في الحصول على استجابة صالحة. يرجى التحقق من اتصالك والمحاولة مرة أخرى بعد لحظة.",
     "sources_label": "المصادر:",

@@ -16,6 +16,7 @@ import { motion } from "framer-motion"; // Import motion from framer-motion
 import LoadingSpinner from "@/components/LoadingSpinner"; // Import the new component
 import RotatingText from "@/components/RotatingText"; // Yangi komponentni import qilish
 import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
+import TrustSection from "@/components/TrustSection";
 
 const Login: React.FC = () => {
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
@@ -103,6 +104,7 @@ const Login: React.FC = () => {
             </div>
 
             <ProcessSteps />
+            <TrustSection />
             <ContactSection />
           </div>
 
