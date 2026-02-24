@@ -116,12 +116,12 @@ const Login: React.FC = () => {
               </div>
 
               <ProcessSteps />
-              <TrustSection />
               <ContactSection />
             </div>
 
-            <div className="lg:w-2/5 mt-10 lg:mt-0">
+            <div className="lg:w-2/5 mt-10 lg:mt-0 space-y-6">
               <PricingCard />
+              <TrustSection />
             </div>
           </div>
         </main>

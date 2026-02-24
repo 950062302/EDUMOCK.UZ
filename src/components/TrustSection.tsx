@@ -27,7 +27,7 @@ const TrustSection: React.FC = () => {
   ];
 
   return (
-    <section className="mt-10">
+    <section>
       <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br from-zinc-950 via-zinc-900 to-emerald-950/30 text-white shadow-2xl">
         {/* decorative grid */}
         <div
@@ -42,20 +42,20 @@ const TrustSection: React.FC = () => {
         {/* subtle glow */}
         <div className="pointer-events-none absolute -top-24 left-1/2 h-64 w-[32rem] -translate-x-1/2 rounded-full bg-emerald-500/20 blur-[120px]" />
 
-        <div className="relative px-5 py-10 sm:px-8 sm:py-14">
-          <div className="grid items-center gap-10 lg:grid-cols-2">
+        <div className="relative px-5 py-8 sm:px-8 sm:py-10">
+          <div className="grid items-center gap-8 lg:grid-cols-1">
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <h2 className="text-3xl font-bold leading-tight sm:text-4xl">
+              <h2 className="text-2xl font-bold leading-tight sm:text-3xl">
                 {t("landing_page.trust_section.title_line1")} <br />
                 <span className="text-emerald-300">{t("landing_page.trust_section.title_line2")}</span>
               </h2>
 
-              <div className="mt-8 space-y-5">
+              <div className="mt-6 space-y-4">
                 {items.map(({ Icon, title, desc }, i) => (
                   <motion.div
                     key={title}
@@ -63,13 +63,13 @@ const TrustSection: React.FC = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: 0.15 + i * 0.08 }}
-                    className="flex gap-4"
+                    className="flex gap-3"
                   >
                     <div className="shrink-0 rounded-2xl bg-emerald-500/15 p-3 text-emerald-200 ring-1 ring-emerald-500/20">
-                      <Icon className="h-6 w-6" />
+                      <Icon className="h-5 w-5" />
                     </div>
                     <div>
-                      <h4 className="text-base font-bold sm:text-lg">{title}</h4>
+                      <h4 className="text-sm font-bold sm:text-base">{title}</h4>
                       <p className="mt-1 text-sm leading-relaxed text-zinc-200/90">{desc}</p>
                     </div>
                   </motion.div>
@@ -90,14 +90,12 @@ const TrustSection: React.FC = () => {
                 <img
                   src="https://av.sc.com/corp-en/nr/content/images/Uzbekistan-skyline-insights-article-in-text.jpg"
                   alt={t("landing_page.trust_section.image_alt")}
-                  className="aspect-[4/3] w-full rounded-[1.9rem] bg-black/20 object-cover shadow-2xl"
+                  className="aspect-[16/10] w-full rounded-[1.9rem] bg-black/20 object-cover shadow-2xl"
                   loading="lazy"
                   decoding="async"
                   referrerPolicy="no-referrer"
                 />
-
               </div>
-
             </motion.div>
           </div>
         </div>

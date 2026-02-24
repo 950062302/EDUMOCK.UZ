@@ -138,10 +138,10 @@ const PricingCard: React.FC<PricingCardProps> = ({ isDialog = false }) => {
               key={option}
               value={option}
               className={cn(
-                "price-option flex flex-col border border-border rounded-xl relative mb-2 last:mb-0",
+                "price-option flex flex-col border border-border rounded-xl relative mb-1 last:mb-0",
                 cardBackgrounds[option],
                 selectedPriceKey === option ? 'price-option-active' : '',
-                isDialog ? "p-2" : "p-4"
+                isDialog ? "p-2" : "p-3"
               )}
             >
               {isHotSaleCard && (
