@@ -67,68 +67,81 @@ const MobileBottomNavbar: React.FC<MobileBottomNavbarProps> = ({
         );
       })}
 
-      <Sheet open={isMoreOpen} onOpenChange={setIsMoreOpen}>
-        <SheetTrigger asChild>
-          <button
-            className={cn(
-              "button",
-              ["/user-profile", "/settings"].includes(location.pathname) ? "active-button" : ""
-            )}
-            aria-label="More"
-          >
-            <Menu className="icon" />
-          </button>
-        </SheetTrigger>
-        <SheetContent side="bottom" className="rounded-t-2xl p-4">
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              variant="outline"
-              className="justify-start gap-2"
-              onClick={() => {
-                setIsMoreOpen(false);
-                navigate("/user-profile");
-              }}
+      {isGuestMode && !session ? (
+        <button
+          className="button"
+          onClick={async () => {
+            await handleLogout();
+            navigate("/login");
+          }}
+          aria-label={t("common.guest_mode_exit")}
+        >
+          <LogOut className="icon" />
+        </button>
+      ) : (
+        <Sheet open={isMoreOpen} onOpenChange={setIsMoreOpen}>
+          <SheetTrigger asChild>
+            <button
+              className={cn(
+                "button",
+                ["/user-profile", "/settings"].includes(location.pathname) ? "active-button" : ""
+              )}
+              aria-label="More"
             >
-              <User className="h-4 w-4" />
-              {t("common.profile")}
-            </Button>
-            <Button
-              variant="outline"
-              className="justify-start gap-2"
-              onClick={() => {
-                setIsMoreOpen(false);
-                navigate("/settings");
-              }}
-            >
-              <SettingsIcon className="h-4 w-4" />
-              {t("common.settings")}
-            </Button>
-            <Button
-              variant="outline"
-              className="justify-start gap-2"
-              onClick={() => {
-                setIsMoreOpen(false);
-                setIsGuideDialogOpen(true);
-              }}
-            >
-              <Info className="h-4 w-4" />
-              {t("common.guide")}
-            </Button>
-            <Button
-              variant="destructive"
-              className="justify-start gap-2"
-              onClick={async () => {
-                setIsMoreOpen(false);
-                await handleLogout();
-                navigate("/login");
-              }}
-            >
-              <LogOut className="h-4 w-4" />
-              {isGuestMode && !session ? t("common.guest_mode_exit") : t("common.logout")}
-            </Button>
-          </div>
-        </SheetContent>
-      </Sheet>
+              <Menu className="icon" />
+            </button>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="rounded-t-2xl p-4">
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="outline"
+                className="justify-start gap-2"
+                onClick={() => {
+                  setIsMoreOpen(false);
+                  navigate("/user-profile");
+                }}
+              >
+                <User className="h-4 w-4" />
+                {t("common.profile")}
+              </Button>
+              <Button
+                variant="outline"
+                className="justify-start gap-2"
+                onClick={() => {
+                  setIsMoreOpen(false);
+                  navigate("/settings");
+                }}
+              >
+                <SettingsIcon className="h-4 w-4" />
+                {t("common.settings")}
+              </Button>
+              <Button
+                variant="outline"
+                className="justify-start gap-2"
+                onClick={() => {
+                  setIsMoreOpen(false);
+                  setIsGuideDialogOpen(true);
+                }}
+              >
+                <Info className="h-4 w-4" />
+                {t("common.guide")}
+              </Button>
+              <Button
+                variant="destructive"
+                className="justify-start gap-2"
+                onClick={async () => {
+                  setIsMoreOpen(false);
+                  await handleLogout();
+                  navigate("/login");
+                }}
+              >
+                <LogOut className="h-4 w-4" />
+                {t("common.logout")}
+              </Button>
+            </div>
+          </SheetContent>
+        </Sheet>
+      )}
     </div>
   );
 };
