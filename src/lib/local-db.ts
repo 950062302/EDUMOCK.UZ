@@ -1,7 +1,7 @@
 import { openDB, IDBPDatabase } from 'idb';
 import { v4 as uuidv4 } from 'uuid';
 import { SpeakingQuestion, MoodEntry, RecordedSession, Part1_1Question, Part1_2Question, Part2Question, Part3Question } from './types';
-import { supabase } from '@/integrations/supabase/client';
+import { pb } from "@/integrations/pocketbase/client";
 import { showError } from '@/utils/toast';
 import i18n from '@/i18n';
 
@@ -30,9 +30,9 @@ async function initDB() {
 }
 
 const getUserId = async (): Promise<string | null> => {
-  const { data: { user } } = await supabase.auth.getUser();
-  console.log("[getUserId] Current authenticated user ID:", user?.id || "null");
-  return user?.id || null;
+  const userId = pb.authStore.model?.id || null;
+  console.log("[getUserId] Current authenticated user ID:", userId || "null");
+  return userId;
 };
 
 // Helper to normalize sub_questions for comparison
@@ -47,26 +47,16 @@ export const checkDuplicateQuestion = async (
   userId: string | null,
   excludeId?: string // Update uchun, o'zini tekshirmaslik
 ): Promise<boolean> => {
-  let query = supabase.from('questions').select('*');
-  
-  if (userId) {
-    query = query.eq('user_id', userId);
-  } else {
-    query = query.is('user_id', null); // Mehmon rejimi uchun, public savollarni tekshirish
-  }
-  
-  query = query.eq('type', questionData.type);
-  
-  const { data, error } = await query;
-  
-  if (error) {
-    console.error("Error checking for duplicate questions:", error.message);
-    return false; // Xato bo'lsa, takrorlanish yo'q deb hisoblaymiz
-  }
-  
-  if (!data || data.length === 0) {
-    return false; // Bu turdagi savollar yo'q, demak takrorlanish yo'q
-  }
+  try {
+    // PocketBase filter: guest/public savollar uchun user_id bo'sh string deb qaraymiz.
+    const ownerFilter = userId ? `user_id="${userId}"` : `user_id=""`;
+    const typeFilter = `type="${questionData.type}"`;
+    const data = await pb.collection("questions").getFullList({
+      filter: `${ownerFilter} && ${typeFilter}`,
+      requestKey: null,
+    });
+
+    if (!data || data.length === 0) return false;
   
   // Client-side comparison based on question type
   switch (questionData.type) {
@@ -75,9 +65,9 @@ export const checkDuplicateQuestion = async (
       const newNormalizedSubQuestions = normalizeSubQuestions((questionData as Part1_1Question | Part1_2Question).sub_questions);
       if (!newNormalizedSubQuestions) return false;
       
-      return data.some(existingQ => {
+      return data.some((existingQ: any) => {
         if (excludeId && existingQ.id === excludeId) return false; // O'zini tekshirmaslik
-        const existingNormalizedSubQuestions = normalizeSubQuestions((existingQ as Part1_1Question | Part1_2Question).sub_questions);
+        const existingNormalizedSubQuestions = normalizeSubQuestions((existingQ as any).sub_questions);
         return existingNormalizedSubQuestions === newNormalizedSubQuestions;
       });
     }
@@ -86,47 +76,49 @@ export const checkDuplicateQuestion = async (
       const newQuestionText = (questionData as Part2Question | Part3Question).question_text?.trim();
       if (!newQuestionText) return false; // Yangi matn bo'sh bo'lsa, takrorlanish bo'lishi mumkin emas
       
-      return data.some(existingQ => {
+      return data.some((existingQ: any) => {
         if (excludeId && existingQ.id === excludeId) return false; // O'zini tekshirmaslik
-        return existingQ.question_text?.trim() === newQuestionText;
+        return String(existingQ.question_text || "").trim() === newQuestionText;
       });
     }
     default:
       return false;
   }
+  } catch (e: any) {
+    console.error("Error checking for duplicate questions:", e?.message || e);
+    return false;
+  }
 };
 
-export const getSupabaseQuestions = async (): Promise<SpeakingQuestion[]> => {
-  const { data: { user } } = await supabase.auth.getUser();
-  const userId = user?.id;
+export const getQuestions = async (): Promise<SpeakingQuestion[]> => {
+  const userId = pb.authStore.model?.id;
   const isGuestMode = localStorage.getItem("isGuestMode") === "true"; // Mehmon rejimini tekshirish
   
-  let query = supabase.from('questions').select('*');
-  
-  if (isGuestMode && !user) {
-    // Mehmon rejimida faqat user_id NULL bo'lgan savollarni ko'rsatish
-    query = query.is('user_id', null);
-  } else if (userId) {
-    // Tizimga kirgan foydalanuvchi uchun faqat o'zining savollarini ko'rsatish
-    query = query.eq('user_id', userId);
-  } else {
-    // Tizimga kirmagan va mehmon rejimida bo'lmagan foydalanuvchi uchun savollar yo'q
+  try {
+    let filter = "";
+
+    if (isGuestMode && !userId) {
+      filter = `user_id=""`;
+    } else if (userId) {
+      filter = `user_id="${userId}"`;
+    } else {
+      return [];
+    }
+
+    const data = await pb.collection("questions").getFullList({
+      filter,
+      requestKey: null,
+    });
+
+    return data as unknown as SpeakingQuestion[];
+  } catch (e: any) {
+    showError(i18n.t("add_question_page.error_loading_entries", { message: e?.message || String(e) }));
     return [];
   }
-  
-  const { data, error } = await query;
-  
-  if (error) {
-    showError(i18n.t("add_question_page.error_loading_entries", { message: error.message }));
-    return [];
-  }
-  
-  return data as SpeakingQuestion[];
 };
 
-export const addSupabaseQuestion = async (question: Omit<SpeakingQuestion, 'id' | 'date' | 'user_id'>): Promise<SpeakingQuestion | null> => {
-  const { data: { user } } = await supabase.auth.getUser();
-  const userId = user?.id;
+export const addQuestion = async (question: Omit<SpeakingQuestion, 'id' | 'date' | 'user_id'>): Promise<SpeakingQuestion | null> => {
+  const userId = pb.authStore.model?.id;
   
   if (!userId) {
     console.warn("Attempted to add a question without being authenticated. This action is blocked.");
@@ -142,28 +134,22 @@ export const addSupabaseQuestion = async (question: Omit<SpeakingQuestion, 'id' 
   
   const newQuestion = {
     ...question,
-    id: uuidv4(),
+    // NOTE: PocketBase record "id" is system-generated; do NOT send custom id.
     date: new Date().toISOString(),
     user_id: userId,
   };
   
-  const { data, error } = await supabase
-    .from('questions')
-    .insert(newQuestion)
-    .select()
-    .single();
-    
-  if (error) {
-    showError(i18n.t("add_question_page.error_saving_entry", { message: error.message }));
+  try {
+    const data = await pb.collection("questions").create(newQuestion as any, { requestKey: null });
+    return data as unknown as SpeakingQuestion;
+  } catch (e: any) {
+    showError(i18n.t("add_question_page.error_saving_entry", { message: e?.message || String(e) }));
     return null;
   }
-  
-  return data as SpeakingQuestion;
 };
 
-export const updateSupabaseQuestion = async (updatedQuestion: SpeakingQuestion): Promise<SpeakingQuestion | null> => {
-  const { data: { user } } = await supabase.auth.getUser();
-  const userId = user?.id;
+export const updateQuestion = async (updatedQuestion: SpeakingQuestion): Promise<SpeakingQuestion | null> => {
+  const userId = pb.authStore.model?.id;
   
   if (!userId) {
     console.warn("Attempted to update a question without being authenticated. This action is blocked.");
@@ -177,26 +163,23 @@ export const updateSupabaseQuestion = async (updatedQuestion: SpeakingQuestion):
     return null;
   }
   
-  const { data, error } = await supabase
-    .from('questions')
-    .update(updatedQuestion)
-    .eq('id', updatedQuestion.id)
-    .eq('user_id', userId) // Ensure user can only update their own questions
-    .select()
-    .single();
-    
-  if (error) {
-    showError(i18n.t("add_question_page.error_saving_entry", { message: error.message }));
+  try {
+    // ensure ownership on client side
+    if (updatedQuestion.user_id !== userId) {
+      showError(i18n.t("add_question_page.error_saving_entry", { message: "Forbidden" }));
+      return null;
+    }
+    const data = await pb.collection("questions").update(updatedQuestion.id, updatedQuestion as any, { requestKey: null });
+    return data as unknown as SpeakingQuestion;
+  } catch (e: any) {
+    showError(i18n.t("add_question_page.error_saving_entry", { message: e?.message || String(e) }));
     return null;
   }
-  
-  return data as SpeakingQuestion;
 };
 
 // Yangi funksiya: Faqat `last_used` maydonini yangilash uchun
 export const updateQuestionCooldown = async (questionId: string): Promise<boolean> => {
-  const { data: { user } } = await supabase.auth.getUser();
-  const userId = user?.id;
+  const userId = pb.authStore.model?.id;
   
   if (!userId) {
     console.warn("Cannot update cooldown without an authenticated user.");
@@ -204,67 +187,61 @@ export const updateQuestionCooldown = async (questionId: string): Promise<boolea
     return true;
   }
   
-  const { error } = await supabase
-    .from('questions')
-    .update({ last_used: new Date().toISOString() })
-    .eq('id', questionId)
-    .eq('user_id', userId);
-    
-  if (error) {
-    console.error(`Error updating cooldown for question ${questionId}:`, error.message);
-    // Foydalanuvchiga xato ko'rsatish shart emas, chunki bu fon jarayoni
+  try {
+    const current = await pb.collection("questions").getOne(questionId, { requestKey: null });
+    if ((current as any).user_id !== userId) return false;
+    await pb.collection("questions").update(questionId, { last_used: new Date().toISOString() } as any, { requestKey: null });
+    return true;
+  } catch (e: any) {
+    console.error(`Error updating cooldown for question ${questionId}:`, e?.message || e);
     return false;
   }
-  
-  return true;
 };
 
-export const deleteSupabaseQuestion = async (id: string): Promise<boolean> => {
-  const { data: { user } } = await supabase.auth.getUser();
-  const userId = user?.id;
+export const deleteQuestion = async (id: string): Promise<boolean> => {
+  const userId = pb.authStore.model?.id;
   
   if (!userId) {
     console.warn("Attempted to delete a question in guest mode. This action is blocked.");
     return false;
   }
   
-  const { error } = await supabase
-    .from('questions')
-    .delete()
-    .eq('id', id)
-    .eq('user_id', userId); // Ensure user can only delete their own questions
-    
-  if (error) {
-    showError(i18n.t("add_question_page.error_deleting_entry", { message: error.message }));
+  try {
+    const current = await pb.collection("questions").getOne(id, { requestKey: null });
+    if ((current as any).user_id !== userId) return false;
+    await pb.collection("questions").delete(id, { requestKey: null });
+    return true;
+  } catch (e: any) {
+    showError(i18n.t("add_question_page.error_deleting_entry", { message: e?.message || String(e) }));
     return false;
   }
-  
-  return true;
 };
 
-export const resetSupabaseQuestionCooldowns = async (): Promise<boolean> => {
-  const { data: { user } = {} } = await supabase.auth.getUser();
-  const userId = user?.id;
-  
-  let query = supabase
-    .from('questions')
-    .update({ last_used: null });
-    
-  if (userId) {
-    query = query.eq('user_id', userId); // Faqat o'zining savollarini reset qilish
-  } else {
-    // Guest user can reset cooldowns for public sample questions
-    query = query.is('user_id', null);
-  }
-  
-  const { error } = await query;
-  
-  if (error) {
-    showError(i18n.t("add_question_page.error_saving_entry", { message: error.message }));
+export const resetQuestionCooldowns = async (): Promise<boolean> => {
+  const userId = pb.authStore.model?.id;
+
+  try {
+    const isGuestMode = localStorage.getItem("isGuestMode") === "true";
+    const ownerFilter = userId ? `user_id="${userId}"` : `user_id=""`;
+
+    if (!userId && !isGuestMode) return false;
+
+    const list = await pb.collection("questions").getFullList({
+      filter: ownerFilter,
+      requestKey: null,
+    });
+
+    await Promise.all(
+      list.map((q: any) =>
+        pb.collection("questions").update(q.id, { last_used: null } as any, { requestKey: null })
+      )
+    );
+
+    return true;
+  } catch (e: any) {
+    showError(i18n.t("add_question_page.error_saving_entry", { message: e?.message || String(e) }));
     return false;
   }
-  
-  return true;
 };
 
 export const getLocalMoodEntries = (): MoodEntry[] => {
@@ -306,83 +283,60 @@ interface StoredRecording {
   student_name?: string;
   student_phone?: string;
   videoBlob: Blob; // This is the actual blob stored in IndexedDB
-  supabase_url?: string; // Supabase'ga yuklangan videoning ommaviy URL manzili
+  cloud_url?: string; // Cloud'ga yuklangan videoning ommaviy URL manzili
 }
 
 // Yangi: Supabase jadvaliga yozuv metama'lumotlarini kiritish yoki yangilash
-export const upsertRecordingMetadataToSupabase = async (recording: Omit<RecordedSession, 'video_url' | 'isLocalBlobAvailable'>): Promise<void> => {
-  const { error } = await supabase
-    .from('recordings_metadata')
-    .upsert({
-      id: recording.id,
-      user_id: recording.user_id,
-      timestamp: recording.timestamp,
-      duration: recording.duration,
-      student_id: recording.student_id,
-      student_name: recording.student_name,
-      student_phone: recording.student_phone,
-      supabase_url: recording.supabase_url,
-    }, {
-      onConflict: 'id' // Agar ID mavjud bo'lsa, yangilaydi
-    });
-    
-  if (error) {
-    console.error("Error upserting recording metadata to Supabase:", error.message);
-    showError(i18n.t("records_page.error_uploading_to_cloud", { message: error.message }));
-  }
-};
-
-// Yangi: Supabase jadvalidan yozuv metama'lumotlarini o'chirish
-const deleteRecordingMetadataFromSupabase = async (recordingId: string): Promise<boolean> => {
-  const userId = await getUserId();
-  
-  if (!userId) {
-    console.error("[Delete Metadata] Cannot delete recording metadata from Supabase: User not authenticated.");
-    return false;
-  }
-  
-  console.log(`[Delete Metadata] Attempting to delete metadata from Supabase DB for recording ID: ${recordingId}, by user ID: ${userId}`);
-  
-  const { error } = await supabase
-    .from('recordings_metadata')
-    .delete()
-    .eq('id', recordingId)
-    .eq('user_id', userId);
-    
-  if (error) {
-    console.error("[Delete Metadata] Error deleting recording metadata from Supabase:", error.message);
-    showError(i18n.t("records_page.error_deleting_from_cloud", { message: error.message }));
-    return false;
-  }
-  
-  console.log(`[Delete Metadata] Successfully deleted metadata from Supabase DB for ID: ${recordingId}`);
-  return true;
-};
-
-// Helper function to encapsulate cloud deletion logic
-const deleteCloudRecording = async (recordingId: string, userId: string): Promise<boolean> => {
-  console.log(`[Delete Cloud] Attempting to delete from Supabase Storage: ${userId}/${recordingId}.webm`);
-  
-  const { error: deleteStorageError } = await supabase.storage
-    .from('recordings')
-    .remove([`${userId}/${recordingId}.webm`]);
-    
-  if (deleteStorageError) {
-    console.error(`[Delete Cloud] Error deleting from Supabase Storage for ID ${recordingId}:`, deleteStorageError.message);
-    showError(i18n.t("records_page.error_deleting_from_cloud", { message: deleteStorageError.message }));
-    return false;
-  } else {
-    console.log(`[Delete Cloud] Successfully deleted from Supabase Storage: ${userId}/${recordingId}.webm`);
-    
-    // Storage'dan o'chirilgandan so'ng, metama'lumotlarni ham o'chiramiz
-    const metadataDeleted = await deleteRecordingMetadataFromSupabase(recordingId);
-    if (!metadataDeleted) {
-      console.error(`[Delete Cloud] Failed to delete metadata from Supabase DB for ID: ${recordingId}.`);
-      return false;
-    } else {
-      console.log(`[Delete Cloud] Successfully deleted metadata from Supabase DB for ID: ${recordingId}`);
-      return true;
+export const upsertRecordingMetadataToCloud = async (recording: Omit<RecordedSession, 'video_url' | 'isLocalBlobAvailable'>): Promise<void> => {
+  try {
+    // PocketBase: recordings collection ichida local_id (unique) orqali upsert qilamiz.
+    const filter = `local_id="${recording.id}" && user_id="${recording.user_id}"`;
+    try {
+      const existing: any = await pb.collection("recordings").getFirstListItem(filter, { requestKey: null });
+      await pb.collection("recordings").update(
+        existing.id,
+        {
+          timestamp: recording.timestamp,
+          duration: recording.duration,
+          student_id: recording.student_id ?? null,
+          student_name: recording.student_name ?? null,
+          student_phone: recording.student_phone ?? null,
+          cloud_url: (recording as any).cloud_url ?? null,
+        } as any,
+        { requestKey: null }
+      );
+    } catch {
+      await pb.collection("recordings").create(
+        {
+          local_id: recording.id,
+          user_id: recording.user_id,
+          timestamp: recording.timestamp,
+          duration: recording.duration,
+          student_id: recording.student_id ?? null,
+          student_name: recording.student_name ?? null,
+          student_phone: recording.student_phone ?? null,
+          cloud_url: (recording as any).cloud_url ?? null,
+        } as any,
+        { requestKey: null }
+      );
     }
+  } catch (e: any) {
+    console.error("Error upserting recording metadata to PocketBase:", e?.message || e);
+    showError(i18n.t("records_page.error_uploading_to_cloud", { message: e?.message || String(e) }));
+  }
+};
+
+// PocketBase: cloud record (recordings collection) delete helper
+const deleteCloudRecording = async (recordingLocalId: string, userId: string): Promise<boolean> => {
+  try {
+    const filter = `local_id="${recordingLocalId}" && user_id="${userId}"`;
+    const existing: any = await pb.collection("recordings").getFirstListItem(filter, { requestKey: null });
+    await pb.collection("recordings").delete(existing.id, { requestKey: null });
+    return true;
+  } catch (e: any) {
+    console.error("[Delete Cloud] Error deleting from PocketBase:", e?.message || e);
+    showError(i18n.t("records_page.error_deleting_from_cloud", { message: e?.message || String(e) }));
+    return false;
   }
 };
 
@@ -394,16 +348,20 @@ export const getLocalRecordings = async (): Promise<RecordedSession[]> => {
   let allRecordings: RecordedSession[] = [];
   
   if (userId) {
-    // Authenticated user: Fetch from Supabase metadata table first
-    const { data, error } = await supabase
-      .from('recordings_metadata')
-      .select('*')
-      .eq('user_id', userId);
-      
-    if (error) {
-      showError(i18n.t("records_page.error_loading_recordings", { message: error.message }));
-    } else if (data) {
-      const supabaseRecordingIds = new Set(data.map(rec => rec.id));
+    // Authenticated user: Fetch from PocketBase recordings collection first
+    let data: any[] = [];
+    try {
+      data = await pb.collection("recordings").getFullList({
+        filter: `user_id="${userId}"`,
+        requestKey: null,
+      });
+    } catch (e: any) {
+      showError(i18n.t("records_page.error_loading_recordings", { message: e?.message || String(e) }));
+      data = [];
+    }
+
+    if (data) {
+      const cloudRecordingIds = new Set(data.map(rec => rec.local_id));
       const tx = db.transaction(STORE_RECORDINGS, 'readwrite');
       const store = tx.objectStore(STORE_RECORDINGS);
       
@@ -412,9 +370,8 @@ export const getLocalRecordings = async (): Promise<RecordedSession[]> => {
       for (const sRec of storedRecordings) {
         if (sRec.user_id === userId) {
           // Only consider local recordings belonging to the current user
-          if (sRec.supabase_url && !supabaseRecordingIds.has(sRec.id)) {
-            // This local recording has a supabase_url but is not in Supabase metadata.
-            // It means it was deleted from Supabase (e.g., by another browser). Delete it locally.
+          if (sRec.cloud_url && !cloudRecordingIds.has(sRec.id)) {
+            // This local recording has a cloud url but is not in PocketBase anymore.
             console.log(`[getLocalRecordings] Deleting stale local recording from IndexedDB: ${sRec.id}`);
             await store.delete(sRec.id);
             // Do not add to filteredLocalRecordings
@@ -428,29 +385,32 @@ export const getLocalRecordings = async (): Promise<RecordedSession[]> => {
       }
       await tx.done; // Commit the transaction after potential deletions
       
-      // Now, combine the fresh Supabase data with the filtered local data
+      // Now, combine the fresh PocketBase data with the filtered local data
       const combinedIds = new Set<string>();
       
-      // Add Supabase recordings first
+      // Add cloud recordings first
       data.forEach(rec => {
-        combinedIds.add(rec.id);
-        const localVersion = filteredLocalRecordings.find(sRec => sRec.id === rec.id);
+        const localId = rec.local_id;
+        if (!localId) return;
+        combinedIds.add(localId);
+        const localVersion = filteredLocalRecordings.find(sRec => sRec.id === localId);
+        const cloudUrl = rec.video ? pb.files.getUrl(rec, rec.video) : (rec.cloud_url || undefined);
         
         allRecordings.push({
-          id: rec.id,
+          id: localId,
           user_id: rec.user_id,
           timestamp: rec.timestamp,
-          duration: rec.duration,
+          duration: Number(rec.duration || 0),
           student_id: rec.student_id || undefined,
           student_name: rec.student_name || undefined,
           student_phone: rec.student_phone || undefined,
-          video_url: localVersion ? URL.createObjectURL(localVersion.videoBlob) : rec.supabase_url, // Use local blob URL if available, otherwise Supabase URL
-          supabase_url: rec.supabase_url,
+          video_url: localVersion ? URL.createObjectURL(localVersion.videoBlob) : cloudUrl,
+          cloud_url: cloudUrl,
           isLocalBlobAvailable: !!localVersion,
         });
       });
       
-      // Add local-only recordings that are not in Supabase
+      // Add local-only recordings that are not in cloud
       filteredLocalRecordings.forEach(sRec => {
         if (!combinedIds.has(sRec.id)) {
           allRecordings.push({
@@ -477,6 +437,33 @@ export const getLocalRecordings = async (): Promise<RecordedSession[]> => {
   return allRecordings;
 };
 
+export const syncCloudStorageUsage = async (
+  userId: string,
+  currentUsedBytes?: number | null
+): Promise<number> => {
+  try {
+    // NOTE: PocketBase v0.22 may not support/behave consistently with `fields`.
+    // Fetch full records to reliably access `size_bytes`.
+    const list: any[] = await pb.collection("recordings").getFullList({
+      filter: `user_id="${userId}"`,
+      requestKey: null,
+    });
+
+    const used = list.reduce((acc, r) => acc + (Number(r.size_bytes) || 0), 0);
+    if (typeof currentUsedBytes === "number" && currentUsedBytes === used) {
+      return used;
+    }
+
+    await pb.collection("users").update(userId, { storage_used_bytes: used } as any, {
+      requestKey: null,
+    });
+    return used;
+  } catch (e: any) {
+    console.error("[syncCloudStorageUsage] Failed:", e?.message || e);
+    return 0;
+  }
+};
+
 export const getRecordingBlob = async (id: string): Promise<Blob | undefined> => {
   const db = await initDB();
   const recording = await db.get(STORE_RECORDINGS, id);
@@ -497,21 +484,21 @@ export const addLocalRecording = async (
     timestamp: currentTimestamp,
     user_id: userId,
     videoBlob: recording.videoBlob,
-    supabase_url: undefined, // Initially, no supabase_url
+    cloud_url: undefined, // Initially, no cloud url
   };
   
   await db.add(STORE_RECORDINGS, newRecording);
   return newRecordingId;
 };
 
-export const updateLocalRecordingSupabaseUrl = async (id: string, supabaseUrl: string): Promise<void> => {
+export const updateLocalRecordingCloudUrl = async (id: string, cloudUrl: string): Promise<void> => {
   const db = await initDB();
   const tx = db.transaction(STORE_RECORDINGS, 'readwrite');
   const store = tx.objectStore(STORE_RECORDINGS);
   const recording = await store.get(id);
   
   if (recording) {
-    recording.supabase_url = supabaseUrl;
+    recording.cloud_url = cloudUrl;
     await store.put(recording);
   }
   
@@ -523,19 +510,19 @@ export const deleteLocalRecording = async (id: string): Promise<boolean> => {
   const userId = await getUserId();
   
   let localRecording = await db.get(STORE_RECORDINGS, id);
-  let supabaseMetadataExists = false;
-  let supabaseDeletionSuccessful = true; // Assume true if no cloud interaction needed or successful
+  let cloudMetadataExists = false;
+  let cloudDeletionSuccessful = true; // Assume true if no cloud interaction needed or successful
   
   console.log(`[Delete] Starting deletion for recording ID: ${id}.`);
   
   if (!userId) {
     // If not authenticated, we can only delete local-only recordings.
-    // If localRecording has a supabase_url, we cannot delete it from cloud.
-    if (localRecording && !localRecording.supabase_url) {
+    // If localRecording has a cloud_url, we cannot delete it from cloud.
+    if (localRecording && !localRecording.cloud_url) {
       await db.delete(STORE_RECORDINGS, id);
       console.log(`[Delete] Successfully deleted local-only recording from IndexedDB for ID: ${id} (unauthenticated user).`);
       return true;
-    } else if (localRecording && localRecording.supabase_url) {
+    } else if (localRecording && localRecording.cloud_url) {
       showError(i18n.t("records_page.error_deleting_from_cloud", { message: "Foydalanuvchi ID topilmadi. Bulutdan o'chirib bo'lmaydi." }));
       console.error(`[Delete] Cannot delete cloud-linked recording ${id} without authentication.`);
       return false;
@@ -546,32 +533,20 @@ export const deleteLocalRecording = async (id: string): Promise<boolean> => {
   }
   
   // User is authenticated.
-  // First, check if it exists in Supabase metadata.
-  const { data: metadata, error: metadataError } = await supabase
-    .from('recordings_metadata')
-    .select('id, supabase_url')
-    .eq('id', id)
-    .eq('user_id', userId)
-    .single();
-    
-  if (metadataError && metadataError.code !== 'PGRST116') { // PGRST116 means no rows found
-    console.error(`[Delete] Error fetching metadata for ID ${id} from Supabase:`, metadataError.message);
-    showError(i18n.t("records_page.error_deleting_from_cloud", { message: metadataError.message }));
-    return false; // Failed to even check Supabase
-  }
-  
-  if (metadata && metadata.supabase_url) {
-    supabaseMetadataExists = true;
-    console.log(`[Delete] Recording ID ${id} found in Supabase metadata. Attempting cloud deletion.`);
-    supabaseDeletionSuccessful = await deleteCloudRecording(id, userId);
-  } else {
-    console.log(`[Delete] Recording ID ${id} not found in Supabase metadata or has no supabase_url.`);
-    supabaseDeletionSuccessful = true; // No cloud resource to delete, so consider it successful for cloud part
+  // First, check if it exists in PocketBase recordings.
+  try {
+    await pb.collection("recordings").getFirstListItem(`local_id="${id}" && user_id="${userId}"`, { requestKey: null });
+    cloudMetadataExists = true;
+    console.log(`[Delete] Recording ID ${id} found in PocketBase. Attempting cloud deletion.`);
+    cloudDeletionSuccessful = await deleteCloudRecording(id, userId);
+  } catch {
+    console.log(`[Delete] Recording ID ${id} not found in PocketBase.`);
+    cloudDeletionSuccessful = true;
   }
   
   let localDeletionPerformed = false;
   if (localRecording) {
-    if (supabaseDeletionSuccessful) {
+    if (cloudDeletionSuccessful) {
       console.log(`[Delete] Proceeding with local deletion for ID: ${id}.`);
       await db.delete(STORE_RECORDINGS, id);
       localDeletionPerformed = true;
@@ -586,5 +561,5 @@ export const deleteLocalRecording = async (id: string): Promise<boolean> => {
   }
   
   // Return true if either local deletion happened, or it was a cloud-only recording and cloud deletion succeeded.
-  return localDeletionPerformed || (supabaseMetadataExists && supabaseDeletionSuccessful);
+  return localDeletionPerformed || (cloudMetadataExists && cloudDeletionSuccessful);
 };

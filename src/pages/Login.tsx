@@ -10,13 +10,13 @@ import PricingCard from "@/components/PricingCard";
 // import AppFooter from "@/components/AppFooter"; // AppFooter olib tashlandi
 import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { supabase } from "@/integrations/supabase/client";
 import CustomAuthForm from "@/components/CustomAuthForm";
 import { motion } from "framer-motion"; // Import motion from framer-motion
 import LoadingSpinner from "@/components/LoadingSpinner"; // Import the new component
 import RotatingText from "@/components/RotatingText"; // Yangi komponentni import qilish
 import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 import TrustSection from "@/components/TrustSection";
+import { useAuth } from "@/context/AuthProvider";
 
 const Login: React.FC = () => {
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
@@ -24,6 +24,7 @@ const Login: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const isMobile = useIsMobile(); // Use the hook
+  const { session } = useAuth();
 
   const openLoginModal = () => {
     setIsLoginDialogOpen(true);
@@ -44,27 +45,21 @@ const Login: React.FC = () => {
   };
 
   useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        setShowGlobalSpinner(true); // Start spinner for login
-        setTimeout(() => {
-          closeLoginModal();
-          navigate("/home");
-          setShowGlobalSpinner(false); // End spinner
-        }, 2500); // 2.5 seconds delay
-      } else if (event === 'SIGNED_OUT') {
-        // If user signs out, ensure spinner is off and clear guest mode
+    if (session) {
+      setShowGlobalSpinner(true);
+      setTimeout(() => {
+        closeLoginModal();
+        navigate("/home");
         setShowGlobalSpinner(false);
-        localStorage.removeItem("isGuestMode");
-        sessionStorage.removeItem("guestWelcomeToastShown");
-        sessionStorage.removeItem("showGuestGuide");
-      }
-    });
+      }, 2500);
+      return;
+    }
 
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, [navigate]); // Removed showGlobalSpinner from dependencies to prevent re-running useEffect on state change
+    setShowGlobalSpinner(false);
+    localStorage.removeItem("isGuestMode");
+    sessionStorage.removeItem("guestWelcomeToastShown");
+    sessionStorage.removeItem("showGuestGuide");
+  }, [navigate, session]);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 text-foreground flex flex-col dark:from-zinc-950 dark:via-zinc-900 dark:to-emerald-950/30">

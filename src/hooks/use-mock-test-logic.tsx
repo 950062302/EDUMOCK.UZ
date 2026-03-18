@@ -13,7 +13,7 @@ import {
   Part3Question,
 } from "@/lib/types";
 import { allSpeakingParts } from "@/lib/constants";
-import { getSupabaseQuestions, updateQuestionCooldown } from "@/lib/local-db";
+import { getQuestions, updateQuestionCooldown } from "@/lib/local-db";
 import { useTranslation } from 'react-i18next';
 import { useAuth } from "@/context/AuthProvider"; // useAuth import qilindi
 
@@ -149,7 +149,7 @@ export const useMockTestLogic = ({
   }, [currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, questions, currentPhase, stopAllStreams, getCurrentQuestion, t]);
 
   const loadAllQuestions = useCallback(async () => {
-    const data = await getSupabaseQuestions();
+    const data = await getQuestions();
     const loadedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
       "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
     };

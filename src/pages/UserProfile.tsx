@@ -11,12 +11,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, Cloud } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { useAuth } from "@/context/AuthProvider";
-import { supabase } from "@/integrations/supabase/client";
 import { showSuccess, showError } from "@/utils/toast";
 import { useProfile, formatBytes } from "@/hooks/use-profile"; // Yangi hook va yordamchi funksiyalar
 import { Progress } from "@/components/ui/progress"; // Progress komponenti
 import { Badge } from "@/components/ui/badge"; // Badge import qilindi
 import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
+import { pb } from "@/integrations/pocketbase/client";
 
 const UserProfile: React.FC = () => {
   const { t } = useTranslation();
@@ -50,31 +50,15 @@ const UserProfile: React.FC = () => {
     setIsSaving(true);
 
     try {
-      // 1. Update profiles table
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
+      await pb.collection("users").update(
+        user.id,
+        {
           first_name: firstName.trim(),
           last_name: lastName.trim(),
           bio: bio.trim(),
-        })
-        .eq('id', user.id);
-
-      if (profileError) {
-        throw profileError;
-      }
-
-      // 2. Update auth.users metadata (optional, but good practice for full_name)
-      const { error: authError } = await supabase.auth.updateUser({
-        data: {
-          full_name: `${firstName.trim()} ${lastName.trim()}`.trim(),
-        }
-      });
-
-      if (authError) {
-        console.warn("Could not update user metadata:", authError.message);
-        // Bu yerda xato ko'rsatmaslik, chunki asosiy profil yangilandi
-      }
+        } as any,
+        { requestKey: null }
+      );
       
       // Profilni yangilash tugagandan so'ng, yangi ma'lumotlarni yuklash
       await fetchProfile();
@@ -122,7 +106,7 @@ const UserProfile: React.FC = () => {
           <CardContent className="space-y-6">
             <div className="flex flex-col items-center space-y-4">
               <Avatar className="h-24 w-24">
-                <AvatarImage src={user?.user_metadata?.avatar_url || "https://github.com/shadcn.png"} alt="@shadcn" />
+                <AvatarImage src={(user as any)?.avatar_url || "https://github.com/shadcn.png"} alt="@shadcn" />
                 <AvatarFallback>
                   <User className="h-12 w-12 text-muted-foreground" />
                 </AvatarFallback>

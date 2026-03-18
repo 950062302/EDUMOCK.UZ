@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { SpeakingQuestion, SpeakingPart } from "@/lib/types";
 import { allSpeakingParts } from "@/lib/constants";
 import { format } from "date-fns";
-import { getSupabaseQuestions } from "@/lib/local-db";
+import { getQuestions } from "@/lib/local-db";
 import { useAuth } from "@/context/AuthProvider";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,7 @@ const Questions: React.FC = () => {
 
   const loadQuestions = useCallback(async () => {
     setIsLoading(true);
-    const allQuestions = await getSupabaseQuestions();
+    const allQuestions = await getQuestions();
     const groupedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
       "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
     };

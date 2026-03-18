@@ -8,7 +8,7 @@ import { Download, PlayCircle, Trash2, ArrowLeft, Cloud, Zap, CheckCircle2, Lock
 import { format } from "date-fns";
 import { RecordedSession } from "@/lib/types";
 import { showError, showSuccess } from "@/utils/toast";
-import { getLocalRecordings, deleteLocalRecording, getRecordingBlob, updateLocalRecordingSupabaseUrl, upsertRecordingMetadataToSupabase } from "@/lib/local-db";
+import { getLocalRecordings, deleteLocalRecording, getRecordingBlob, updateLocalRecordingCloudUrl, upsertRecordingMetadataToCloud, syncCloudStorageUsage } from "@/lib/local-db";
 import { Link } from "react-router-dom";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription as DialogDescriptionComponent, // Renamed to avoid conflict
@@ -17,8 +17,7 @@ import { Dialog, DialogContent, DialogDescription as DialogDescriptionComponent,
 } from "@/components/ui/dialog";
 import PricingCard from "@/components/PricingCard";
 import { useTranslation } from 'react-i18next';
-import { supabase } from "@/integrations/supabase/client";
-import * as tus from 'tus-js-client';
+import { pb } from "@/integrations/pocketbase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useProfile, formatBytes } from "@/hooks/use-profile";
 import { Progress } from "@/components/ui/progress";
@@ -154,6 +153,8 @@ const Records: React.FC = () => {
   const [uploadErrorRecordId, setUploadErrorRecordId] = useState<string | null>(null);
   const [isPricingDialogOpen, setIsPricingDialogOpen] = useState(false);
   const isMobile = useIsMobile(); // Use the hook
+  const [uploadBytesMap, setUploadBytesMap] = useState<Record<string, { loaded: number; total: number }>>({});
+  const [downloadBytesMap, setDownloadBytesMap] = useState<Record<string, { loaded: number; total: number }>>({});
   
   // useProgress hookidan foydalanish
   const progressMap = useProgress();
@@ -172,7 +173,16 @@ const Records: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [t]);
+  }, [t, user?.id, fetchProfile]);
+
+  // Keep EduCloud usage accurate without causing refresh loops.
+  useEffect(() => {
+    if (!user?.id) return;
+    syncCloudStorageUsage(user.id, profile?.storage_used_bytes ?? null).then(() => {
+      fetchProfile();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
   
   useEffect(() => {
     fetchRecordings();
@@ -186,15 +196,13 @@ const Records: React.FC = () => {
     };
   }, [fetchRecordings]);
   
-  const handleUploadToSupabase = useCallback(async (recording: RecordedSession) => {
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
+  const handleUploadToCloud = useCallback(async (recording: RecordedSession) => {
+    if (!user?.id) {
       showError(t("records_page.error_login_to_upload"));
       return;
     }
     
-    if (recording.supabase_url) {
+    if (recording.cloud_url) {
       showError(t("records_page.error_already_uploaded"));
       return;
     }
@@ -212,93 +220,99 @@ const Records: React.FC = () => {
     
     setUploadingRecordId(recording.id);
     setUploadErrorRecordId(null);
-    setProgress(recording.id, 0); // Upload progressni boshlash
-    
-    const filePath = `${session.user.id}/${recording.id}.webm`;
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    
-    const upload = new tus.Upload(blob, {
-      endpoint: `${supabaseUrl}/storage/v1/upload/resumable`,
-      retryDelays: [0, 3000, 5000, 10000, 20000],
-      headers: {
-        authorization: `Bearer ${session.access_token}`,
-        'x-upsert': 'false',
-        'apikey': supabaseAnonKey,
-      },
-      metadata: {
-        bucketName: 'recordings',
-        objectName: filePath,
-        contentType: 'video/webm',
-        cacheControl: '3600',
-      },
-      onProgress: (bytesUploaded, bytesTotal) => {
-        const percentage = (bytesUploaded / bytesTotal) * 100;
-        setProgress(recording.id, percentage);
-      },
-      onSuccess: async () => {
-        const { data: publicUrlData } = supabase.storage
-          .from('recordings')
-          .getPublicUrl(filePath);
-          
-        if (publicUrlData.publicUrl) {
-          await updateLocalRecordingSupabaseUrl(recording.id, publicUrlData.publicUrl);
-          await upsertRecordingMetadataToSupabase({
-            id: recording.id,
-            user_id: session.user.id,
-            timestamp: recording.timestamp,
-            duration: recording.duration,
-            student_id: recording.student_id,
-            student_name: recording.student_name,
-            student_phone: recording.student_phone,
-            supabase_url: publicUrlData.publicUrl,
-          });
-          
-          await fetchProfile();
-          await fetchRecordings();
-          showSuccess(t("records_page.upload_success"));
-        } else {
-          showError(t("records_page.error_getting_public_url"));
-          setUploadErrorRecordId(recording.id);
+    setProgress(recording.id, 0);
+    setUploadBytesMap((prev) => ({ ...prev, [recording.id]: { loaded: 0, total: blob.size } }));
+
+    try {
+      const file = new File([blob], `${recording.id}.webm`, { type: blob.type || "video/webm" });
+      const form = new FormData();
+      form.append("local_id", recording.id);
+      form.append("user_id", user.id);
+      form.append("timestamp", recording.timestamp);
+      form.append("duration", String(recording.duration));
+      if (recording.student_id) form.append("student_id", recording.student_id);
+      if (recording.student_name) form.append("student_name", recording.student_name);
+      if (recording.student_phone) form.append("student_phone", recording.student_phone);
+      form.append("video", file);
+      form.append("size_bytes", String(blob.size));
+      
+      // Use XHR to get real-time upload progress (bytes)
+      const created: any = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", `${pb.baseUrl}/api/collections/recordings/records`, true);
+        if (pb.authStore.token) {
+          xhr.setRequestHeader("Authorization", `Bearer ${pb.authStore.token}`);
         }
-        
-        setUploadingRecordId(null);
-        removeProgress(recording.id);
-      },
-      onError: (error) => {
-        console.error("Tus upload error:", error);
-        let errorMessage = `${t("records_page.error_uploading_to_cloud")} ${error.message}`;
-        
-        if (
-          "originalRequest" in error &&
-          error.originalRequest &&
-          (error.originalRequest as any).response &&
-          (error.originalRequest as any).response.getStatus?.() === 413
-        ) {
-          errorMessage = t("records_page.error_max_size_exceeded");
-        }
-        
-        showError(errorMessage);
-        setUploadErrorRecordId(recording.id);
-        setUploadingRecordId(null);
-        removeProgress(recording.id);
-      },
-    });
-    
-    upload.start();
-  }, [t, fetchRecordings, fetchProfile, profile]);
+        xhr.responseType = "json";
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const loaded = event.loaded;
+            const total = event.total;
+            const percentage = (loaded / total) * 100;
+            setUploadBytesMap((prev) => ({ ...prev, [recording.id]: { loaded, total } }));
+            setProgress(recording.id, percentage);
+          }
+        };
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(xhr.response);
+          } else {
+            const msg =
+              (xhr.response && (xhr.response as any).message) ||
+              `HTTP ${xhr.status}`;
+            reject(new Error(msg));
+          }
+        };
+        xhr.onerror = () => reject(new Error("Network error during upload."));
+        xhr.send(form);
+      });
+      
+      const publicUrl = created?.video ? pb.files.getUrl(created, created.video) : undefined;
+      if (!publicUrl) throw new Error(t("records_page.error_getting_public_url"));
+
+      await updateLocalRecordingCloudUrl(recording.id, publicUrl);
+      await upsertRecordingMetadataToCloud({
+        id: recording.id,
+        user_id: user.id,
+        timestamp: recording.timestamp,
+        duration: recording.duration,
+        student_id: recording.student_id,
+        student_name: recording.student_name,
+        student_phone: recording.student_phone,
+        cloud_url: publicUrl,
+      });
+
+      // Recalculate used bytes from actual cloud records
+      await syncCloudStorageUsage(user.id, profile?.storage_used_bytes ?? null);
+
+      setUploadBytesMap((prev) => ({ ...prev, [recording.id]: { loaded: blob.size, total: blob.size } }));
+      setProgress(recording.id, 100);
+      await fetchProfile();
+      await fetchRecordings();
+      showSuccess(t("records_page.upload_success"));
+      setUploadingRecordId(null);
+      removeProgress(recording.id);
+    } catch (error: any) {
+      console.error("Upload error:", error);
+      showError(`${t("records_page.error_uploading_to_cloud")} ${error.message}`);
+      setUploadErrorRecordId(recording.id);
+      setUploadingRecordId(null);
+      removeProgress(recording.id);
+    }
+  }, [t, fetchRecordings, fetchProfile, profile, user]);
   
   const handleUploadClick = (recording: RecordedSession) => {
     if (isGuestMode) {
       setIsPricingDialogOpen(true);
     } else {
-      handleUploadToSupabase(recording);
+      handleUploadToCloud(recording);
     }
   };
   
   const handleDownload = useCallback(async (recording: RecordedSession) => {
     const downloadId = `download-${recording.id}`;
     setProgress(downloadId, 0);
+    setDownloadBytesMap((prev) => ({ ...prev, [downloadId]: { loaded: 0, total: 0 } }));
     
     try {
       let urlToDownload = recording.video_url;
@@ -324,6 +338,7 @@ const Records: React.FC = () => {
         if (event.lengthComputable) {
           const percentage = (event.loaded / event.total) * 100;
           setProgress(downloadId, percentage);
+          setDownloadBytesMap((prev) => ({ ...prev, [downloadId]: { loaded: event.loaded, total: event.total } }));
         }
       };
       
@@ -352,6 +367,11 @@ const Records: React.FC = () => {
       showError(`${t("records_page.error_downloading_video")} ${error.message}`);
     } finally {
       removeProgress(downloadId);
+      setDownloadBytesMap((prev) => {
+        const next = { ...prev };
+        delete next[downloadId];
+        return next;
+      });
     }
   }, [t]);
   
@@ -364,13 +384,14 @@ const Records: React.FC = () => {
       const localDeleted = await deleteLocalRecording(recording.id);
       if (localDeleted) {
         setRecordings(prev => prev.filter(rec => rec.id !== recording.id));
+        if (user?.id) await syncCloudStorageUsage(user.id, profile?.storage_used_bytes ?? null);
         await fetchProfile();
         showSuccess(t("records_page.success_recording_deleted"));
       }
     } catch (error: any) {
       showError(`${t("records_page.error_deleting_recording")} ${error.message}`);
     }
-  }, [t, fetchProfile]);
+  }, [t, fetchProfile, user?.id]);
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -412,6 +433,8 @@ const Records: React.FC = () => {
                   const uploadProgressValue = progressMap.get(recording.id) || 0;
                   const downloadProgressValue = progressMap.get(`download-${recording.id}`) || 0;
                   const isCurrentlyDownloading = downloadProgressValue > 0 && downloadProgressValue < 100;
+                  const uploadBytes = uploadBytesMap[recording.id];
+                  const downloadBytes = downloadBytesMap[`download-${recording.id}`];
                   
                   return (
                     <Card key={recording.id} className="p-4">
@@ -428,7 +451,7 @@ const Records: React.FC = () => {
                           <p className="text-sm text-muted-foreground">
                             {t("records_page.duration")}: {Math.floor(recording.duration / 60)}m {recording.duration % 60}s
                           </p>
-                          {recording.supabase_url && (
+                          {recording.cloud_url && (
                             <p className="text-xs text-green-600 flex items-center gap-1 mt-1">
                               <CheckCircle2 className="h-3 w-3" />
                               {t("records_page.uploaded_to_cloud")}
@@ -456,7 +479,7 @@ const Records: React.FC = () => {
                           {/* Download Local Button */}
                           {recording.isLocalBlobAvailable && (
                             <button 
-                              onClick={() => handleDownload({ ...recording, supabase_url: undefined })} 
+                              onClick={() => handleDownload({ ...recording, cloud_url: undefined })}
                               className="Download-button"
                               disabled={isDownloading || isUploading}
                             >
@@ -484,9 +507,10 @@ const Records: React.FC = () => {
                               disabled
                             >
                               <Cloud className="h-4 w-4 animate-pulse" />
-                              {t("records_page.uploading_to_cloud")} ({uploadProgressValue.toFixed(0)}%)
+                              {t("records_page.uploading_to_cloud")}{" "}
+                              ({uploadProgressValue.toFixed(0)}%)
                             </Button>
-                          ) : recording.supabase_url ? (
+                          ) : recording.cloud_url ? (
                             <button 
                               onClick={() => handleDownload(recording)} 
                               className="Download-button"
@@ -495,7 +519,9 @@ const Records: React.FC = () => {
                               {isCurrentlyDownloading ? (
                                 <>
                                   <Zap className="h-4 w-4 animate-pulse" />
-                                  <span>{t("records_page.downloading")} ({downloadProgressValue.toFixed(0)}%)</span>
+                                  <span>
+                                    {t("records_page.downloading")} ({downloadProgressValue.toFixed(0)}%)
+                                  </span>
                                 </>
                               ) : (
                                 <>
@@ -543,7 +569,7 @@ const Records: React.FC = () => {
                                 <AlertDialogTitle>{t("records_page.delete_recording_confirm_title")}</AlertDialogTitle>
                                 <AlertDialogDescription>
                                   {t("records_page.delete_recording_confirm_description")}
-                                  {recording.supabase_url && (
+                                  {recording.cloud_url && (
                                     <span className="block text-red-500 mt-2">
                                       {t("records_page.delete_from_cloud_warning")}
                                     </span>
@@ -560,6 +586,38 @@ const Records: React.FC = () => {
                           </AlertDialog>
                         </div>
                       </div>
+                      
+                      {/* Upload/Download progress details (bytes) */}
+                      {(isUploading || isCurrentlyDownloading) && (
+                        <div className="mt-3 space-y-2">
+                          {isUploading && uploadBytes && (
+                            <div className="space-y-1">
+                              <div className="flex justify-between text-xs text-muted-foreground">
+                                <span>
+                                  {t("records_page.uploading_to_cloud")}
+                                </span>
+                                <span>
+                                  {formatBytes(uploadBytes.loaded)} / {formatBytes(uploadBytes.total)}
+                                </span>
+                              </div>
+                              <Progress value={uploadProgressValue} />
+                            </div>
+                          )}
+                          {isCurrentlyDownloading && downloadBytes && downloadBytes.total > 0 && (
+                            <div className="space-y-1">
+                              <div className="flex justify-between text-xs text-muted-foreground">
+                                <span>
+                                  {t("records_page.downloading")}
+                                </span>
+                                <span>
+                                  {formatBytes(downloadBytes.loaded)} / {formatBytes(downloadBytes.total)}
+                                </span>
+                              </div>
+                              <Progress value={downloadProgressValue} />
+                            </div>
+                          )}
+                        </div>
+                      )}
                       
                       {recording.student_name && (
                         <div className="text-left text-sm text-muted-foreground mt-2 border-t pt-2">

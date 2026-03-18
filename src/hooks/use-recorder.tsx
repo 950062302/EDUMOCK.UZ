@@ -3,9 +3,8 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { showSuccess, showError } from "@/utils/toast";
 import { StudentInfo } from "@/lib/types";
-import { addLocalRecording, updateLocalRecordingSupabaseUrl, upsertRecordingMetadataToSupabase } from "@/lib/local-db";
+import { addLocalRecording, updateLocalRecordingCloudUrl, upsertRecordingMetadataToCloud } from "@/lib/local-db";
 import { useTranslation } from 'react-i18next';
-import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from 'uuid';
 import { setUploadProgress, removeUploadProgress } from "@/utils/uploadProgress";
 

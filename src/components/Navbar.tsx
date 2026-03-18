@@ -8,7 +8,7 @@ import { Menu, LogOut, User, Settings, Home as HomeIcon } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { showSuccess } from "@/utils/toast";
 import { useAuth } from "@/context/AuthProvider";
-import { supabase } from "@/integrations/supabase/client";
+import { pb } from "@/integrations/pocketbase/client";
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher';
 
@@ -27,8 +27,8 @@ const Navbar: React.FC = () => {
 
   const handleLogout = async () => {
     if (session) {
-      await supabase.auth.signOut();
-      showSuccess(t("common.success_logged_in"));
+      pb.authStore.clear();
+      showSuccess(t("common.logout"));
     } else if (isGuestMode) {
       localStorage.removeItem("isGuestMode");
       sessionStorage.removeItem("guestWelcomeToastShown"); // Belgini o'chirish

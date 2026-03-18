@@ -8,8 +8,8 @@ import { Bot } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/context/AuthProvider";
-import { supabase } from "@/integrations/supabase/client";
 import { showSuccess } from "@/utils/toast";
+import { pb } from "@/integrations/pocketbase/client";
 
 import NotFound from "@/pages/NotFound";
 import MoodJournal from "@/pages/MoodJournal";
@@ -21,6 +21,7 @@ import Settings from "@/pages/Settings";
 import UserProfile from "@/pages/UserProfile";
 import Questions from "@/pages/Questions";
 import Records from "@/pages/Records";
+import OAuth2Callback from "@/pages/OAuth2Callback";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SuperAdminRoute from "@/components/SuperAdminRoute";
 import SuperAdminDashboard from "@/pages/SuperAdminDashboard";
@@ -44,8 +45,8 @@ const AppContent: React.FC = () => {
 
   const handleLogout = async () => {
     if (session) {
-      await supabase.auth.signOut();
-      showSuccess(t("common.success_logged_in"));
+      pb.authStore.clear();
+      showSuccess(t("common.logout"));
     } else if (isGuestMode) {
       localStorage.removeItem("isGuestMode");
       sessionStorage.removeItem("guestWelcomeToastShown");
@@ -65,6 +66,7 @@ const AppContent: React.FC = () => {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/oauth2-callback" element={<OAuth2Callback />} />
         <Route path="/mock-test" element={<MockTest />} />
 
         <Route element={<SuperAdminRoute />}>

@@ -15,13 +15,13 @@ import { format } from "date-fns";
 import { SpeakingQuestion, SpeakingPart, Part1_1Question, Part1_2Question, Part2Question, Part3Question } from "@/lib/types";
 import { allSpeakingParts } from "@/lib/constants";
 import {
-  getSupabaseQuestions,
-  addSupabaseQuestion,
-  deleteSupabaseQuestion,
-  resetSupabaseQuestionCooldowns,
-  updateSupabaseQuestion,
+  getQuestions,
+  addQuestion,
+  deleteQuestion,
+  resetQuestionCooldowns,
+  updateQuestion,
 } from "@/lib/local-db";
-import { supabase } from "../integrations/supabase/client";
+import { pb } from "@/integrations/pocketbase/client";
 import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from "@/context/AuthProvider";
 import { Link } from "react-router-dom";
@@ -63,7 +63,7 @@ const SpeakingQuestionManager: React.FC = () => {
 
   const loadQuestions = useCallback(async () => {
     setIsLoading(true);
-    const allQuestions = await getSupabaseQuestions();
+    const allQuestions = await getQuestions();
     const groupedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
       "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
     };
@@ -165,28 +165,19 @@ const SpeakingQuestionManager: React.FC = () => {
       setIsUploading(true);
       showSuccess(t("add_question_page.success_video_saving"));
 
-      const fileName = `${uuidv4()}-${file.name}`;
-      const filePath = `${user.id}/${fileName}`;
-
       try {
-        const { error: uploadError } = await supabase.storage
-          .from('question-images')
-          .upload(filePath, file);
+        const form = new FormData();
+        form.append("user_id", user.id);
+        form.append("file", file);
 
-        if (uploadError) {
-          throw uploadError;
-        }
+        const imgRecord: any = await pb.collection("question_images").create(form as any, { requestKey: null });
+        const fileName = imgRecord.file;
+        if (!fileName) throw new Error(t("add_question_page.error_no_public_url"));
 
-        const { data } = supabase.storage
-          .from('question-images')
-          .getPublicUrl(filePath);
-
-        if (!data.publicUrl) {
-          throw new Error(t("add_question_page.error_no_public_url"));
-        }
+        const publicUrl = pb.files.getUrl(imgRecord, fileName);
 
         const newImagePreviewUrls = [...imagePreviewUrls];
-        newImagePreviewUrls[index] = data.publicUrl;
+        newImagePreviewUrls[index] = publicUrl;
         setImagePreviewUrls(newImagePreviewUrls);
         showSuccess(t("add_question_page.success_video_saved"));
       } catch (error: any) {
@@ -254,7 +245,7 @@ const SpeakingQuestionManager: React.FC = () => {
               showError(t("add_question_page.error_unknown_question_type"));
               return;
           }
-          const result = await updateSupabaseQuestion(updatedQuestion);
+          const result = await updateQuestion(updatedQuestion);
           if (result) {
             showSuccess(t("add_question_page.success_question_updated"));
             await loadQuestions();
@@ -262,7 +253,7 @@ const SpeakingQuestionManager: React.FC = () => {
           }
         }
       } else {
-        const result = await addSupabaseQuestion(questionData);
+        const result = await addQuestion(questionData);
         if (result) {
           showSuccess(t("add_question_page.success_question_added_to_part", { part }));
           await loadQuestions();
@@ -273,7 +264,7 @@ const SpeakingQuestionManager: React.FC = () => {
   };
 
   const handleDeleteQuestion = async (id: string) => {
-    const success = await deleteSupabaseQuestion(id);
+    const success = await deleteQuestion(id);
     if (success) {
       showSuccess(t("add_question_page.success_question_deleted"));
       await loadQuestions();
@@ -284,7 +275,7 @@ const SpeakingQuestionManager: React.FC = () => {
   };
 
   const handleResetAllCooldowns = async () => {
-    const success = await resetSupabaseQuestionCooldowns();
+    const success = await resetQuestionCooldowns();
     if (success) {
       showSuccess(t("add_question_page.success_cooldowns_reset"));
       await loadQuestions();
